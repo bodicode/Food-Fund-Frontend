@@ -93,11 +93,11 @@ export default function Hero() {
           <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">
             <div>
               <h1 className="hero-title text-4xl md:text-5xl font-bold leading-tight text-yellow-300 text-nowrap">
-                "Chia sẻ bữa ăn.
+                &quot;Chia sẻ bữa ăn.
               </h1>
 
               <h1 className="hero-title text-4xl md:text-5xl font-bold leading-tight text-yellow-300 text-nowrap">
-                Gieo mầm hy vọng."
+                Gieo mầm hy vọng.&quot;
               </h1>
 
               <div className="hero-left">
