@@ -3,6 +3,36 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer utilities {
+  .btn-color {
+    @apply bg-[#ad4e28] hover:bg-[#8c3e1f] text-white cursor-pointer;
+  }
+
+  .text-color {
+    @apply text-[#ad4e28];
+  }
+
+  .bg-color-base {
+    @apply bg-gradient-to-br from-[#fefcf8] via-[#fef7f0] to-[#fdf2e8];
+  }
+
+  .bg-brown-color {
+    @apply bg-[#ad4e28];
+  }
+
+  .bg-green-color {
+    @apply bg-[#8BAE66];
+  }
+
+  .bg-dark-green-color {
+    @apply bg-[#436037];
+  }
+
+  .bg-orange-color {
+    @apply bg-[#E77731];
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -118,6 +148,6 @@
   }
   body {
     @apply bg-background text-foreground;
-      font-family: var(--font-montserrat), sans-serif;    
+    font-family: var(--font-montserrat), sans-serif;
   }
 }

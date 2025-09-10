@@ -2,16 +2,30 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Ticker from "./Ticker";
+import Ticker from "./ticker";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [currentImage, setCurrentImage] = useState(0);
+
+  const images = [
+    "/images/hero.png",
+    "/images/hero-1.png",
+    "/images/hero-2.png",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -59,17 +73,24 @@ export default function Hero() {
         ref={containerRef}
         className="relative h-screen w-full bg-black text-white overflow-hidden"
       >
-        <Image
-          src="/images/hero.png"
-          alt="Hero background"
-          fill
-          priority
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0">
+          {images.map((img, index) => (
+            <Image
+              key={index}
+              src={img}
+              alt={`Hero background ${index}`}
+              fill
+              priority={index === 0}
+              className={`object-cover object-center transition-opacity duration-1000 ${
+                index === currentImage ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
 
         <div className="relative z-10 h-full flex items-end">
-          <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 pb-16">
+          <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">
             <div>
               <h1 className="hero-title text-4xl md:text-5xl font-bold leading-tight text-yellow-300 text-nowrap">
                 "Chia sẻ bữa ăn.
