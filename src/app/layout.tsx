@@ -10,6 +10,9 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "FoodFund",
   description: "FoodFund is a platform for funding food projects",
+  icons: {
+    icon: "/images/tab.png",
+  },
 };
 
 export default function RootLayout({
@@ -19,11 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${montserrat.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body className={`${montserrat.variable} antialiased`}>{children}</body>
     </html>
   );
 }

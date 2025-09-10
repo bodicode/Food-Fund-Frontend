@@ -10,33 +10,56 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <Card className="bg-transparent border-none shadow-none text-black w-full">
+    <Card className="bg-transparent border-none shadow-none text-black lg:w-3/4 md:w-full">
       <CardHeader>
         <CardTitle className="text-center text-2xl font-bold text-[#ad4e28]">
           Đăng nhập
         </CardTitle>
       </CardHeader>
+
       <CardContent className="flex flex-col space-y-4">
         <Input
           type="text"
           placeholder="Tên đăng nhập"
           className="bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28]"
         />
-        <Input
-          type="password"
-          placeholder="Mật khẩu"
-          className="bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28]"
-        />
+
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Mật khẩu"
+            className="bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28] pr-10"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-[#ad4e28] hover:text-[#8c3e1f] hover:bg-transparent"
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+
         <Button
           type="submit"
-          className="bg-[#ad4e28] hover:bg-[#8c3e1f] text-white font-semibold rounded-lg py-2 cursor-pointer"
+          className="font-semibold rounded-lg py-2 btn-color"
         >
           Đăng nhập
         </Button>
       </CardContent>
+
       <CardFooter className="flex justify-between text-sm text-[#ad4e28]">
         <Link href="#" className="hover:underline">
           Quên mật khẩu
