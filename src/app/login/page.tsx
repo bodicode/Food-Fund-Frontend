@@ -6,6 +6,8 @@ import gsap from "gsap";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
 import { Button } from "@/components/ui/button";
+import { ChevronRightIcon } from "@/components/animate-ui/icons/chevron-right";
+import { ChevronLeftIcon } from "@/components/animate-ui/icons/chevron-left";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -121,7 +123,7 @@ export default function Login() {
                 <h2 className="text-3xl font-bold text-white mb-4">
                   Rất vui được gặp lại bạn!
                 </h2>
-                <p className="text-white/90 mb-6 max-w-md">
+                <p className="text-white/90 mb-6 w-full">
                   Hãy đăng nhập để tiếp tục hành trình, theo dõi tiến trình của
                   bạn và cùng nhau lan tỏa nhiều điều tốt đẹp hơn.
                 </p>
