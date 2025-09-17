@@ -2,15 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import Lenis from "@studio-freight/lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-let gsap: any = null,
-  ScrollTrigger: any = null;
-if (typeof window !== "undefined") {
-  try {
-    gsap = require("gsap");
-    ScrollTrigger = require("gsap/ScrollTrigger");
-    gsap?.registerPlugin?.(ScrollTrigger);
-  } catch {}
+gsap.registerPlugin(ScrollTrigger);
+
+interface LenisOptions {
+  lerp?: number;
+  duration?: number;
+  smoothWheel?: boolean;
+  smoothTouch?: boolean;
+  touchMultiplier?: number;
+  infinite?: boolean;
 }
 
 export default function SmoothScrollProvider({
@@ -18,54 +21,42 @@ export default function SmoothScrollProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const lenisRef = useRef<any>(null);
+  const lenisRef = useRef<Lenis | null>(null);
   const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     const isTouch =
       "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (navigator as any).msMaxTouchPoints > 0;
 
-    const opts: any = isTouch
+    const opts: LenisOptions = isTouch
       ? { lerp: 0.16, smoothWheel: true, smoothTouch: true }
       : { lerp: 0.08, smoothWheel: true, smoothTouch: false };
 
-    opts.autoRaf = true;
-
-    const lenis = new (Lenis as any)(opts);
+    const lenis = new Lenis(opts);
     lenisRef.current = lenis;
 
     const onLenisScroll = () => {
-      try {
-        ScrollTrigger?.update?.();
-      } catch {}
+      ScrollTrigger.update();
     };
-    lenis.on?.("scroll", onLenisScroll);
+    lenis.on("scroll", onLenisScroll);
 
-    const needManualRaf = !(lenis as any).options?.autoRaf;
     const loop = (time: number) => {
-      lenis.raf?.(time);
+      lenis.raf(time);
       rafIdRef.current = requestAnimationFrame(loop);
     };
-    if (needManualRaf) {
-      rafIdRef.current = requestAnimationFrame(loop);
-    }
-
-    try {
-      lenis.start?.();
-    } catch {}
+    rafIdRef.current = requestAnimationFrame(loop);
 
     const prev = history.scrollRestoration;
     history.scrollRestoration = "manual";
 
     return () => {
       history.scrollRestoration = prev;
-      try {
-        lenis.off?.("scroll", onLenisScroll);
-      } catch {}
+      lenis.off("scroll", onLenisScroll);
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-      lenis.destroy?.();
+      lenis.destroy();
       lenisRef.current = null;
     };
   }, []);
