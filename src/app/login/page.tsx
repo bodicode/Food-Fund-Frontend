@@ -6,8 +6,6 @@ import gsap from "gsap";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
 import { Button } from "@/components/ui/button";
-import { ChevronRightIcon } from "@/components/animate-ui/icons/chevron-right";
-import { ChevronLeftIcon } from "@/components/animate-ui/icons/chevron-left";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);

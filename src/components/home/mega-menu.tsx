@@ -85,7 +85,7 @@ export function MegaMenu({
                 {s.items.map((item) => (
                   <li key={item.title}>
                     <Link href={item.href} className="group block">
-                      <p className="text-base font-semibold group-hover:underline underline-offset-4">
+                      <p className="inline-block text-base font-semibold nav-hover-btn nav-hover-black-btn">
                         {item.title}
                       </p>
                       {item.desc && (
