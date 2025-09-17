@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Montserrat } from "next/font/google";
+import SmoothScrollProvider from "../providers/smooth-scroll-provider";
+import { Navigation } from "@/components/home/navigation";
+import { Footer } from "@/components/home/footer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -11,7 +14,7 @@ export const metadata: Metadata = {
   title: "FoodFund",
   description: "FoodFund is a platform for funding food projects",
   icons: {
-    icon: "/images/tab.png",
+    icon: "/favicon.ico",
   },
 };
 
@@ -22,7 +25,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} antialiased`}>{children}</body>
+      <body className={`${montserrat.variable} antialiased`}>
+        <SmoothScrollProvider>
+          <Navigation />
+          {children}
+          <Footer />
+        </SmoothScrollProvider>
+      </body>
     </html>
   );
 }

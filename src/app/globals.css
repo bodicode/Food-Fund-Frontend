@@ -4,6 +4,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @layer utilities {
+  .nav-hover-btn {
+    @apply relative after:absolute after:-bottom-0.5 after:left-0 after:h-[2px] after:w-full after:bg-[#ad4e28] after:origin-bottom-right after:scale-x-0  after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom-left hover:after:scale-x-100 dark:after:bg-white cursor-pointer;
+  }
+
+  .nav-hover-black-btn::after {
+    @apply bg-[#000000];
+  }
+
   .btn-color {
     @apply bg-[#ad4e28] hover:bg-[#8c3e1f] text-white cursor-pointer;
   }
@@ -30,6 +38,25 @@
 
   .bg-orange-color {
     @apply bg-[#E77731];
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent;
   }
 }
 
@@ -143,11 +170,31 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: auto !important;
+  }
+  html.scroll-smooth {
+    scroll-behavior: auto !important;
+  }
+  :root.scroll-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    overflow-x: clip;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-montserrat), sans-serif;
+    overscroll-behavior-y: none;
   }
 }

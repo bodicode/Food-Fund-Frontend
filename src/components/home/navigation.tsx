@@ -1,12 +1,11 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { Search, Menu, HeartHandshake, Megaphone, Info } from "lucide-react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,117 +23,71 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-import { MegaMenu } from "./mega-menu";
-import { MobileMegaMenu } from "./mobile-mega-menu";
+import { Search } from "@/components/animate-ui/icons/search";
+import { MegaMenu } from "@/components/home/mega-menu";
+import { MobileMegaMenu } from "@/components/home/mobile-mega-menu";
+import { HeartIcon } from "@/components/animate-ui/icons/heart";
+import { MessageCircleHeart } from "@/components/animate-ui/icons/message-circle-heart";
+import { UsersRound } from "@/components/animate-ui/icons/users-round";
+import { Ellipsis } from "@/components/animate-ui/icons/ellipsis";
+import { usePathname, useRouter } from "next/navigation";
+import { useGsapNavigation } from "@/hooks/useGsapNavigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Navigation() {
-  const [openSearch, setOpenSearch] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const headerRef = useRef<HTMLElement | null>(null);
 
-  useLayoutEffect(() => {
-    if (!headerRef.current) return;
-
-    const ctx = gsap.context(() => {
-      let lastScroll = 0;
-
-      ScrollTrigger.create({
-        trigger: document.documentElement,
-        start: "top top",
-        end: "200 top",
-        onUpdate: (self) => {
-          if (self.scroll() > 50) {
-            gsap.to(headerRef.current, {
-              backgroundColor: "rgba(0,0,0,0.9)",
-              backdropFilter: "blur(8px)",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-              duration: 0.4,
-              ease: "power2.out",
-            });
-          } else {
-            gsap.to(headerRef.current, {
-              backgroundColor: "rgba(0,0,0,0)",
-              backdropFilter: "blur(0px)",
-              boxShadow: "0 0 0 rgba(0,0,0,0)",
-              duration: 0.4,
-              ease: "power2.out",
-            });
-          }
-        },
-      });
-
-      ScrollTrigger.create({
-        start: 0,
-        end: "max",
-        onUpdate: (self) => {
-          const currentScroll = self.scroll();
-          if (currentScroll > lastScroll && currentScroll > 100) {
-            gsap.to(headerRef.current, {
-              yPercent: -150,
-              opacity: 0,
-              duration: 0.5,
-              ease: "power3.inOut",
-            });
-          } else {
-            gsap.to(headerRef.current, {
-              yPercent: 0,
-              opacity: 1,
-              duration: 0.5,
-              ease: "power3.inOut",
-            });
-          }
-          lastScroll = currentScroll;
-        },
-      });
-    });
-
-    return () => ctx.revert();
-  }, []);
+  useGsapNavigation(headerRef, pathname);
 
   return (
     <header
       ref={headerRef}
-      className="fixed top-4 left-1/2 z-50 w-[92%] max-w-7xl -translate-x-1/2 rounded-2xl transition-colors duration-300"
+      className={`fixed left-1/2 z-50 -translate-x-1/2 transition-colors duration-300
+      ${
+        pathname === "/"
+          ? "top-4 text-white bg-transparent w-[92%] max-w-7xl rounded-2xl"
+          : "top-0 text-color bg-color-base shadow-md w-full rounded-4xl"
+      }
+    `}
     >
       <nav className="container mx-auto">
         <div className="hidden lg:flex items-center justify-between h-20 px-6 relative whitespace-nowrap">
           <div className="flex items-center gap-4 text-sm">
-            <Dialog open={openSearch} onOpenChange={setOpenSearch}>
-              <DialogTrigger asChild>
-                <button
-                  className="inline-flex items-center gap-2 text-white hover:opacity-80 transition-colors"
-                  aria-label="Search"
-                >
-                  <Search className="h-5 w-5" />
-                  <span>Tìm kiếm</span>
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogTitle>Tìm kiếm chiến dịch</DialogTitle>
-                <DialogDescription>
-                  Nhập từ khóa để tìm kiếm các chiến dịch gây quỹ
-                </DialogDescription>
-
-                <div className="flex gap-2">
-                  <Input autoFocus placeholder="Tìm kiếm theo tên chiến dịch" />
-                  <Button onClick={() => setOpenSearch(false)}>Tìm</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <button
+              className="inline-flex items-center gap-2 cursor-pointer"
+              onClick={() => router.push("/s")}
+            >
+              <Search
+                animateOnHover
+                animateOnView
+                animateOnTap
+                className="mr-2 h-4 w-4"
+              />
+              <span>Tìm kiếm</span>
+            </button>
 
             <MegaMenu
               label="Ủng hộ"
               description="Khám phá chiến dịch và tổ chức để hỗ trợ"
-              icon={<HeartHandshake className="h-5 w-5" />}
+              icon={
+                <HeartIcon
+                  className="h-5 w-5"
+                  animateOnView
+                  animateOnTap
+                  animateOnHover
+                />
+              }
               sections={[
                 {
                   heading: "Danh mục chiến dịch",
                   items: [
                     {
-                      title: "Chiến dịch nổi bật",
-                      desc: "Các chiến dịch được cộng đồng quan tâm",
-                      href: "/donate/featured",
+                      title: "Các loại chiến dịch",
+                      desc: "Khám phá các loại chiến dịch",
+                      href: "/discovery",
                     },
                     {
                       title: "Khẩn cấp",
@@ -179,7 +132,14 @@ export function Navigation() {
             <MegaMenu
               label="Gây quỹ"
               description="Tạo và phát triển chiến dịch gây quỹ thành công"
-              icon={<Megaphone className="h-5 w-5" />}
+              icon={
+                <MessageCircleHeart
+                  animateOnView
+                  animateOnTap
+                  animateOnHover
+                  className="h-5 w-5"
+                />
+              }
               sections={[
                 {
                   heading: "Khởi tạo chiến dịch",
@@ -226,10 +186,12 @@ export function Navigation() {
           </div>
 
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <Link
-              href="/"
-              className="inline-flex items-center"
-              aria-label="Home"
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/";
+              }}
+              className="inline-flex items-center cursor-pointer"
             >
               <Image
                 src="/images/logo.png"
@@ -239,14 +201,21 @@ export function Navigation() {
                 className="h-32 w-auto"
                 priority
               />
-            </Link>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 text-sm">
             <MegaMenu
               label="Về chúng tôi"
               description="Về FoodFund & các nguồn hỗ trợ"
-              icon={<Info className="h-5 w-5" />}
+              icon={
+                <UsersRound
+                  animateOnHover
+                  animateOnView
+                  animateOnTap
+                  className="h-5 w-5"
+                />
+              }
               align="end"
               sections={[
                 {
@@ -289,10 +258,7 @@ export function Navigation() {
                 },
               ]}
             />
-            <Link
-              href="/login"
-              className="text-white hover:opacity-80 transition-colors"
-            >
+            <Link href="/login" className="hover:opacity-80 py-1">
               Đăng nhập
             </Link>
           </div>
@@ -302,14 +268,12 @@ export function Navigation() {
           <div className="flex items-center gap-2">
             <Sheet>
               <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Open menu"
-                  className="hover:bg-transparent"
-                >
-                  <Menu className="h-5 w-5 text-white" />
-                </Button>
+                <Ellipsis
+                  animateOnHover
+                  animateOnView
+                  animateOnTap
+                  className="h-5 w-5 text-color"
+                />
               </SheetTrigger>
               <SheetContent side="left" className="w-[320px] bg-[#fdf5ea] pt-4">
                 <SheetHeader className="p-0 pt-2">
@@ -329,7 +293,7 @@ export function Navigation() {
                   </Link>
                 </SheetHeader>
 
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 space-y-2 px-2">
                   <MobileMegaMenu
                     label="Ủng hộ"
                     sections={[
@@ -479,13 +443,18 @@ export function Navigation() {
                   </Link>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-2">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Search className="mr-2 h-4 w-4" />
-                        Tìm kiếm
-                      </Button>
+                      <button className="inline-flex items-center gap-2 px-4">
+                        <Search
+                          animateOnHover
+                          animateOnView
+                          animateOnTap
+                          className="mr-2 h-4 w-4"
+                        />
+                        <span className="text-sm">Tìm kiếm</span>
+                      </button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogTitle>Tìm kiếm chiến dịch</DialogTitle>
