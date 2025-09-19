@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { usePathname } from "next/navigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Footer() {
   const footerRef = useRef<HTMLElement | null>(null);
+  const pathname = usePathname();
 
   useLayoutEffect(() => {
     if (!footerRef.current) return;
@@ -51,7 +53,7 @@ export function Footer() {
     }, footerRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [pathname]);
 
   return (
     <footer
