@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
@@ -42,6 +42,26 @@ export function Navigation() {
 
   useGsapNavigation(headerRef, pathname);
 
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.from(headerRef.current, {
+        y: -80,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+      });
+
+      gsap.from(headerRef.current.querySelectorAll("nav .flex > *"), {
+        opacity: 0,
+        y: -20,
+        stagger: 0.1,
+        delay: 0.3,
+        duration: 0.8,
+        ease: "power2.out",
+      });
+    }
+  }, []);
+
   return (
     <header
       ref={headerRef}
@@ -49,7 +69,7 @@ export function Navigation() {
       ${
         pathname === "/"
           ? "top-4 text-white bg-transparent w-[92%] max-w-7xl rounded-2xl"
-          : "top-0 text-color bg-color-base shadow-md w-full rounded-4xl"
+          : "top-0 text-color bg-color-base shadow-md w-full"
       }
     `}
     >
