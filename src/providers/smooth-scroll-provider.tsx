@@ -28,8 +28,10 @@ export default function SmoothScrollProvider({
     const isTouch =
       "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (navigator as any).msMaxTouchPoints > 0;
+      (typeof (navigator as Partial<{ msMaxTouchPoints: number }>)
+        .msMaxTouchPoints === "number" &&
+        (navigator as Partial<{ msMaxTouchPoints: number }>).msMaxTouchPoints! >
+          0);
 
     const opts: LenisOptions = isTouch
       ? { lerp: 0.16, smoothWheel: true, smoothTouch: true }
