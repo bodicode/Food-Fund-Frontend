@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "FoodFund",
   description: "FoodFund is a platform for funding food projects",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/images/favicon.ico",
   },
 };
 

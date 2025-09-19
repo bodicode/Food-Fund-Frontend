@@ -92,7 +92,7 @@ export function Navigation() {
                     {
                       title: "Khẩn cấp",
                       desc: "Các trường hợp cần cứu trợ khẩn cấp",
-                      href: "/donate/emergency",
+                      href: "/emergency",
                     },
                     {
                       title: "Hỗ trợ cá nhân",
@@ -303,12 +303,12 @@ export function Navigation() {
                           {
                             title: "Chiến dịch nổi bật",
                             desc: "Các chiến dịch được cộng đồng quan tâm",
-                            href: "/donate/featured",
+                            href: "/discovery",
                           },
                           {
                             title: "Khẩn cấp",
                             desc: "Các trường hợp cần cứu trợ khẩn cấp",
-                            href: "/donate/emergency",
+                            href: "/emergency",
                           },
                           {
                             title: "Hỗ trợ cá nhân",
@@ -448,9 +448,10 @@ export function Navigation() {
                     <DialogTrigger asChild>
                       <button className="inline-flex items-center gap-2 px-4">
                         <Search
+                          animate
                           animateOnHover
                           animateOnView
-                          animateOnTap
+                          loop
                           className="mr-2 h-4 w-4"
                         />
                         <span className="text-sm">Tìm kiếm</span>

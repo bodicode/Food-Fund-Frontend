@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { AlarmClock } from "./animate-ui/icons/alarm-clock";
+import { Clock12 } from "./animate-ui/icons/clock-12";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,6 +18,8 @@ type CampaignCardProps = {
   goal: number;
   progress: number;
   isHero?: boolean;
+  isEmergency?: boolean;
+  deadline?: string;
 };
 
 const fmtVND = (n: number) =>
@@ -34,6 +38,8 @@ export function CampaignCard({
   goal,
   progress,
   isHero = false,
+  isEmergency = false,
+  deadline,
 }: CampaignCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +86,12 @@ export function CampaignCard({
     return () => ctx.revert();
   }, [progress, raised, goal]);
 
+  function daysLeft(deadline?: string) {
+    if (!deadline) return null;
+    const diff = new Date(deadline).getTime() - new Date().getTime();
+    return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
+  }
+
   return (
     <div
       ref={cardRef}
@@ -88,6 +100,8 @@ export function CampaignCard({
         isHero
           ? "fc-hero fc-parallax group relative rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl"
           : "fc-card fc-parallax group relative rounded-xl overflow-hidden bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg"
+      } ${
+        isEmergency ? "border border-red-400 bg-white/70 backdrop-blur-xl" : ""
       }`}
     >
       <div className="overflow-hidden cursor-pointer">
@@ -98,8 +112,14 @@ export function CampaignCard({
           height={isHero ? 600 : 300}
           className={`fc-img w-full ${
             isHero ? "h-[460px] md:h-[800px]" : "h-[280px] md:h-[300px]"
-          } object-cover`}
+          }  object-cover`}
         />
+
+        {isEmergency && (
+          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow flex items-center gap-x-1">
+            Khẩn cấp <Clock12 animate animateOnView loop className="h-5 w-5" />
+          </span>
+        )}
       </div>
 
       <span
@@ -114,11 +134,24 @@ export function CampaignCard({
           className={`${
             isHero
               ? "font-semibold text-lg line-clamp-2"
-              : "font-medium text-sm md:text-base line-clamp-2 h-14"
+              : "font-medium text-lg md:text-base line-clamp-2 h-12"
           }`}
         >
           {title}
         </h3>
+
+        {isEmergency && deadline && (
+          <div className="mt-3 text-sm text-red-600 font-medium flex items-center gap-x-1">
+            <AlarmClock
+              className="w-4 h-4"
+              animate
+              animateOnHover
+              animateOnView
+              loop
+            />
+            <span>Còn {daysLeft(deadline)} ngày</span>
+          </div>
+        )}
 
         <div className="mt-2 md:mt-3 space-y-1">
           <div className="flex items-center justify-between text-sm text-gray-600">
