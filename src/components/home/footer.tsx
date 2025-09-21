@@ -100,7 +100,7 @@ export function Footer() {
           </h4>
           <ul className="space-y-2">
             <li>
-              <Link href="#">Giới thiệu</Link>
+              <Link href="/about">Giới thiệu</Link>
             </li>
             <li>
               <Link href="/contact">Liên hệ</Link>

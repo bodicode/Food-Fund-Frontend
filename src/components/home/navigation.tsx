@@ -139,11 +139,6 @@ export function Navigation() {
                       desc: "Câu chuyện thực tế từ người nhận hỗ trợ",
                       href: "/donate/stories",
                     },
-                    {
-                      title: "Trung tâm hỗ trợ",
-                      desc: "Hướng dẫn, câu hỏi thường gặp",
-                      href: "/help",
-                    },
                   ],
                 },
               ]}
@@ -354,11 +349,6 @@ export function Navigation() {
                             title: "Hành trình yêu thương",
                             desc: "Câu chuyện thực tế từ người nhận hỗ trợ",
                             href: "/donate/stories",
-                          },
-                          {
-                            title: "Trung tâm hỗ trợ",
-                            desc: "Hướng dẫn, câu hỏi thường gặp",
-                            href: "/help",
                           },
                         ],
                       },
