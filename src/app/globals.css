@@ -21,7 +21,7 @@
   }
 
   .bg-color-base {
-    @apply bg-gradient-to-br from-[#fefcf8] via-[#fef7f0] to-[#fdf2e8];
+    @apply bg-gradient-to-br from-[#fefcf8] to-[#fef7f0];
   }
 
   .bg-brown-color {
@@ -45,7 +45,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: "#ad4e28";
   }
 
   ::-webkit-scrollbar-thumb {
@@ -178,6 +178,7 @@
   }
   :root.scroll-smooth {
     scroll-behavior: auto !important;
+    scrollbar-color: "#ad4e28";
   }
 
   html,

@@ -103,7 +103,7 @@ export function Footer() {
               <Link href="#">Giới thiệu</Link>
             </li>
             <li>
-              <Link href="#">Liên hệ</Link>
+              <Link href="/contact">Liên hệ</Link>
             </li>
             <li>
               <Link href="#">Hướng dẫn gây quỹ</Link>
