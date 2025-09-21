@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import Lenis from "@studio-freight/lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,13 +16,26 @@ interface LenisOptions {
   infinite?: boolean;
 }
 
-export default function SmoothScrollProvider({
-  children,
-}: {
+export interface LenisController {
+  pause: () => void;
+  resume: () => void;
+}
+
+interface SmoothScrollProviderProps {
   children: React.ReactNode;
-}) {
+}
+
+const SmoothScrollProvider = forwardRef<
+  LenisController,
+  SmoothScrollProviderProps
+>(({ children }, ref) => {
   const lenisRef = useRef<Lenis | null>(null);
   const rafIdRef = useRef<number | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    pause: () => lenisRef.current?.stop(),
+    resume: () => lenisRef.current?.start(),
+  }));
 
   useEffect(() => {
     const isTouch =
@@ -40,9 +53,7 @@ export default function SmoothScrollProvider({
     const lenis = new Lenis(opts);
     lenisRef.current = lenis;
 
-    const onLenisScroll = () => {
-      ScrollTrigger.update();
-    };
+    const onLenisScroll = () => ScrollTrigger.update();
     lenis.on("scroll", onLenisScroll);
 
     const loop = (time: number) => {
@@ -64,4 +75,8 @@ export default function SmoothScrollProvider({
   }, []);
 
   return <>{children}</>;
-}
+});
+
+SmoothScrollProvider.displayName = "SmoothScrollProvider";
+
+export default SmoothScrollProvider;

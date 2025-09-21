@@ -69,7 +69,7 @@ export function Navigation() {
       ${
         pathname === "/"
           ? "top-4 text-white bg-transparent w-[92%] max-w-7xl rounded-2xl"
-          : "top-0 text-color bg-color-base shadow-md w-full"
+          : "top-0 text-color bg-color-base w-full"
       }
     `}
     >
@@ -117,12 +117,12 @@ export function Navigation() {
                     {
                       title: "Hỗ trợ cá nhân",
                       desc: "Giúp đỡ người bệnh, trẻ em, người già...",
-                      href: "/donate/personal",
+                      href: "/s?tab=personal",
                     },
                     {
                       title: "Tổ chức xã hội",
                       desc: "Gây quỹ cho nhóm thiện nguyện, tổ chức phi lợi nhuận",
-                      href: "/donate/organizations",
+                      href: "/s?tab=organization",
                     },
                   ],
                 },
