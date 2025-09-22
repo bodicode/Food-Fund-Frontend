@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import StoryCard from "@/components/article-card";
 
 const stories = [
   {
     id: 1,
-    title: "Suất cơm nghĩa tình tại bệnh viện Quận 8",
+    title: "Suất cơm nghĩa tình tại bệnh viện Quận 8 Thành phố Hồ Chí Minh",
     excerpt:
       "Mỗi ngày, hàng trăm bệnh nhân nghèo được hỗ trợ những suất cơm nóng hổi...",
     content:
@@ -47,7 +46,7 @@ export default function JourneyPage() {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-color">
             Hành trình yêu thương
           </h1>
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-color">
+          <p className="max-w-2xl mx-auto text-lg text-color">
             Những câu chuyện thực tế được ghi lại trên hành trình lan tỏa yêu
             thương qua từng suất ăn.
           </p>
