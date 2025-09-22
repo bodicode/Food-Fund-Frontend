@@ -137,7 +137,7 @@ export function Navigation() {
                     {
                       title: "Hành trình yêu thương",
                       desc: "Câu chuyện thực tế từ người nhận hỗ trợ",
-                      href: "/donate/stories",
+                      href: "/journey",
                     },
                   ],
                 },

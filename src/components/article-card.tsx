@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowRight } from "./animate-ui/icons/arrow-right";
+import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
 
 interface StoryCardProps {
   id: number;
@@ -28,7 +28,9 @@ export default function StoryCard({ title, excerpt, image }: StoryCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
       </div>
       <div className="p-5">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2 text-ellipsis overflow-hidden h-14">
+          {title}
+        </h3>
         <p className="text-gray-600 text-sm line-clamp-3">{excerpt}</p>
         <span className="mt-3 inline-block text-sm font-medium text-color nav-hover-btn">
           Đọc thêm{" "}
