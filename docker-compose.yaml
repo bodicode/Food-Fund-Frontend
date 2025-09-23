@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  gateway-service:
+    image: ttrece/foodfund-graphql-gateway:develop
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - foodfund-network
+
+  auth-service:
+    image: ttrece/foodfund-auth:develop
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env.docker
+    networks:
+      - foodfund-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--server-response", "http://localhost:8002/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  user-service:
+    image: ttrece/foodfund-user:develop
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env.docker
+    networks:
+      - foodfund-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--server-response", "http://localhost:8003/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+networks:
+  foodfund-network:
+    driver: bridge
