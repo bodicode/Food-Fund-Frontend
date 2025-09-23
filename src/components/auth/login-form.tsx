@@ -111,7 +111,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
       <CardFooter className="flex flex-col gap-3 text-sm text-[#ad4e28] items-center">
         <div className="flex justify-between w-full">
-          <Link href="#" className="hover:underline">
+          <Link href="/forgot-password" className="hover:underline">
             Quên mật khẩu
           </Link>
           <Link href="/" className="hover:underline">
