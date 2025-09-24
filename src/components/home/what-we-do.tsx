@@ -14,7 +14,7 @@ export function WhatWeDo() {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Image main xuất hiện
+      // Main image animation
       gsap.from(".image-main", {
         opacity: 0,
         scale: 0.9,
@@ -27,7 +27,7 @@ export function WhatWeDo() {
         },
       });
 
-      // Image overlay xuất hiện
+      // Overlay animation
       gsap.from(".image-overlay", {
         opacity: 0,
         y: -40,
@@ -102,7 +102,7 @@ export function WhatWeDo() {
         );
       });
 
-      // Progress lines chạy liên tục từ trái sang phải
+      // Progress line animation
       gsap.utils.toArray<HTMLElement>(".progress-line").forEach((line, i) => {
         gsap.fromTo(
           line,
@@ -112,8 +112,8 @@ export function WhatWeDo() {
             duration: 2,
             ease: "power1.inOut",
             repeat: -1,
-            repeatDelay: 0.5, // nghỉ chút trước khi reset
-            delay: i * 0.5, // line 2 chạy lệch pha so với line 1
+            repeatDelay: 0.5,
+            delay: i * 0.5,
           }
         );
       });
@@ -123,51 +123,35 @@ export function WhatWeDo() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="md:py-10 px-4 bg-white">
-      <div className="container mx-auto flex flex-col lg:flex-row items-center gap-12">
-        {/* Hình ảnh + info card */}
-        <div className="relative flex flex-col gap-y-0 md:flex-row px-2 justify-center md:gap-x-6 md:mb-10 lg:mb-0">
-          <div className="image-main relative rounded-2xl overflow-hidden mx-auto">
-            <Image
-              src="/images/what-we-do-1.jpg"
-              alt="Children"
-              width={400}
-              height={500}
-              className="object-cover w-[450px] h-[500px] md:w-[400px] md:h-[550px] lg:w-[400px] lg:h-[540px] xl:w-[430px] xl:h-[600px]"
-            />
-          </div>
+    <section ref={sectionRef} className="lg:pb-20 px-4 bg-white">
+      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="relative mt-10 lg:flex items-center sm:hidden">
+          <div className="relative flex justify-center items-center md:pl-2 mx-auto">
+            <div className="relative w-full max-w-[600px]">
+              <Image
+                src="/images/what-we-do-1.jpg"
+                alt="What we do"
+                width={550}
+                height={600}
+                className="object-cover w-[400px] h-auto rounded-2xl"
+                priority
+              />
+            </div>
 
-          <div
-            className="md:block image-overlay relative mx-auto
-              top-0 lg:absolute lg:-top-8 lg:-left-8 xl:-left-18
-              rounded-2xl overflow-hidden"
-          >
-            <Image
-              src="/images/what-we-do-2.jpg"
-              alt="Child"
-              width={400}
-              height={500}
-              className="object-cover w-[450px] h-[500px] md:w-[400px] md:h-[550px] lg:w-[150px] lg:h-[230px] xl:w-[220px] xl:h-[350px]"
-            />
-          </div>
-
-          <div
-            className="info-card md:absolute -bottom-20 -left-20 md:left-1/4 
-             lg:-left-1/2 lg:right-0 lg:translate-x-0 mx-auto
-             bg-[#ad4e28] text-white px-3 md:px-4 py-3 sm:py-4 
-             rounded-2xl shadow-lg w-full md:max-w-[330px] sm:text-left"
-          >
-            <h3 className="text-lg sm:text-xl font-bold leading-snug">
-              Hơn 186,548 khó khăn cần được hỗ trợ bữa ăn
-            </h3>
-            <p className="text-xs sm:text-sm mt-4 opacity-90 text-right">
-              Hãy trở thành tình nguyện viên ngay
-            </p>
+            {/* Overlay ảnh nhỏ */}
+            <div className="absolute -bottom-8 -right-6 sm:-right-10 w-[240px] sm:w-[180px] md:w-[250px]">
+              <Image
+                src="/images/what-we-do-2.jpg"
+                alt="What we do overlay"
+                width={200}
+                height={260}
+                className="object-cover w-full h-auto rounded-2xl shadow-xl border-4 border-white"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Text + Steps */}
-        <div className="flex-1 space-y-6 text-center lg:text-left mb-4">
+        <div className="flex-1 space-y-6 text-center lg:text-left my-4">
           <span className="text-block text-color font-semibold tracking-widest uppercase">
             Sứ mệnh của chúng tôi
           </span>
@@ -183,55 +167,6 @@ export function WhatWeDo() {
             còn là chia sẻ tình thương và hy vọng.
           </p>
 
-          {/* Steps với progress line */}
-          <div className="text-block mt-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative">
-              {/* Step 1 */}
-              <div className="step flex flex-col items-center text-center flex-1">
-                <div className="w-12 h-12 rounded-full btn-color text-white flex items-center justify-center font-bold mb-3">
-                  1
-                </div>
-                <h4 className="font-semibold text-lg">Chọn chiến dịch</h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  Lựa chọn chiến dịch mà bạn muốn đồng hành
-                </p>
-              </div>
-
-              {/* Line 1 */}
-              <div className="hidden sm:block flex-1 h-[2px] bg-gray-300 relative">
-                <div className="absolute top-0 left-0 h-[2px] btn-color w-0 progress-line"></div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="step flex flex-col items-center text-center flex-1">
-                <div className="w-12 h-12 rounded-full btn-color text-white flex items-center justify-center font-bold mb-3">
-                  2
-                </div>
-                <h4 className="font-semibold text-lg">Quyên góp bữa ăn</h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  Góp phần mang đến bữa ăn dinh dưỡng cho cộng đồng
-                </p>
-              </div>
-
-              {/* Line 2 */}
-              <div className="hidden sm:block flex-1 h-[2px] bg-gray-300 relative">
-                <div className="absolute top-0 left-0 h-[2px] btn-color w-0 progress-line"></div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="step flex flex-col items-center text-center flex-1">
-                <div className="w-12 h-12 rounded-full btn-color text-white flex items-center justify-center font-bold mb-3">
-                  3
-                </div>
-                <h4 className="font-semibold text-lg">Lan tỏa yêu thương</h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  Chia sẻ thông điệp, kết nối thêm nhiều tấm lòng
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Counter */}
           <p className="text-block text-gray-700">
             Đã đóng góp cho{" "}
             <span
@@ -254,7 +189,6 @@ export function WhatWeDo() {
             người.
           </p>
 
-          {/* Info cards */}
           <div className="text-block grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <div className="border rounded-xl p-4">
               <h4 className="font-bold">Tổ chức uy tín</h4>
@@ -270,7 +204,6 @@ export function WhatWeDo() {
             </div>
           </div>
 
-          {/* Hotline */}
           <div className="text-block flex flex-col sm:flex-row items-center gap-4 mt-6">
             <div className="text-center sm:text-left">
               <p className="text-gray-500">

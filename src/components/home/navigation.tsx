@@ -32,35 +32,57 @@ import { UsersRound } from "@/components/animate-ui/icons/users-round";
 import { Ellipsis } from "@/components/animate-ui/icons/ellipsis";
 import { usePathname, useRouter } from "next/navigation";
 import { useGsapNavigation } from "@/hooks/useGsapNavigation";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { logout } from "@/store/slices/auth-slice";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function Navigation() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement | null>(null);
 
+  const user = useSelector((state: RootState) => state.auth.user);
+
   useGsapNavigation(headerRef, pathname);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    router.push("/login");
+  };
 
   useEffect(() => {
     if (headerRef.current) {
-      gsap.from(headerRef.current, {
-        y: -80,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-      });
+      gsap.fromTo(
+        headerRef.current,
+        { y: -80, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: "power3.out" }
+      );
 
-      gsap.from(headerRef.current.querySelectorAll("nav .flex > *"), {
-        opacity: 0,
-        y: -20,
-        stagger: 0.1,
-        delay: 0.3,
-        duration: 0.8,
-        ease: "power2.out",
-      });
+      gsap.fromTo(
+        headerRef.current.querySelectorAll("nav .flex > *"),
+        { opacity: 0, y: -20 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.1,
+          delay: 0.3,
+          duration: 0.8,
+          ease: "power2.out",
+        }
+      );
     }
-  }, []);
+  }, [pathname]);
 
   return (
     <header
@@ -273,9 +295,33 @@ export function Navigation() {
                 },
               ]}
             />
-            <Link href="/login" className="hover:opacity-80 py-1">
-              Đăng nhập
-            </Link>
+            {!user ? (
+              <Link href="/login" className="hover:opacity-80 py-1">
+                Đăng nhập
+              </Link>
+            ) : (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <span className="cursor-pointer hover:opacity-80 py-1">
+                    {user.name}
+                  </span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-52">
+                  <DropdownMenuItem
+                    onClick={() => router.push("/profile")}
+                    className="cursor-pointer text-sm py-3"
+                  >
+                    Hồ sơ
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600 cursor-pointer text-sm py-3"
+                  >
+                    Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 

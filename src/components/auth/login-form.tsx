@@ -12,11 +12,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@apollo/client/react";
-import { LOGIN_MUTATION } from "@/graphql/mutations/login";
-import { SignInInput, SignInResponse } from "@/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Loader } from "@/components/animate-ui/icons/loader";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/store/slices/auth-slice";
+import { authService } from "@/services/auth.service";
+import { SignInInput } from "@/types";
 
 type LoginFormProps = {
   onSwitchToRegister?: () => void;
@@ -24,35 +26,46 @@ type LoginFormProps = {
 
 export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const [login, { loading, error }] = useMutation<
-    { signIn: SignInResponse["signIn"] },
-    { input: SignInInput }
-  >(LOGIN_MUTATION);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await login({
-        variables: { input: { email, password } },
+      const signIn = await authService.login({
+        email,
+        password,
+      } as SignInInput);
+
+      dispatch(
+        setCredentials({
+          user: signIn.user,
+          accessToken: signIn.accessToken,
+          refreshToken: signIn.refreshToken,
+        })
+      );
+
+      toast.success("Đăng nhập thành công 🎉", {
+        description: `Chào mừng ${signIn.user.name}`,
       });
 
-      if (res.data?.signIn?.accessToken) {
-        localStorage.setItem("accessToken", res.data.signIn.accessToken);
-        localStorage.setItem("refreshToken", res.data.signIn.refreshToken);
+      router.push("/");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      const msg = err?.message?.includes("Incorrect username or password")
+        ? "Incorrect username or password."
+        : "Sai email hoặc mật khẩu. Vui lòng thử lại.";
 
-        toast.success("Đăng nhập thành công 🎉", {
-          description: `Chào mừng ${res.data.signIn.user.name}`,
-        });
-
-        router.push("/");
-      }
-    } catch (err) {
-      console.error(err);
+      toast.error("Lỗi đăng nhập", {
+        description: msg,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,10 +115,12 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             disabled={loading}
             className="font-semibold rounded-lg py-2 btn-color"
           >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            {loading ? (
+              <Loader animate loop className="h-5 w-5" />
+            ) : (
+              "Đăng nhập"
+            )}
           </Button>
-
-          {error && <p className="text-red-500 text-sm">{error.message}</p>}
         </form>
       </CardContent>
 
@@ -121,13 +136,13 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
         <p className="text-center md:hidden">
           Chưa có tài khoản?{" "}
-          <button
+          <Button
             type="button"
             onClick={onSwitchToRegister}
             className="text-[#ad4e28] font-semibold hover:underline"
           >
             Đăng ký ngay
-          </button>
+          </Button>
         </p>
       </CardFooter>
     </Card>

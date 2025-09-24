@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "../app/(main)/globals.css";
 import { Montserrat } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import { ApolloWrapper } from "@/lib/apollo-provider";
+import { Providers } from "@/providers/provider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -17,16 +16,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className={`${montserrat.variable} antialiased`}>
-        <ApolloWrapper>
-          {children}
-          <Toaster richColors />
-        </ApolloWrapper>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
