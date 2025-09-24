@@ -137,7 +137,7 @@ export function FeaturedCampaigns() {
 
   return (
     <section className="py-6">
-      <div ref={rootRef} className="container mx-auto px-2">
+      <div ref={rootRef} className="px-6 mx-auto">
         <h2 className="text-center text-3xl text-color font-bold mb-8 text-gray-900">
           Chiến dịch nổi bật
         </h2>

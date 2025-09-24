@@ -52,12 +52,10 @@ export default function Login() {
     if (!imageRef.current || !loginRef.current || !registerRef.current) return;
 
     if (isLogin) {
-      // Image sang trái, login form hiện
       tl.to(imageRef.current, { xPercent: 0, borderRadius: "0 2rem 2rem 0" }, 0)
         .to(loginRef.current, { xPercent: 0, autoAlpha: 1 }, 0)
         .to(registerRef.current, { xPercent: 100, autoAlpha: 0 }, 0);
     } else {
-      // Image sang phải, register form hiện
       tl.to(
         imageRef.current,
         { xPercent: 100, borderRadius: "2rem 0 0 2rem" },
@@ -145,7 +143,9 @@ export default function Login() {
             will-change-transform z-10 bg-[#f9f0e4]
           "
         >
-          <LoginForm />
+          <div className="max-w-md w-full">
+            <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
+          </div>
         </div>
 
         <div
@@ -156,7 +156,9 @@ export default function Login() {
             will-change-transform z-10 bg-[#f9f0e4]
           "
         >
-          <RegisterForm />
+          <div className="max-w-md w-full">
+            <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
+          </div>
         </div>
       </div>
     </div>

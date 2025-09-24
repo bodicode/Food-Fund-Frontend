@@ -13,7 +13,11 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function RegisterForm() {
+type RegisterFormProps = {
+  onSwitchToLogin?: () => void;
+};
+
+export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -26,14 +30,12 @@ export default function RegisterForm() {
       </CardHeader>
 
       <CardContent className="flex flex-col space-y-4">
-        {/* Username */}
         <Input
           type="text"
           placeholder="Tên đăng nhập"
           className="bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28]"
         />
 
-        {/* Email */}
         <Input
           type="email"
           placeholder="Email"
@@ -91,12 +93,18 @@ export default function RegisterForm() {
       </CardContent>
 
       <CardFooter className="flex justify-between text-sm text-black">
-        <Link
-          href="/"
-          className="hover:underline mx-auto block text-center text-sm text-[#ad4e28]"
-        >
+        <Link href="/" className="hover:underline text-sm text-[#ad4e28]">
           Quay về trang chủ
         </Link>
+        <p className="md:hidden">
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="text-color hover:underline"
+          >
+            Đăng ký ngay
+          </button>
+        </p>
       </CardFooter>
     </Card>
   );
