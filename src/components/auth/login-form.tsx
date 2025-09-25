@@ -17,8 +17,9 @@ import { useRouter } from "next/navigation";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/slices/auth-slice";
-import { authService } from "@/services/auth.service";
+import { graphQLAuthService } from "@/services/auth.service";
 import { SignInInput } from "@/types";
+import { translateError, translateMessage } from "@/lib/error-translator";
 
 type LoginFormProps = {
   onSwitchToRegister?: () => void;
@@ -37,7 +38,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      const signIn = await authService.login({
+      const signIn = await graphQLAuthService.login({
         email,
         password,
       } as SignInInput);
@@ -51,18 +52,13 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       );
 
       toast.success("Đăng nhập thành công 🎉", {
-        description: `Chào mừng ${signIn.user.name}`,
+        description: translateMessage(`Chào mừng ${signIn.user.name}`),
       });
 
       router.push("/");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      const msg = err?.message?.includes("Incorrect username or password")
-        ? "Incorrect username or password."
-        : "Sai email hoặc mật khẩu. Vui lòng thử lại.";
-
+    } catch (err: unknown) {
       toast.error("Lỗi đăng nhập", {
-        description: msg,
+        description: translateError(err),
       });
     } finally {
       setLoading(false);
@@ -139,7 +135,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           <Button
             type="button"
             onClick={onSwitchToRegister}
-            className="text-[#ad4e28] font-semibold hover:underline"
+            className="text-color bg-transparent border-none shadow-none p-0 hover:bg-transparent font-semibold hover:underline"
           >
             Đăng ký ngay
           </Button>
