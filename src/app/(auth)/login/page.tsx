@@ -6,6 +6,7 @@ import gsap from "gsap";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
 import { Button } from "@/components/ui/button";
+import { graphQLAuthService } from "@/services/auth.service";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -157,7 +158,10 @@ export default function Login() {
           "
         >
           <div className="max-w-md w-full">
-            <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
+            <RegisterForm
+              authService={graphQLAuthService}
+              onSwitchToLogin={() => setIsLogin(true)}
+            />
           </div>
         </div>
       </div>
