@@ -127,25 +127,25 @@ export function WhatWeDo() {
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="relative mt-10 lg:flex items-center sm:hidden">
           <div className="relative flex justify-center items-center md:pl-2 mx-auto">
-            <div className="relative w-full max-w-[600px]">
+            <div className="relative w-full max-w-[650px]">
               <Image
                 src="/images/what-we-do-1.jpg"
                 alt="What we do"
                 width={550}
                 height={600}
-                className="object-cover w-[400px] h-auto rounded-2xl"
+                className="image-main object-cover w-[500px] h-auto rounded-2xl"
                 priority
               />
             </div>
 
             {/* Overlay ảnh nhỏ */}
-            <div className="absolute -bottom-8 -right-6 sm:-right-10 w-[240px] sm:w-[180px] md:w-[250px]">
+            <div className="absolute -bottom-30 -right-6 sm:-right-10 w-[240px] sm:w-[180px] md:w-[250px]">
               <Image
                 src="/images/what-we-do-2.jpg"
                 alt="What we do overlay"
                 width={200}
                 height={260}
-                className="object-cover w-full h-auto rounded-2xl shadow-xl border-4 border-white"
+                className="image-overlay object-cover w-full h-auto rounded-2xl shadow-xl border-4 border-white"
               />
             </div>
           </div>
@@ -204,8 +204,8 @@ export function WhatWeDo() {
             </div>
           </div>
 
-          <div className="text-block flex flex-col sm:flex-row items-center gap-4 mt-6">
-            <div className="text-center sm:text-left">
+          <div className="w-full text-block flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mt-6">
+            <div className="text-center">
               <p className="text-gray-500">
                 Gọi cho chúng tôi bất kỳ lúc nào:{" "}
                 <span className="font-semibold text-lg underline text-color">
@@ -214,6 +214,12 @@ export function WhatWeDo() {
               </p>
             </div>
           </div>
+
+          <p className="text-block text-gray-600 leading-relaxed text-sm sm:text-base mt-4">
+            Chúng tôi tin rằng mỗi bữa ăn không chỉ là nguồn dinh dưỡng mà còn
+            là lời động viên tinh thần. Cùng nhau, chúng ta có thể lan tỏa yêu
+            thương, xây dựng một cộng đồng ấm áp và đầy hy vọng.
+          </p>
         </div>
       </div>
     </section>
