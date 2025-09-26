@@ -4,7 +4,7 @@ export function validateRegisterForm(
   form: SignUpInput,
   confirmPassword: string
 ): string | null {
-  if (!form.name || !form.email || !form.password || !form.phoneNumber) {
+  if (!form.name || !form.email || !form.password) {
     return "Vui lòng nhập đầy đủ thông tin";
   }
   if (!/\S+@\S+\.\S+/.test(form.email)) {
