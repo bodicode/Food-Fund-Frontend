@@ -18,8 +18,9 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/slices/auth-slice";
 import { graphQLAuthService } from "@/services/auth.service";
-import { SignInInput } from "@/types";
-import { translateError, translateMessage } from "@/lib/error-translator";
+import { translateError, translateMessage } from "@/lib/translator";
+import { SignInInput } from "@/types/api/sign-in";
+import { decodeIdToken } from "@/lib/jwt-utils";
 
 type LoginFormProps = {
   onSwitchToRegister?: () => void;
@@ -37,22 +38,47 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const signIn = await graphQLAuthService.login({
         email,
         password,
       } as SignInInput);
 
+      const decoded = decodeIdToken(signIn.idToken);
+
+      if (!decoded?.sub) {
+        throw new Error("Không thể xác định thông tin người dùng từ token");
+      }
+
       dispatch(
         setCredentials({
-          user: signIn.user,
+          user: {
+            id: decoded.sub!,
+            name: decoded.name || "",
+            email: decoded.email || "",
+            role: decoded["custom:role"],
+          },
           accessToken: signIn.accessToken,
           refreshToken: signIn.refreshToken,
         })
       );
 
-      toast.success("Đăng nhập thành công 🎉", {
-        description: translateMessage(`Chào mừng ${signIn.user.name}`),
+      localStorage.setItem("accessToken", signIn.accessToken);
+      localStorage.setItem("refreshToken", signIn.refreshToken);
+      localStorage.setItem("idToken", signIn.idToken);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: decoded.sub,
+          name: decoded.name,
+          email: decoded.email,
+          role: decoded["custom:role"],
+        })
+      );
+
+      toast.success(`Đăng nhập thành công`, {
+        description: translateMessage(`Chào mừng ${decoded?.name || email}`),
       });
 
       router.push("/");

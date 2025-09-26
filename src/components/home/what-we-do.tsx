@@ -14,7 +14,6 @@ export function WhatWeDo() {
     if (!sectionRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Main image animation
       gsap.from(".image-main", {
         opacity: 0,
         scale: 0.9,
@@ -27,7 +26,6 @@ export function WhatWeDo() {
         },
       });
 
-      // Overlay animation
       gsap.from(".image-overlay", {
         opacity: 0,
         y: -40,
@@ -40,7 +38,6 @@ export function WhatWeDo() {
         },
       });
 
-      // Floating effect
       gsap.to(".image-main", {
         y: "+=10",
         duration: 3,
@@ -64,7 +61,6 @@ export function WhatWeDo() {
         repeat: -1,
       });
 
-      // Text block fade-in
       gsap.from(".text-block", {
         opacity: 0,
         y: 24,
@@ -77,7 +73,6 @@ export function WhatWeDo() {
         },
       });
 
-      // Counter animation
       const counters = gsap.utils.toArray<HTMLElement>(".counter");
       counters.forEach((counter) => {
         const finalValue = parseInt(counter.dataset.value || "0", 10);
@@ -102,7 +97,6 @@ export function WhatWeDo() {
         );
       });
 
-      // Progress line animation
       gsap.utils.toArray<HTMLElement>(".progress-line").forEach((line, i) => {
         gsap.fromTo(
           line,
@@ -125,7 +119,7 @@ export function WhatWeDo() {
   return (
     <section ref={sectionRef} className="lg:pb-20 px-4 bg-white">
       <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div className="relative mt-10 lg:flex items-center sm:hidden">
+        <div className="relative mt-10 lg:flex items-center hidden">
           <div className="relative flex justify-center items-center md:pl-2 mx-auto">
             <div className="relative w-full max-w-[650px]">
               <Image
@@ -138,7 +132,6 @@ export function WhatWeDo() {
               />
             </div>
 
-            {/* Overlay ảnh nhỏ */}
             <div className="absolute -bottom-30 -right-6 sm:-right-10 w-[240px] sm:w-[180px] md:w-[250px]">
               <Image
                 src="/images/what-we-do-2.jpg"

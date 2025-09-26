@@ -87,7 +87,6 @@ export function FeaturedCampaigns() {
     if (!rootRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Hero card animation
       gsap.fromTo(
         ".fc-hero",
         { y: 18, scale: 0.98, opacity: 0 },
@@ -101,7 +100,6 @@ export function FeaturedCampaigns() {
         }
       );
 
-      // Other cards animation
       gsap.fromTo(
         ".fc-card",
         { y: 20, opacity: 0, scale: 0.98 },
@@ -136,8 +134,8 @@ export function FeaturedCampaigns() {
   const bottomSliderList = rest.slice(-6);
 
   return (
-    <section className="py-6">
-      <div ref={rootRef} className="px-6 mx-auto">
+    <section className="py-6 mt-3">
+      <div ref={rootRef} className="lg:container px-6 mx-auto">
         <h2 className="text-center text-3xl text-color font-bold mb-8 text-gray-900">
           Chiến dịch nổi bật
         </h2>

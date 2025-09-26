@@ -23,6 +23,11 @@ export const translateMessage = (msg: string) => {
   ) {
     return "Thay đổi mật khẩu thành công, bạn có thể đăng nhập ngay bây giờ.";
   }
+  // Signout
+  if (msg.includes("User signed out successfully")) {
+    return "Đăng xuất thành công.";
+  }
+
   return msg;
 };
 
@@ -76,5 +81,24 @@ export const translateError = (err: unknown): string => {
     return gqlError?.message || "Có lỗi xảy ra. Vui lòng thử lại sau.";
   } catch {
     return "Có lỗi xảy ra. Vui lòng thử lại sau.";
+  }
+};
+
+export const translateRole = (role?: string): string => {
+  if (!role) return "Người dùng";
+
+  switch (role.toUpperCase()) {
+    case "DONOR":
+      return "Người ủng hộ";
+    case "ADMIN":
+      return "Quản trị viên";
+    case "KITCHEN":
+      return "Nhân viên bếp";
+    case "DELIVERY":
+      return "Nhân viên giao hàng";
+    case "FUNDRAISER":
+      return "Nhà vận động";
+    default:
+      return role;
   }
 };

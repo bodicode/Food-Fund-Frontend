@@ -5,7 +5,6 @@ import { SIGNUP_MUTATION } from "@/graphql/mutations/signup";
 import { CONFIRM_SIGNUP_MUTATION } from "@/graphql/mutations/confirm-signup";
 import { RESEND_CONFIRM_CODE_MUTATION } from "@/graphql/mutations/resend-confirm-code";
 
-import { SignInInput, SignInResponse } from "@/types";
 import {
   SignUpInput,
   SignUpResponse,
@@ -13,15 +12,18 @@ import {
   ConfirmSignUpResponse,
   ResendCodeResponse,
   ResendCodeInput,
-} from "@/types/sign-up";
+} from "@/types/api/sign-up";
 import {
   ConfirmForgotPasswordInput,
   ConfirmForgotPasswordResponse,
   ForgotPasswordInput,
   ForgotPasswordResponse,
-} from "@/types/forgot-password";
+} from "@/types/api/forgot-password";
 import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/forgor-password";
 import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/confirm-forgot-password";
+import { decodeIdToken } from "@/lib/jwt-utils";
+import { SignInInput, SignInResponse } from "@/types/api/sign-in";
+import { SIGNOUT_MUTATION } from "@/graphql/mutations/signout";
 
 export interface AuthService {
   login(input: SignInInput): Promise<SignInResponse["signIn"]>;
@@ -38,10 +40,13 @@ export interface AuthService {
   confirmForgotPassword(
     input: ConfirmForgotPasswordInput
   ): Promise<ConfirmForgotPasswordResponse["confirmForgotPassword"]>;
+  signout(
+    accessToken: string
+  ): Promise<{ message: string; success: boolean; timestamp: string }>;
 }
 
 export const graphQLAuthService: AuthService = {
-  async login(input) {
+  async login(input: SignInInput) {
     const { data } = await client.mutate<
       { signIn: SignInResponse["signIn"] },
       { input: SignInInput }
@@ -51,7 +56,14 @@ export const graphQLAuthService: AuthService = {
     });
 
     if (!data?.signIn) throw new Error("Login failed");
-    return data.signIn;
+
+    const { idToken } = data.signIn;
+    const decodedUser = decodeIdToken(idToken);
+
+    return {
+      ...data.signIn,
+      decodedUser,
+    };
   },
 
   async signup(input) {
@@ -120,5 +132,29 @@ export const graphQLAuthService: AuthService = {
     if (!data?.confirmForgotPassword)
       throw new Error("Confirm forgot password failed");
     return data.confirmForgotPassword;
+  },
+
+  async signout(accessToken: string) {
+    try {
+      const { data } = await client.mutate<{
+        signOut: { message: string; success: boolean; timestamp: string };
+      }>({
+        mutation: SIGNOUT_MUTATION,
+        context: {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      });
+
+      if (!data?.signOut.success) {
+        throw new Error(data?.signOut.message || "Sign out failed");
+      }
+
+      return data.signOut;
+    } catch (err) {
+      console.error("SIGNOUT ERROR >>>", err);
+      throw err;
+    }
   },
 };

@@ -1,4 +1,3 @@
-// components/FeaturedFundraisers.tsx
 "use client";
 
 import Image from "next/image";
@@ -58,16 +57,15 @@ export function FeaturedFundraisers() {
     const root = rootRef.current;
     if (!root) return;
 
-    // reveal effect cho section (nếu muốn giữ)
     gsap.from(root, {
       y: 24,
-      opacity: 0,
+      opacity: 1,
       duration: 0.8,
       ease: "power3.out",
       scrollTrigger: { trigger: root, start: "top 80%", once: true },
     });
 
-    const MAX_TILT = 6; // độ nghiêng tối đa cho khối lớn
+    const MAX_TILT = 6;
     const SCALE_HOVER = 1.01;
 
     gsap.set(root, {
@@ -121,10 +119,10 @@ export function FeaturedFundraisers() {
   }, []);
 
   return (
-    <section className="">
+    <section className="container mx-auto">
       <div
         ref={rootRef}
-        className="mx-auto px-4 overflow-hidden bg-gradient-to-br from-[#E77731]/90 via-[#E77731]/80 to-[#ad4e28]/85 dark:from-[#ad4e28] dark:via-[#8c3e1f] dark:to-[#436037]"
+        className="mx-auto px-4 overflow-hidden bg-gradient-to-br from-[#E77731]/90 via-[#E77731]/80 to-[#ad4e28]/85 min-h-[300px]"
       >
         <div className="flex items-center justify-between px-4 md:px-8 pt-10 mb-8">
           <h2 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-sm text-center md:text-left">
@@ -146,7 +144,6 @@ export function FeaturedFundraisers() {
                            rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10
                            p-6 pt-16 flex flex-col h-full will-change-transform transition-transform"
               >
-                {/* Avatar nổi */}
                 <div
                   className="absolute left-1/2 -translate-x-1/2 -top-8 md:-top-12 
                              size-24 rounded-full overflow-hidden bg-white shadow-md
@@ -161,7 +158,6 @@ export function FeaturedFundraisers() {
                   />
                 </div>
 
-                {/* Nội dung */}
                 <div className="flex flex-col flex-1 items-center text-center">
                   <h3 className="text-lg md:text-xl font-semibold mb-1 h-16">
                     {f.name}

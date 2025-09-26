@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   username?: string;
+  role?: string;
 }
 
 interface AuthState {
@@ -34,14 +35,34 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
+
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("accessToken", action.payload.accessToken);
+      localStorage.setItem("refreshToken", action.payload.refreshToken);
     },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("idToken");
+    },
+    restoreSession: (state) => {
+      const user = localStorage.getItem("user");
+      const accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (user && accessToken && refreshToken) {
+        state.user = JSON.parse(user);
+        state.accessToken = accessToken;
+        state.refreshToken = refreshToken;
+      }
     },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, restoreSession } = authSlice.actions;
 export default authSlice.reducer;
