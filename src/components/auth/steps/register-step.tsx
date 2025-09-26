@@ -21,7 +21,6 @@ export function RegisterStep({ authService, onSuccess }: Props) {
     email: "",
     name: "",
     password: "",
-    phoneNumber: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
