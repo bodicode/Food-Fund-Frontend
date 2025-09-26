@@ -2,7 +2,6 @@ export type SignUpInput = {
   email: string;
   name: string;
   password: string;
-  phoneNumber: string;
 };
 
 export type SignUpResponse = {
