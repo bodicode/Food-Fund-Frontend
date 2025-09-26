@@ -1,4 +1,4 @@
-import { SignUpInput } from "@/types/sign-up";
+import { SignUpInput } from "@/types/api/sign-up";
 
 export function validateRegisterForm(
   form: SignUpInput,

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
-import { translateError, translateMessage } from "@/lib/error-translator";
+import { translateError, translateMessage } from "@/lib/translator";
 import { AuthService } from "@/services/auth.service";
 
 type Props = {
@@ -39,7 +39,7 @@ export function ConfirmStep({ email, authService, onSuccess }: Props) {
       });
 
       if (res.confirmed) {
-        toast.success("Xác nhận thành công 🎉", {
+        toast.success("Xác nhận thành công", {
           description: translateMessage(res.message),
         });
         onSuccess();

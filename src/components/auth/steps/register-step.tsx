@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
-import { SignUpInput } from "@/types/sign-up";
+import { SignUpInput } from "@/types/api/sign-up";
 import { validateRegisterForm } from "@/lib/validators";
-import { translateError, translateMessage } from "@/lib/error-translator";
+import { translateError, translateMessage } from "@/lib/translator";
 import { AuthService } from "@/services/auth.service";
 
 type Props = {

@@ -17,7 +17,7 @@ import { MessageCircleCode } from "@/components/animate-ui/icons/message-circle-
 import { graphQLAuthService } from "@/services/auth.service";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
-import { translateError, translateMessage } from "@/lib/error-translator";
+import { translateError, translateMessage } from "@/lib/translator";
 
 export default function ForgotPasswordForm() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -31,7 +31,6 @@ export default function ForgotPasswordForm() {
 
   const [loading, setLoading] = useState(false);
 
-  // Gửi email OTP
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -54,7 +53,6 @@ export default function ForgotPasswordForm() {
     }
   };
 
-  // Xác nhận OTP + đặt lại mật khẩu
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -71,10 +69,10 @@ export default function ForgotPasswordForm() {
         newPassword,
       });
       if (res.passwordReset) {
-        toast.success("Đặt lại mật khẩu thành công 🎉", {
+        toast.success("Đặt lại mật khẩu thành công", {
           description: translateMessage(res.message),
         });
-        // Chuyển về login
+
         window.location.href = "/login";
       } else {
         toast.error("Đặt lại mật khẩu thất bại", {
