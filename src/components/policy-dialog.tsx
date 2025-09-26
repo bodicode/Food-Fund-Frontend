@@ -13,7 +13,7 @@ interface LenisLike {
 interface PolicyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-lenisRef?: React.MutableRefObject<LenisLike | null>;
+  lenisRef?: React.MutableRefObject<LenisLike | null>;
 }
 
 export default function PolicyDialog({

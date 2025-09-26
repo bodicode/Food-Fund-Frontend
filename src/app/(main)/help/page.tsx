@@ -43,7 +43,7 @@ const helpItems = [
     icon: Headphones,
     title: "Liên hệ & Hỗ trợ trực tiếp",
     desc: "Kênh tiếp nhận yêu cầu hỗ trợ, giải đáp thắc mắc và xử lý sự cố khẩn cấp.",
-    href: "/help",
+    href: "/contact",
   },
   {
     icon: HelpCircle,
