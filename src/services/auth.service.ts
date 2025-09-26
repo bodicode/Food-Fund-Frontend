@@ -14,6 +14,14 @@ import {
   ResendCodeResponse,
   ResendCodeInput,
 } from "@/types/sign-up";
+import {
+  ConfirmForgotPasswordInput,
+  ConfirmForgotPasswordResponse,
+  ForgotPasswordInput,
+  ForgotPasswordResponse,
+} from "@/types/forgot-password";
+import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/forgor-password";
+import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/confirm-forgot-password";
 
 export interface AuthService {
   login(input: SignInInput): Promise<SignInResponse["signIn"]>;
@@ -24,6 +32,12 @@ export interface AuthService {
   resendConfirmCode(
     input: ResendCodeInput
   ): Promise<ResendCodeResponse["resendConfirmationCode"]>;
+  forgotPassword(
+    input: ForgotPasswordInput
+  ): Promise<ForgotPasswordResponse["forgotPassword"]>;
+  confirmForgotPassword(
+    input: ConfirmForgotPasswordInput
+  ): Promise<ConfirmForgotPasswordResponse["confirmForgotPassword"]>;
 }
 
 export const graphQLAuthService: AuthService = {
@@ -79,5 +93,32 @@ export const graphQLAuthService: AuthService = {
       throw new Error("Resend confirmation code failed");
     }
     return data.resendConfirmationCode;
+  },
+
+  async forgotPassword(input: ForgotPasswordInput) {
+    const { data } = await client.mutate<
+      ForgotPasswordResponse,
+      { forgotPasswordInput3: ForgotPasswordInput }
+    >({
+      mutation: FORGOT_PASSWORD_MUTATION,
+      variables: { forgotPasswordInput3: input },
+    });
+
+    if (!data?.forgotPassword) throw new Error("Forgot password failed");
+    return data.forgotPassword;
+  },
+
+  async confirmForgotPassword(input: ConfirmForgotPasswordInput) {
+    const { data } = await client.mutate<
+      ConfirmForgotPasswordResponse,
+      { confirmForgotPasswordInput2: ConfirmForgotPasswordInput }
+    >({
+      mutation: CONFIRM_FORGOT_PASSWORD_MUTATION,
+      variables: { confirmForgotPasswordInput2: input },
+    });
+
+    if (!data?.confirmForgotPassword)
+      throw new Error("Confirm forgot password failed");
+    return data.confirmForgotPassword;
   },
 };

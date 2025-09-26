@@ -14,6 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LockIcon } from "@/components/animate-ui/icons/lock";
 import { MessageCircleCode } from "@/components/animate-ui/icons/message-circle-code";
+import { graphQLAuthService } from "@/services/auth.service";
+import { toast } from "sonner";
+import { Loader } from "@/components/animate-ui/icons/loader";
+import { translateError, translateMessage } from "@/lib/error-translator";
 
 export default function ForgotPasswordForm() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -25,22 +29,63 @@ export default function ForgotPasswordForm() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSendEmail = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  // Gửi email OTP
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Send email:", email);
-    setStep(2);
+    setLoading(true);
+    try {
+      const res = await graphQLAuthService.forgotPassword({ email });
+      if (res.emailSent) {
+        toast.success("Gửi OTP thành công", {
+          description: translateMessage(res.message),
+        });
+        setStep(2);
+      } else {
+        toast.error("Không gửi được OTP", {
+          description: translateMessage(res.message),
+        });
+      }
+    } catch (err) {
+      toast.error("Lỗi", { description: translateError(err) });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  // Xác nhận OTP + đặt lại mật khẩu
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(
-      "OTP:",
-      otp,
-      "New pass:",
-      newPassword,
-      "Confirm:",
-      confirmPassword
-    );
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await graphQLAuthService.confirmForgotPassword({
+        email,
+        confirmationCode: otp,
+        newPassword,
+      });
+      if (res.passwordReset) {
+        toast.success("Đặt lại mật khẩu thành công 🎉", {
+          description: translateMessage(res.message),
+        });
+        // Chuyển về login
+        window.location.href = "/login";
+      } else {
+        toast.error("Đặt lại mật khẩu thất bại", {
+          description: translateMessage(res.message),
+        });
+      }
+    } catch (err) {
+      toast.error("Lỗi", { description: translateError(err) });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,9 +121,14 @@ export default function ForgotPasswordForm() {
 
               <Button
                 type="submit"
+                disabled={loading}
                 className="w-full font-semibold rounded-lg py-2 btn-color"
               >
-                Gửi yêu cầu
+                {loading ? (
+                  <Loader animate loop className="h-5 w-5" />
+                ) : (
+                  "Gửi yêu cầu"
+                )}
               </Button>
             </form>
           ) : (
@@ -86,6 +136,7 @@ export default function ForgotPasswordForm() {
               onSubmit={handleResetPassword}
               className="flex flex-col space-y-4"
             >
+              {/* OTP */}
               <div className="relative">
                 <MessageCircleCode
                   animate
@@ -164,9 +215,14 @@ export default function ForgotPasswordForm() {
 
               <Button
                 type="submit"
+                disabled={loading}
                 className="w-full font-semibold rounded-lg py-2 btn-color"
               >
-                Đặt lại mật khẩu
+                {loading ? (
+                  <Loader animate loop className="h-5 w-5" />
+                ) : (
+                  "Đặt lại mật khẩu"
+                )}
               </Button>
             </form>
           )}

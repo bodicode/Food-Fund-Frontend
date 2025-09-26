@@ -18,10 +18,7 @@ type RegisterFormProps = {
   authService: typeof graphQLAuthService;
 };
 
-export default function RegisterForm({
-  onSwitchToLogin,
-  authService,
-}: RegisterFormProps) {
+export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [step, setStep] = useState<"register" | "confirm">("register");
   const [emailForConfirm, setEmailForConfirm] = useState("");
 
