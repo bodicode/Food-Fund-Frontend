@@ -7,6 +7,7 @@ export const userService = {
   getProfile: async (): Promise<UserProfile | null> => {
     const { data } = await client.query<{ getUserProfile: UserProfile }>({
       query: GET_USER_PROFILE,
+      fetchPolicy: "cache-first",
     });
 
     if (!data || !data.getUserProfile) {
