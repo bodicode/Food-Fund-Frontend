@@ -32,7 +32,7 @@ import { UsersRound } from "@/components/animate-ui/icons/users-round";
 import { Ellipsis } from "@/components/animate-ui/icons/ellipsis";
 import { usePathname, useRouter } from "next/navigation";
 import { useGsapNavigation } from "@/hooks/useGsapNavigation";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   DropdownMenu,
@@ -40,7 +40,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logout } from "@/store/slices/auth-slice";
 import { toast } from "sonner";
 import { translateMessage } from "@/lib/translator";
 import { graphQLAuthService } from "@/services/auth.service";
@@ -48,11 +47,9 @@ import { graphQLAuthService } from "@/services/auth.service";
 gsap.registerPlugin(ScrollTrigger);
 
 export function Navigation() {
-  const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement | null>(null);
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -60,22 +57,18 @@ export function Navigation() {
 
   const handleLogout = async () => {
     try {
-      if (!accessToken) throw new Error("Không tìm thấy access token");
-      const res = await graphQLAuthService.signout(accessToken);
+      const accessToken = localStorage.getItem("accessToken");
+      const res = await graphQLAuthService.signout(accessToken || "");
 
       toast.success(translateMessage(res.message));
 
-      dispatch(logout());
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
 
       router.push("/login");
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Có lỗi xảy ra";
-
-      toast.error("Đăng xuất thất bại", {
-        description: errorMessage,
-      });
+      toast.error("Đăng xuất thất bại", { description: errorMessage });
     }
   };
 

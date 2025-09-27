@@ -40,16 +40,6 @@ const authSlice = createSlice({
       localStorage.setItem("accessToken", action.payload.accessToken);
       localStorage.setItem("refreshToken", action.payload.refreshToken);
     },
-    logout: (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.refreshToken = null;
-
-      localStorage.removeItem("user");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("idToken");
-    },
     restoreSession: (state) => {
       const user = localStorage.getItem("user");
       const accessToken = localStorage.getItem("accessToken");
@@ -61,8 +51,18 @@ const authSlice = createSlice({
         state.refreshToken = refreshToken;
       }
     },
+    logout: (state) => {
+      state.user = null;
+      state.accessToken = null;
+      state.refreshToken = null;
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("idToken");
+    },
   },
 });
 
-export const { setCredentials, logout, restoreSession } = authSlice.actions;
+export const { setCredentials, restoreSession, logout } = authSlice.actions;
 export default authSlice.reducer;
