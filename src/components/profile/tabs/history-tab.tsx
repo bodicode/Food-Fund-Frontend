@@ -15,8 +15,8 @@ export function HistoryTab() {
   ];
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-[#ad4e28]">Lịch sử ủng hộ</h2>
+    <div className="bg-white">
+      <h2 className="text-xl font-bold mb-4 text-[#ad4e28]">Lịch sử ủng hộ</h2>
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="bg-gray-100 text-left">

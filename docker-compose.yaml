@@ -43,6 +43,21 @@ services:
       retries: 5
       start_period: 5s
 
+  campaign-service:
+    image: ttrece/foodfund-campaign:develop
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env.docker
+    networks:
+      - foodfund-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 25s
+
 networks:
   foodfund-network:
     driver: bridge

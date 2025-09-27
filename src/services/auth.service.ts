@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import client from "@/lib/apollo-client";
 import { LOGIN_MUTATION } from "@/graphql/mutations/login";
 import { SIGNUP_MUTATION } from "@/graphql/mutations/signup";

@@ -15,8 +15,8 @@ export function CampaignsTab() {
   ];
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-[#ad4e28]">
+    <div className="bg-white">
+      <h2 className="text-xl font-bold mb-4 text-[#ad4e28]">
         Chiến dịch của tôi
       </h2>
       <ul className="divide-y divide-gray-200">
