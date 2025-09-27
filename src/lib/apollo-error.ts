@@ -14,7 +14,6 @@ export type NormalizedError = {
   extensions?: Record<string, unknown>;
 };
 
-// Định nghĩa các shape có thể xuất hiện
 interface GraphQLErrorContainer {
   graphQLErrors: GraphQLError[];
 }
