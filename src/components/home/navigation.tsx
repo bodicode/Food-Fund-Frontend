@@ -281,7 +281,7 @@ export function Navigation() {
                     {
                       title: "Blog & Tin tức",
                       desc: "Câu chuyện tác động & cập nhật",
-                      href: "/blog",
+                      href: "/news",
                     },
                   ],
                 },
@@ -476,7 +476,7 @@ export function Navigation() {
                           {
                             title: "Blog & Tin tức",
                             desc: "Câu chuyện tác động & cập nhật",
-                            href: "/blog",
+                            href: "/news",
                           },
                         ],
                       },
