@@ -1,4 +1,3 @@
-import { BlogSection } from "@/components/home/blog";
 import { FeaturedCampaigns } from "@/components/home/featured-campaigns";
 import { FeaturedFundraisers } from "@/components/home/featured-fundraisers";
 import Hero from "@/components/home/hero";
@@ -14,7 +13,6 @@ export default function Home() {
       <FeaturedCampaigns />
       <FeaturedFundraisers />
       <KitChenStaffIntroduce />
-      <BlogSection />
       <Stories />
     </div>
   );
