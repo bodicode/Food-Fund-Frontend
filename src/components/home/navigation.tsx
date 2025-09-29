@@ -278,11 +278,6 @@ export function Navigation() {
                       desc: "Quy trình kiểm duyệt, trách nhiệm",
                       href: "/trust-safety",
                     },
-                    {
-                      title: "Blog & Tin tức",
-                      desc: "Câu chuyện tác động & cập nhật",
-                      href: "/news",
-                    },
                   ],
                 },
                 {
@@ -472,11 +467,6 @@ export function Navigation() {
                             title: "Minh bạch & An toàn",
                             desc: "Quy trình kiểm duyệt, trách nhiệm",
                             href: "/trust-safety",
-                          },
-                          {
-                            title: "Blog & Tin tức",
-                            desc: "Câu chuyện tác động & cập nhật",
-                            href: "/news",
                           },
                         ],
                       },
