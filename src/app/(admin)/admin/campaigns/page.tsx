@@ -1,15 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { campaignService } from "@/services/campaign.service";
-import { Campaign, CampaignParams } from "@/types/api/campaign";
+import { categoryService } from "@/services/category.service";
+import { Category } from "@/types/api/category";
+import { Campaign } from "@/types/api/campaign";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, MoreHorizontal, Eye, CheckCircle, XCircle, Clock, DollarSign, Users, MapPin } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+import {
+    Search,
+    Filter,
+    MoreHorizontal,
+    Eye,
+    CheckCircle,
+    XCircle,
+    Clock,
+    DollarSign,
+    Users,
+    MapPin,
+} from "lucide-react";
 import Image from "next/image";
+import { useCampaigns } from "@/hooks/use-campaign";
 
 const statusConfig = {
     PENDING: { label: "Chờ duyệt", variant: "secondary" as const, icon: Clock },
@@ -17,54 +38,31 @@ const statusConfig = {
     ACTIVE: { label: "Đang hoạt động", variant: "default" as const, icon: CheckCircle },
     REJECTED: { label: "Từ chối", variant: "destructive" as const, icon: XCircle },
     COMPLETED: { label: "Hoàn thành", variant: "outline" as const, icon: CheckCircle },
+    CANCELLED: { label: "Đã hủy", variant: "destructive" as const, icon: XCircle },
 };
 
 export default function AdminCampaignsPage() {
-    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState<string>("ALL");
-    const [sortBy, setSortBy] = useState<string>("NEWEST_FIRST");
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    const {
+        campaigns,
+        loading,
+        error,
+        params,
+        setParams,
+        fetchCampaigns,
+    } = useCampaigns({ limit: 50, offset: 0 });
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
+        categoryService.getCategories().then(setCategories);
+    }, []);
 
-                const params: CampaignParams = {
-                    search: searchTerm || undefined,
-                    filter: statusFilter !== "ALL" ? { status: [statusFilter as Campaign["status"]] } : undefined,
-                    sortBy: sortBy as CampaignParams["sortBy"],
-                    limit: 50,
-                    offset: 0,
-                };
-
-                const data = await campaignService.getCampaigns(params);
-                setCampaigns(data || []);
-            } catch (err) {
-                setError("Không thể tải danh sách campaign");
-                console.error("Error fetching campaigns:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [searchTerm, statusFilter, sortBy]);
-
-    const formatCurrency = (amount: string) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(Number(amount));
-    };
+    const formatCurrency = (amount: string) =>
+        new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(amount));
 
     const getStatusBadge = (status: Campaign["status"]) => {
         const config = statusConfig[status];
         const Icon = config.icon;
-
         return (
             <Badge variant={config.variant} className="flex items-center gap-1">
                 <Icon className="w-3 h-3" />
@@ -79,42 +77,44 @@ export default function AdminCampaignsPage() {
         return Math.min((receivedNum / targetNum) * 100, 100);
     };
 
-    if (loading) {
-        return (
-            <div className="container mx-auto p-6">
-                <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="lg:container mx-auto p-6 space-y-6">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quản lý Campaign</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quản lý Chiến dịch</h1>
                     <p className="text-gray-600 mt-1 dark:text-white">Quản lý và theo dõi các chiến dịch gây quỹ</p>
                 </div>
             </div>
 
-            {/* Filters */}
+
             <Card>
                 <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <Input
-                                    placeholder="Tìm kiếm campaign..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
+
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <Input
+                                placeholder="Tìm kiếm chiến dịch..."
+                                value={params.search || ""}
+                                onChange={(e) => {
+                                    setParams((prev) => ({ ...prev, search: e.target.value }));
+                                    fetchCampaigns({ search: e.target.value });
+                                }}
+                                className="pl-10"
+                            />
                         </div>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+
+
+                        <Select
+                            value={params.filter?.status?.[0] || "ALL"}
+                            onValueChange={(val) => {
+                                setParams((prev) => ({
+                                    ...prev,
+                                    filter: { ...prev.filter, status: val === "ALL" ? undefined : [val as Campaign["status"]] },
+                                }));
+                                fetchCampaigns({ filter: { ...params.filter, status: val === "ALL" ? undefined : [val as Campaign["status"]] } });
+                            }}
+                        >
                             <SelectTrigger className="w-full sm:w-48">
                                 <SelectValue placeholder="Trạng thái" />
                             </SelectTrigger>
@@ -124,43 +124,53 @@ export default function AdminCampaignsPage() {
                                 <SelectItem value="APPROVED">Đã duyệt</SelectItem>
                                 <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
                                 <SelectItem value="REJECTED">Từ chối</SelectItem>
+                                <SelectItem value="CANCELLED">Đã hủy</SelectItem>
                                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select value={sortBy} onValueChange={setSortBy}>
+
+
+                        <Select
+                            value={params.filter?.categoryId || "ALL"}
+                            onValueChange={(val) => {
+                                setParams((prev) => ({
+                                    ...prev,
+                                    filter: { ...prev.filter, categoryId: val === "ALL" ? undefined : val },
+                                }));
+                                fetchCampaigns({ filter: { ...params.filter, categoryId: val === "ALL" ? undefined : val } });
+                            }}
+                        >
                             <SelectTrigger className="w-full sm:w-48">
-                                <SelectValue placeholder="Sắp xếp" />
+                                <SelectValue placeholder="Danh mục" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
-                                <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
-                                <SelectItem value="MOST_FUNDED">Gây quỹ nhiều nhất</SelectItem>
+                                <SelectItem value="ALL">Tất cả danh mục</SelectItem>
+                                {categories.map((cat) => (
+                                    <SelectItem key={cat.id} value={cat.id}>
+                                        {cat.title}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Error State */}
+
             {error && (
                 <Card className="border-red-200 bg-red-50">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-2 text-red-600">
-                            <XCircle className="w-5 h-5" />
-                            <span>{error}</span>
-                        </div>
-                    </CardContent>
+                    <CardContent className="p-6 text-red-600">{error}</CardContent>
                 </Card>
             )}
 
-            {/* Campaigns Grid */}
-            {campaigns.length === 0 && !loading ? (
+
+            {loading ? (
+                <div className="flex items-center justify-center h-64">Loading...</div>
+            ) : campaigns.length === 0 ? (
                 <Card>
                     <CardContent className="p-12 text-center">
-                        <div className="text-gray-400 mb-4">
-                            <Filter className="w-12 h-12 mx-auto" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Không tìm thấy campaign nào</h3>
+                        <Filter className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Không tìm thấy chiến dịch nào</h3>
                         <p className="text-gray-600">Thử thay đổi bộ lọc hoặc tìm kiếm để xem kết quả khác.</p>
                     </CardContent>
                 </Card>
@@ -170,31 +180,24 @@ export default function AdminCampaignsPage() {
                         <Card key={campaign.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                             <div className="relative">
                                 <Image
-                                    src={campaign.coverImage}
+                                    src={campaign.coverImage || ""}
                                     alt={campaign.title}
                                     width={400}
                                     height={200}
                                     className="w-full h-48 object-cover"
                                 />
-                                <div className="absolute top-4 right-4">
-                                    {getStatusBadge(campaign.status)}
-                                </div>
+                                <div className="absolute top-4 right-4">{getStatusBadge(campaign.status)}</div>
                             </div>
-
                             <CardHeader className="px-2">
-                                <CardTitle className="text-lg line-clamp-2 h-14 flex items-center justify-center text-center uppercase">
-                                    {campaign.title}
-                                </CardTitle>
+                                <CardTitle className="text-lg line-clamp-2 h-14 text-center uppercase">{campaign.title}</CardTitle>
                                 <div className="h-10 text-center text-sm text-gray-400">
                                     <MapPin className="mr-1 w-4 h-4 inline-block" />
                                     {campaign.location}
                                 </div>
                             </CardHeader>
-
                             <CardContent className="space-y-4">
                                 <p className="text-sm text-gray-400 line-clamp-2">{campaign.description}</p>
 
-                                {/* Progress */}
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-400">Tiến độ</span>
@@ -205,14 +208,11 @@ export default function AdminCampaignsPage() {
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                         <div
                                             className="bg-primary h-2 rounded-full transition-all duration-300"
-                                            style={{
-                                                width: `${getProgressPercentage(campaign.receivedAmount, campaign.targetAmount)}%`,
-                                            }}
+                                            style={{ width: `${getProgressPercentage(campaign.receivedAmount, campaign.targetAmount)}%` }}
                                         />
                                     </div>
                                 </div>
 
-                                {/* Stats */}
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div className="flex items-center gap-2">
                                         <DollarSign className="w-4 h-4 text-green-600" />
@@ -229,16 +229,11 @@ export default function AdminCampaignsPage() {
                                         </div>
                                     </div>
                                 </div>
+                                <div className="text-sm text-gray-500">Mục tiêu: {formatCurrency(campaign.targetAmount)}</div>
 
-                                <div className="text-sm text-gray-500">
-                                    Mục tiêu: {formatCurrency(campaign.targetAmount)}
-                                </div>
-
-                                {/* Actions */}
                                 <div className="flex gap-2 pt-2">
                                     <Button variant="outline" size="sm" className="flex-1">
-                                        <Eye className="w-4 h-4 mr-2" />
-                                        Xem chi tiết
+                                        <Eye className="w-4 h-4 mr-2" /> Xem chi tiết
                                     </Button>
                                     <Button variant="outline" size="sm">
                                         <MoreHorizontal className="w-4 h-4" />
@@ -248,40 +243,6 @@ export default function AdminCampaignsPage() {
                         </Card>
                     ))}
                 </div>
-            )}
-
-            {/* Stats Summary */}
-            {campaigns.length > 0 && (
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-primary">{campaigns.length}</div>
-                                <div className="text-sm text-gray-600">Tổng Campaign</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600">
-                                    {campaigns.filter(c => c.status === "ACTIVE").length}
-                                </div>
-                                <div className="text-sm text-gray-600">Đang hoạt động</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-orange-600">
-                                    {campaigns.filter(c => c.status === "PENDING").length}
-                                </div>
-                                <div className="text-sm text-gray-600">Chờ duyệt</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600">
-                                    {formatCurrency(
-                                        campaigns.reduce((sum, c) => sum + Number(c.receivedAmount), 0).toString()
-                                    )}
-                                </div>
-                                <div className="text-sm text-gray-600">Tổng gây quỹ</div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             )}
         </div>
     );

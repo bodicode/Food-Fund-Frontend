@@ -1,6 +1,15 @@
 "use client";
 
-import { useLayoutEffect, useRef, useEffect, useState, useCallback } from "react";
+import { useLayoutEffect, useRef, useEffect, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useSearchParams } from "next/navigation";
+
+import { CampaignCard } from "@/components/shared/campaign-card";
+import { Button } from "@/components/ui/button";
+import { Loader } from "@/components/animate-ui/icons/loader";
+import { SearchIcon } from "@/components/animate-ui/icons/search";
+import { RotateCw } from "@/components/animate-ui/icons/rotate-cw";
 import {
   Select,
   SelectContent,
@@ -8,17 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RotateCw } from "@/components/animate-ui/icons/rotate-cw";
-import { CampaignCard } from "@/components/shared/campaign-card";
-import gsap from "gsap";
-import { SearchIcon } from "@/components/animate-ui/icons/search";
-import { useSearchParams } from "next/navigation";
-import { campaignService } from "@/services/campaign.service";
-import { Campaign } from "@/types/api/campaign";
-import { Button } from "@/components/ui/button";
 
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Loader } from "../animate-ui/icons/loader";
+import { categoryService } from "@/services/category.service";
+import { Category } from "@/types/api/category";
+import { CampaignStatus } from "@/types/api/campaign";
+import { useCampaigns } from "@/hooks/use-campaign";
+
 gsap.registerPlugin(ScrollTrigger);
 
 const tabMap: Record<string, string> = {
@@ -33,51 +37,25 @@ export default function CampaignSearchPage() {
   const [activeTab, setActiveTab] = useState("Tổ chức");
   const cardsRef = useRef<HTMLDivElement>(null);
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const limit = 9;
-  const [hasMore, setHasMore] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  useEffect(() => {
+    categoryService.getCategories().then(setCategories);
+  }, []);
+
+  const {
+    campaigns,
+    loading,
+    hasMore,
+    params,
+    setParams,
+    fetchCampaigns,
+  } = useCampaigns({ limit: 3, offset: 0 });
 
   useEffect(() => {
     if (tabParam && tabMap[tabParam]) {
       setActiveTab(tabMap[tabParam]);
     }
   }, [tabParam]);
-
-  const fetchCampaigns = useCallback(async (loadMore = false) => {
-    try {
-      setLoading(true);
-      const data = await campaignService.getCampaigns({
-        filter: { status: ["ACTIVE", "APPROVED"] },
-        sortBy: "NEWEST_FIRST",
-        limit,
-        offset: loadMore ? offset : 0,
-      });
-
-      if (data && data.length > 0) {
-        if (loadMore) {
-          setCampaigns((prev) => [...prev, ...data]);
-          setOffset((prev) => prev + limit);
-        } else {
-          setCampaigns(data);
-          setOffset(limit);
-        }
-        if (data.length < limit) setHasMore(false);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Error loading campaigns:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [offset, limit]);
-
-  useEffect(() => {
-    fetchCampaigns(false);
-  }, [fetchCampaigns]);
-
 
   useLayoutEffect(() => {
     if (!cardsRef.current) return;
@@ -122,34 +100,63 @@ export default function CampaignSearchPage() {
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Select>
-              <SelectTrigger className="w-[180px] border rounded-md px-3 py-2 text-sm">
-                <SelectValue placeholder="Đang thực hiện" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="in-progress">Đang thực hiện</SelectItem>
-                <SelectItem value="completed">Hoàn thành</SelectItem>
-                <SelectItem value="upcoming">Sắp diễn ra</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select>
-              <SelectTrigger className="w-[180px] border rounded-md px-3 py-2 text-sm">
+            <Select
+              value={params.filter?.categoryId || "ALL"}
+              onValueChange={(val) => {
+                const newFilter = {
+                  ...params.filter,
+                  categoryId: val === "ALL" ? undefined : val,
+                };
+                setParams((prev) => ({ ...prev, filter: newFilter }));
+                fetchCampaigns({ filter: newFilter, offset: 0 });
+              }}
+            >
+              <SelectTrigger className="w-[200px] border rounded-md px-3 py-2 text-sm">
                 <SelectValue placeholder="Danh mục" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="education">Giáo dục</SelectItem>
-                <SelectItem value="health">Y tế</SelectItem>
-                <SelectItem value="disaster">Cứu trợ thiên tai</SelectItem>
+                <SelectItem value="ALL">Tất cả danh mục</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.title}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+
+            <Select
+              value={params.filter?.status?.[0] || "ALL"}
+              onValueChange={(val) => {
+                const newFilter = {
+                  ...params.filter,
+                  status: val === "ALL" ? undefined : [val as CampaignStatus],
+                };
+                setParams((prev) => ({ ...prev, filter: newFilter }));
+                fetchCampaigns({ filter: newFilter, offset: 0 });
+              }}
+            >
+              <SelectTrigger className="w-[200px] border rounded-md px-3 py-2 text-sm">
+                <SelectValue placeholder="Trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
+                <SelectItem value="APPROVED">Đã duyệt</SelectItem>
+                <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
+                <SelectItem value="REJECTED">Từ chối</SelectItem>
+                <SelectItem value="CANCELLED">Đã hủy</SelectItem>
+                <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
+              </SelectContent>
+            </Select>
+
 
             <RotateCw
               animate
               animateOnHover
               animateOnTap
               animateOnView
-              className="w-5 h-5 text-gray-500"
+              className="w-5 h-5 text-gray-500 cursor-pointer"
+              onClick={() => fetchCampaigns({ offset: 0 })}
             />
           </div>
 
@@ -163,31 +170,47 @@ export default function CampaignSearchPage() {
               type="text"
               placeholder="Tìm kiếm tên chiến dịch"
               className="w-full rounded-md border pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-200"
+              value={params.search || ""}
+              onChange={(e) => {
+                setParams((prev) => ({ ...prev, search: e.target.value }));
+                fetchCampaigns({ search: e.target.value, offset: 0 });
+              }}
             />
           </div>
         </div>
       </div>
 
       <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {campaigns.map((c) => (
-          <div key={c.id} className="campaign-card">
-            <CampaignCard {...c} />
+        {campaigns.length === 0 && !loading ? (
+          <div className="col-span-full text-center py-16 text-gray-500">
+            <p className="text-lg font-medium">Không tìm thấy chiến dịch nào</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Thử thay đổi bộ lọc hoặc tìm kiếm khác nhé.
+            </p>
           </div>
-        ))}
+        ) : (
+          campaigns.map((c) => (
+            <div key={c.id} className="campaign-card">
+              <CampaignCard {...c} coverImage={c.coverImage || ""} />
+            </div>
+          ))
+        )}
       </div>
 
       {hasMore && (
         <div className="flex justify-center mt-8">
           <Button
-            onClick={() => fetchCampaigns(true)}
+            onClick={() =>
+              fetchCampaigns(
+                {
+                  offset: (params.offset || 0) + (params.limit || 3),
+                },
+                true)
+            }
             disabled={loading}
             className="px-6 py-2 rounded-lg btn-color"
           >
-            {loading ? (
-              <Loader animate animateOnView className="h-4 w-4" />
-            ) : (
-              "Xem thêm"
-            )}
+            {loading ? <Loader animate animateOnView className="h-4 w-4" /> : "Xem thêm"}
           </Button>
         </div>
       )}

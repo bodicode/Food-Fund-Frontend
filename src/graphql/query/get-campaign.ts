@@ -24,8 +24,14 @@ export const GET_CAMPAIGNS = gql`
       targetAmount
       donationCount
       receivedAmount
+      startDate
+      endDate
       creator {
         id
+      }
+      category {
+        id
+        title
       }
     }
   }

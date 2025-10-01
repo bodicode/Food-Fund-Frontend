@@ -89,16 +89,15 @@ export default function TeamPage() {
                 <td className="px-4 py-3">
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium
-                      ${
-                        member.role === "ADMIN"
-                          ? "bg-green-500 text-white dark:bg-green-700"
-                          : member.role === "DONOR"
+                      ${member.role === "ADMIN"
+                        ? "bg-green-500 text-white dark:bg-green-700"
+                        : member.role === "DONOR"
                           ? "bg-blue-500 text-white dark:bg-blue-700"
                           : member.role === "KITCHEN"
-                          ? "bg-orange-500 text-white dark:bg-orange-700"
-                          : member.role === "DELIVERY"
-                          ? "bg-purple-500 text-white dark:bg-purple-700"
-                          : "bg-yellow-500 text-white dark:bg-yellow-700"
+                            ? "bg-orange-500 text-white dark:bg-orange-700"
+                            : member.role === "DELIVERY"
+                              ? "bg-purple-500 text-white dark:bg-purple-700"
+                              : "bg-yellow-500 text-white dark:bg-yellow-700"
                       }`}
                   >
                     {getRoleIcon(member.role)}

@@ -40,6 +40,7 @@ export function CampaignCard({
   description,
   coverImage,
   location,
+  status,
   donationCount,
   receivedAmount,
   targetAmount,
@@ -105,6 +106,8 @@ export function CampaignCard({
     return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
   }
 
+  const isPending = status === "PENDING";
+
   return (
     <div
       ref={cardRef}
@@ -112,23 +115,29 @@ export function CampaignCard({
       className={`${isHero
         ? "fc-hero fc-parallax group relative rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl"
         : "fc-card fc-parallax group relative rounded-xl overflow-hidden bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg"
-        } ${isEmergency ? "border border-red-400 bg-white/70 backdrop-blur-xl" : ""
-        }`}
+        } ${isEmergency ? "border border-red-400 bg-white/70 backdrop-blur-xl" : ""}
+        ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
-      <div className="relative overflow-hidden cursor-pointer">
+      <div className="relative overflow-hidden">
         <Image
           src={coverImage}
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[820px]" : "h-[220px] md:h-[300px]"
-            } object-cover`}
+          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[820px]" : "h-[220px] md:h-[300px]"} object-cover`}
         />
 
         {isEmergency && (
           <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow flex items-center gap-x-1">
             Khẩn cấp <Clock12 animate animateOnView loop className="h-5 w-5" />
           </span>
+        )}
+
+        {/* Overlay chờ duyệt */}
+        {isPending && (
+          <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-gray-700 font-semibold text-lg">Chờ duyệt</span>
+          </div>
         )}
 
         <div className="absolute bottom-0 left-0 w-full px-3 pb-3">

@@ -16,14 +16,8 @@ export function middleware(req: NextRequest) {
   const accessToken = req.cookies.get("accessToken")?.value;
   const role = req.cookies.get("role")?.value;
   const path = url.pathname;
-  console.log('idToken', idToken)
-  console.log('accessToken', accessToken)
-  console.log('role', role)
-  console.log(role)
 
-  // Bảo vệ route /admin - yêu cầu authentication và role ADMIN
   if (path.startsWith("/admin")) {
-    // Kiểm tra authentication
     if (!idToken && !accessToken) {
       url.pathname = "/login";
       url.searchParams.set("redirect", path);
@@ -33,7 +27,6 @@ export function middleware(req: NextRequest) {
     try {
       let userRole = role?.toUpperCase();
 
-      // Nếu không có role trong cookie, decode từ token
       if (!userRole && (idToken || accessToken)) {
         const tokenToDecode = idToken || accessToken;
         const decoded = jwtDecode<Decoded>(tokenToDecode!);

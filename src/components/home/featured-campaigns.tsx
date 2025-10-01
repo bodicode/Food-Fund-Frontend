@@ -141,12 +141,12 @@ export function FeaturedCampaigns() {
 
         <div className="hidden lg:grid lg:grid-cols-3 gap-6 items-stretch">
           <div className="lg:col-span-2 flex">
-            <CampaignCard {...hero} isHero className="flex-1" />
+            <CampaignCard {...hero} coverImage={hero.coverImage || ""} isHero className="flex-1" />
           </div>
 
           <div className="flex flex-col gap-6">
             {rightTwoByTwo.slice(0, 2).map((c) => (
-              <CampaignCard key={c.id} {...c} className="flex-1" />
+              <CampaignCard key={c.id} {...c} coverImage={c.coverImage || ""} className="flex-1" />
             ))}
           </div>
         </div>
@@ -171,7 +171,7 @@ export function FeaturedCampaigns() {
           >
             {bottomSliderList.map((c) => (
               <SwiperSlide key={`bottom-${c.id}`}>
-                <CampaignCard {...c} />
+                <CampaignCard {...c} coverImage={c.coverImage || ""} />
               </SwiperSlide>
             ))}
           </Swiper>

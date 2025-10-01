@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   Moon,
   Sun,
+  Settings,
   Menu,
+  Tag,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -52,7 +54,13 @@ function SidebarNav() {
         href="/admin/campaigns"
         className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
       >
-        <HeartHandshake className="w-5 h-5" /> Quản lý chiến dịch
+        <HeartHandshake className="w-5 h-5" /> Chiến dịch
+      </Link>
+      <Link
+        href="/admin/categories"
+        className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+      >
+        <Tag className="w-5 h-5" /> Danh mục chiến dịch
       </Link>
       <Link
         href="/admin/donations"
@@ -204,8 +212,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                 <Moon className="w-5 h-5" />
               )}
             </Button>
-            <Button size="icon" variant="ghost" onClick={handleLogout}>
-              <LogOut className="w-5 h-5" />
+            <Button size="icon" variant="ghost">
+              <Settings className="w-5 h-5" />
             </Button>
           </div>
         </header>
