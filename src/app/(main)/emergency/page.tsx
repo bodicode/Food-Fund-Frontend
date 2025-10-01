@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { CampaignCard } from "@/components/campaign-card";
+// import { CampaignCard } from "@/components/shared/campaign-card";
 
 type Campaign = {
   id: string;
@@ -82,8 +82,7 @@ export default function EmergencyPage() {
                 ease: "easeOut",
               }}
             >
-              <CampaignCard
-                id={Number(c.id)}
+              {/* <CampaignCard
                 title={c.title}
                 image={c.image}
                 donations={Math.floor(c.raised / 1000)}
@@ -92,7 +91,7 @@ export default function EmergencyPage() {
                 progress={(c.raised / c.goal) * 100}
                 deadline={c.deadline}
                 isEmergency
-              />
+              /> */}
             </motion.div>
           ))}
         </div>

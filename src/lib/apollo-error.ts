@@ -33,9 +33,12 @@ interface NetworkErrorContainer {
 export function normalizeApolloError(error: unknown): NormalizedError[] {
   const normalized: NormalizedError[] = [];
 
+  console.log("Normalizing error:", error);
+
   // Case 1: Apollo classic graphQLErrors
   if (typeof error === "object" && error !== null && "graphQLErrors" in error) {
     const gqlErrors = (error as GraphQLErrorContainer).graphQLErrors;
+    console.log("gqlErrors:", gqlErrors);
     if (Array.isArray(gqlErrors)) {
       normalized.push(
         ...gqlErrors.map((e) => ({
@@ -50,6 +53,7 @@ export function normalizeApolloError(error: unknown): NormalizedError[] {
   // Case 2: Apollo wrap error.result.errors
   if (typeof error === "object" && error !== null && "result" in error) {
     const resultErrors = (error as ResultErrorContainer).result?.errors;
+    console.log("resultErrors:", resultErrors);
     if (Array.isArray(resultErrors)) {
       normalized.push(
         ...resultErrors.map((e) => ({
@@ -82,6 +86,21 @@ export function normalizeApolloError(error: unknown): NormalizedError[] {
       });
     }
   }
+
+  // Case 5: errors array trực tiếp trong object (CombinedGraphQLErrors)
+  if (typeof error === "object" && error !== null && "errors" in error) {
+    const errs = (error as { errors?: GraphQLError[] }).errors;
+    if (Array.isArray(errs)) {
+      normalized.push(
+        ...errs.map((e: GraphQLError) => ({
+          message: e.message,
+          code: e.extensions?.code as string | undefined,
+          extensions: e.extensions as Record<string, unknown> | undefined,
+        }))
+      );
+    }
+  }
+
 
   return normalized;
 }

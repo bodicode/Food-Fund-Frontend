@@ -1,87 +1,51 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useEffect, useState } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import { CampaignCard } from "@/components/shared/campaign-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { campaignService } from "@/services/campaign.service";
+import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
+import { Campaign } from "@/types/api/campaign";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
-import "swiper/css/pagination";
-import { CampaignCard } from "../campaign-card";
 
 gsap.registerPlugin(ScrollTrigger);
 
-type Campaign = {
-  id: number;
-  title: string;
-  image: string;
-  donations: number;
-  raised: number;
-  goal: number;
-};
-
-const campaigns: Campaign[] = [
-  {
-    id: 1,
-    title: "Nhà trẻ Hoa Hồng gặp khó khăn trong bữa ăn",
-    image: "/images/what-we-do-2.jpg",
-    donations: 10_000,
-    raised: 2_899_000_000,
-    goal: 2_900_000_000,
-  },
-  {
-    id: 2,
-    title: "Gây quỹ bữa ăn cho xóm trọ công nhân KCN Tân Bình",
-    image: "/images/what-we-do-2.jpg",
-    donations: 825,
-    raised: 100_000_000,
-    goal: 740_000_000,
-  },
-  {
-    id: 3,
-    title: "Hỗ trợ suất ăn cho bệnh nhân nghèo BV Q.8",
-    image: "/images/what-we-do-2.jpg",
-    donations: 5_100,
-    raised: 523_000_000,
-    goal: 1_050_000_000,
-  },
-  {
-    id: 4,
-    title: "Bếp ăn yêu thương tại xã vùng cao Mường Lống",
-    image: "/images/what-we-do-2.jpg",
-    donations: 1_100,
-    raised: 255_000_000,
-    goal: 550_000_000,
-  },
-  {
-    id: 5,
-    title: "Bữa trưa ấm nóng cho học sinh đảo Bé Lý Sơn",
-    image: "/images/what-we-do-2.jpg",
-    donations: 1_500,
-    raised: 498_000_000,
-    goal: 690_000_000,
-  },
-  {
-    id: 6,
-    title: "Bữa trưa ấm nóng cho học sinh đảo Bé Lý Sơn",
-    image: "/images/what-we-do-2.jpg",
-    donations: 1_500,
-    raised: 498_000_000,
-    goal: 690_000_000,
-  },
-  {
-    id: 7,
-    title: "Bữa trưa ấm nóng cho học sinh đảo Bé Lý Sơn",
-    image: "/images/what-we-do-2.jpg",
-    donations: 1_500,
-    raised: 498_000_000,
-    goal: 690_000_000,
-  },
-];
+const mapCampaignToCardProps = (c: Campaign) => ({
+  ...c,
+  progress: Math.round(
+    (Number(c.receivedAmount) / Number(c.targetAmount || 1)) * 100
+  ),
+});
 
 export function FeaturedCampaigns() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const data = await campaignService.getCampaigns({
+          filter: { status: ["ACTIVE", "APPROVED"] },
+          sortBy: "NEWEST_FIRST",
+          limit: 10,
+          offset: 0,
+        });
+        setCampaigns(data ?? []);
+      } catch (err) {
+        console.error("Error loading campaigns:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCampaigns();
+  }, []);
 
   useLayoutEffect(() => {
     if (!rootRef.current) return;
@@ -122,30 +86,67 @@ export function FeaturedCampaigns() {
     return () => ctx.revert();
   }, []);
 
-  const withProgress = (c: Campaign) => ({
-    ...c,
-    progress: Math.round((c.raised / c.goal) * 100),
-  });
+  if (loading) {
+    return (
+      <section className="py-6 mt-3">
+        <div className="px-6 mx-auto">
+          <h2 className="text-center text-3xl font-bold mb-8 text-gray-900">
+            Chiến dịch nổi bật
+          </h2>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Skeleton className="h-[400px] w-full rounded-xl" />
+            <div className="grid grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  const [hero, ...rest] = campaigns.map(withProgress);
+  if (!campaigns.length) {
+    return (
+      <div className="text-center py-10 text-gray-500">
+        Hiện chưa có chiến dịch nào.
+      </div>
+    );
+  }
 
+  const [hero, ...rest] = campaigns.map(mapCampaignToCardProps);
   const rightTwoByTwo = rest.slice(0, 4);
-
   const bottomSliderList = rest.slice(-6);
 
   return (
     <section className="py-6 mt-3">
-      <div ref={rootRef} className="lg:container px-6 mx-auto">
-        <h2 className="text-center text-3xl text-color font-bold mb-8 text-gray-900">
-          Chiến dịch nổi bật
-        </h2>
+      <div ref={rootRef} className="px-12 mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl text-color font-bold text-gray-900">
+            Chiến dịch nổi bật
+          </h2>
+          <Link
+            href="/s"
+            className="text-sm font-medium text-color nav-hover-btn"
+          >
+            Xem tất cả{" "}
+            <ArrowRight
+              animate
+              animateOnView
+              animateOnHover
+              className="w-4 h-4 inline-block"
+            />
+          </Link>
+        </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <CampaignCard {...hero} isHero />
+        <div className="hidden lg:grid lg:grid-cols-3 gap-6 items-stretch">
+          <div className="lg:col-span-2 flex">
+            <CampaignCard {...hero} isHero className="flex-1" />
+          </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            {rightTwoByTwo.map((c) => (
-              <CampaignCard key={c.id} {...c} />
+          <div className="flex flex-col gap-6">
+            {rightTwoByTwo.slice(0, 2).map((c) => (
+              <CampaignCard key={c.id} {...c} className="flex-1" />
             ))}
           </div>
         </div>
@@ -155,7 +156,7 @@ export function FeaturedCampaigns() {
             modules={[Autoplay]}
             spaceBetween={20}
             slidesPerView={1}
-            loop={true}
+            loop
             speed={1800}
             autoplay={{
               delay: 4500,

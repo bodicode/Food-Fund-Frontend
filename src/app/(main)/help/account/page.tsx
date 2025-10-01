@@ -23,7 +23,7 @@ import { Binary } from "@/components/animate-ui/icons/binary";
 import { UsersRound } from "@/components/animate-ui/icons/users-round";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import PolicyDialog from "@/components/policy-dialog";
+import PolicyDialog from "@/components/shared/policy-dialog";
 import { Lightbulb } from "@/components/animate-ui/icons/lightbulb";
 import { MessageCircleWarning } from "@/components/animate-ui/icons/message-circle-warning";
 import { BadgeCheck } from "@/components/animate-ui/icons/badge-check";

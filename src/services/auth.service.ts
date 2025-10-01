@@ -46,96 +46,140 @@ export interface AuthService {
 
 export const graphQLAuthService: AuthService = {
   async login(input: SignInInput) {
-    const { data } = await client.mutate<
-      { signIn: SignInResponse["signIn"] },
-      { input: SignInInput }
-    >({
-      mutation: LOGIN_MUTATION,
-      variables: { input },
-    });
+    try {
+      const { data, error } = await client.mutate<
+        { signIn: SignInResponse["signIn"] },
+        { input: SignInInput }
+      >({
+        mutation: LOGIN_MUTATION,
+        variables: { input },
+      });
 
-    if (!data?.signIn) throw new Error("Login failed");
+      if (!data?.signIn) {
+        return Promise.reject(error);
+      }
 
-    const { idToken } = data.signIn;
-    const decodedUser = decodeIdToken(idToken);
+      const { idToken } = data.signIn;
+      const decodedUser = decodeIdToken(idToken);
 
-    return {
-      ...data.signIn,
-      decodedUser,
-    };
-  },
-
-  async signup(input) {
-    const { data } = await client.mutate<
-      { signUp: SignUpResponse["signUp"] },
-      { signUpInput2: SignUpInput }
-    >({
-      mutation: SIGNUP_MUTATION,
-      variables: { signUpInput2: input },
-    });
-
-    if (!data?.signUp) throw new Error("Signup failed");
-    return data.signUp;
-  },
-
-  async confirmSignup(input) {
-    const { data } = await client.mutate<
-      ConfirmSignUpResponse,
-      { confirmSignUpInput2: ConfirmSignUpInput }
-    >({
-      mutation: CONFIRM_SIGNUP_MUTATION,
-      variables: { confirmSignUpInput2: input },
-    });
-
-    if (!data?.confirmSignUp) throw new Error("Confirm signup failed");
-    return data.confirmSignUp;
-  },
-
-  async resendConfirmCode(input) {
-    const { data } = await client.mutate<
-      ResendCodeResponse,
-      { resendConfirmationCodeInput2: ResendCodeInput }
-    >({
-      mutation: RESEND_CONFIRM_CODE_MUTATION,
-      variables: { resendConfirmationCodeInput2: input },
-    });
-
-    if (!data?.resendConfirmationCode) {
-      throw new Error("Resend confirmation code failed");
+      return {
+        ...data.signIn,
+        decodedUser,
+      };
+    } catch (error) {
+      console.error("AuthService.login error:", error);
+      throw error;
     }
-    return data.resendConfirmationCode;
+  },
+
+  async signup(input: SignUpInput) {
+    try {
+      const { data, error } = await client.mutate<
+        { signUp: SignUpResponse["signUp"] },
+        { signUpInput2: SignUpInput }
+      >({
+        mutation: SIGNUP_MUTATION,
+        variables: { signUpInput2: input },
+      });
+
+      if (!data?.signUp) {
+        return Promise.reject(error);
+      }
+
+      return data.signUp;
+    } catch (error) {
+      console.error("AuthService.signup error:", error);
+      throw error;
+    }
+  },
+
+  async confirmSignup(input: ConfirmSignUpInput) {
+    try {
+      const { data, error } = await client.mutate<
+        ConfirmSignUpResponse,
+        { confirmSignUpInput2: ConfirmSignUpInput }
+      >({
+        mutation: CONFIRM_SIGNUP_MUTATION,
+        variables: { confirmSignUpInput2: input },
+      });
+
+      if (!data?.confirmSignUp) {
+        return Promise.reject(error);
+      }
+
+      return data.confirmSignUp;
+    } catch (error) {
+      console.error("AuthService.confirmSignup error:", error);
+      throw error;
+    }
+  },
+
+  async resendConfirmCode(input: ResendCodeInput) {
+    try {
+      const { data, error } = await client.mutate<
+        ResendCodeResponse,
+        { resendConfirmationCodeInput2: ResendCodeInput }
+      >({
+        mutation: RESEND_CONFIRM_CODE_MUTATION,
+        variables: { resendConfirmationCodeInput2: input },
+      });
+
+      if (!data?.resendConfirmationCode) {
+        return Promise.reject(error);
+      }
+
+      return data.resendConfirmationCode;
+    } catch (error) {
+      console.error("AuthService.resendConfirmCode error:", error);
+      throw error;
+    }
   },
 
   async forgotPassword(input: ForgotPasswordInput) {
-    const { data } = await client.mutate<
-      ForgotPasswordResponse,
-      { forgotPasswordInput3: ForgotPasswordInput }
-    >({
-      mutation: FORGOT_PASSWORD_MUTATION,
-      variables: { forgotPasswordInput3: input },
-    });
+    try {
+      const { data, error } = await client.mutate<
+        ForgotPasswordResponse,
+        { forgotPasswordInput3: ForgotPasswordInput }
+      >({
+        mutation: FORGOT_PASSWORD_MUTATION,
+        variables: { forgotPasswordInput3: input },
+      });
 
-    if (!data?.forgotPassword) throw new Error("Forgot password failed");
-    return data.forgotPassword;
+      if (!data?.forgotPassword) {
+        return Promise.reject(error);
+      }
+
+      return data.forgotPassword;
+    } catch (error) {
+      console.error("AuthService.forgotPassword error:", error);
+      throw error;
+    }
   },
 
   async confirmForgotPassword(input: ConfirmForgotPasswordInput) {
-    const { data } = await client.mutate<
-      ConfirmForgotPasswordResponse,
-      { confirmForgotPasswordInput2: ConfirmForgotPasswordInput }
-    >({
-      mutation: CONFIRM_FORGOT_PASSWORD_MUTATION,
-      variables: { confirmForgotPasswordInput2: input },
-    });
+    try {
+      const { data, error } = await client.mutate<
+        ConfirmForgotPasswordResponse,
+        { confirmForgotPasswordInput2: ConfirmForgotPasswordInput }
+      >({
+        mutation: CONFIRM_FORGOT_PASSWORD_MUTATION,
+        variables: { confirmForgotPasswordInput2: input },
+      });
 
-    if (!data?.confirmForgotPassword)
-      throw new Error("Confirm forgot password failed");
-    return data.confirmForgotPassword;
+      if (!data?.confirmForgotPassword) {
+        return Promise.reject(error);
+      }
+
+      return data.confirmForgotPassword;
+    } catch (error) {
+      console.error("AuthService.confirmForgotPassword error:", error);
+      throw error;
+    }
   },
 
   async signout(accessToken: string) {
     try {
-      const { data } = await client.mutate<{
+      const { data, error } = await client.mutate<{
         signOut: { message: string; success: boolean; timestamp: string };
       }>({
         mutation: SIGNOUT_MUTATION,
@@ -146,13 +190,13 @@ export const graphQLAuthService: AuthService = {
         },
       });
 
-      if (!data?.signOut.success) {
-        throw new Error(data?.signOut.message || "Sign out failed");
+      if (!data?.signOut?.success) {
+        return Promise.reject(error);
       }
 
       return data.signOut;
     } catch (err) {
-      console.error("SIGNOUT ERROR >>>", err);
+      console.error("AuthService.signout error:", err);
       throw err;
     }
   },

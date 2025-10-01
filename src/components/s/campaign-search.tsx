@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { useLayoutEffect, useRef, useEffect, useState, useCallback } from "react";
 import {
   Select,
   SelectContent,
@@ -9,62 +9,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RotateCw } from "@/components/animate-ui/icons/rotate-cw";
-import { CampaignCard } from "@/components/campaign-card";
+import { CampaignCard } from "@/components/shared/campaign-card";
 import gsap from "gsap";
 import { SearchIcon } from "@/components/animate-ui/icons/search";
 import { useSearchParams } from "next/navigation";
+import { campaignService } from "@/services/campaign.service";
+import { Campaign } from "@/types/api/campaign";
+import { Button } from "@/components/ui/button";
 
-type Campaign = {
-  id: number;
-  title: string;
-  image: string;
-  donations: number;
-  raised: number;
-  goal: number;
-};
-
-const campaigns: Campaign[] = [
-  {
-    id: 1,
-    title: "Nhà trẻ Hoa Hồng gặp khó khăn trong bữa ăn",
-    image: "/images/what-we-do-2.jpg",
-    donations: 10_000,
-    raised: 2_899_000_000,
-    goal: 2_900_000_000,
-  },
-  {
-    id: 2,
-    title: "Gây quỹ bữa ăn cho xóm trọ công nhân KCN Tân Bình",
-    image: "/images/what-we-do-2.jpg",
-    donations: 825,
-    raised: 100_000_000,
-    goal: 740_000_000,
-  },
-  {
-    id: 3,
-    title: "Hỗ trợ suất ăn cho bệnh nhân nghèo BV Q.8",
-    image: "/images/what-we-do-2.jpg",
-    donations: 5_100,
-    raised: 523_000_000,
-    goal: 1_050_000_000,
-  },
-  {
-    id: 4,
-    title: "Bếp ăn yêu thương tại xã vùng cao Mường Lống",
-    image: "/images/what-we-do-2.jpg",
-    donations: 1_100,
-    raised: 255_000_000,
-    goal: 550_000_000,
-  },
-  {
-    id: 5,
-    title: "Bữa trưa ấm nóng cho học sinh đảo Bé Lý Sơn",
-    image: "/images/what-we-do-2.jpg",
-    donations: 1_500,
-    raised: 498_000_000,
-    goal: 690_000_000,
-  },
-];
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Loader } from "../animate-ui/icons/loader";
+gsap.registerPlugin(ScrollTrigger);
 
 const tabMap: Record<string, string> = {
   personal: "Cá nhân",
@@ -78,15 +33,54 @@ export default function CampaignSearchPage() {
   const [activeTab, setActiveTab] = useState("Tổ chức");
   const cardsRef = useRef<HTMLDivElement>(null);
 
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const limit = 9;
+  const [hasMore, setHasMore] = useState(true);
+
   useEffect(() => {
     if (tabParam && tabMap[tabParam]) {
       setActiveTab(tabMap[tabParam]);
     }
   }, [tabParam]);
 
+  const fetchCampaigns = useCallback(async (loadMore = false) => {
+    try {
+      setLoading(true);
+      const data = await campaignService.getCampaigns({
+        filter: { status: ["ACTIVE", "APPROVED"] },
+        sortBy: "NEWEST_FIRST",
+        limit,
+        offset: loadMore ? offset : 0,
+      });
+
+      if (data && data.length > 0) {
+        if (loadMore) {
+          setCampaigns((prev) => [...prev, ...data]);
+          setOffset((prev) => prev + limit);
+        } else {
+          setCampaigns(data);
+          setOffset(limit);
+        }
+        if (data.length < limit) setHasMore(false);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error loading campaigns:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [offset, limit]);
+
+  useEffect(() => {
+    fetchCampaigns(false);
+  }, [fetchCampaigns]);
+
+
   useLayoutEffect(() => {
     if (!cardsRef.current) return;
-
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".campaign-card",
@@ -100,9 +94,8 @@ export default function CampaignSearchPage() {
         }
       );
     }, cardsRef);
-
     return () => ctx.revert();
-  }, []);
+  }, [campaigns]);
 
   return (
     <div className="lg:container mx-auto px-4 py-32">
@@ -116,9 +109,8 @@ export default function CampaignSearchPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`relative pb-1 text-sm font-medium transition nav-hover-btn ${
-                activeTab === tab ? "text-color" : "text-gray-500"
-              }`}
+              className={`relative pb-1 text-sm font-medium transition nav-hover-btn ${activeTab === tab ? "text-color" : "text-gray-500"
+                }`}
             >
               {tab}
               {activeTab === tab && (
@@ -179,13 +171,26 @@ export default function CampaignSearchPage() {
       <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
         {campaigns.map((c) => (
           <div key={c.id} className="campaign-card">
-            <CampaignCard
-              {...c}
-              progress={Math.round((c.raised / c.goal) * 100)}
-            />
+            <CampaignCard {...c} />
           </div>
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center mt-8">
+          <Button
+            onClick={() => fetchCampaigns(true)}
+            disabled={loading}
+            className="px-6 py-2 rounded-lg btn-color"
+          >
+            {loading ? (
+              <Loader animate animateOnView className="h-4 w-4" />
+            ) : (
+              "Xem thêm"
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

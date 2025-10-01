@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import StoryCard from "@/components/article-card";
+import StoryCard from "@/components/shared/article-card";
 
 const stories = [
   {

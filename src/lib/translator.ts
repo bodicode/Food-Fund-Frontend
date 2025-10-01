@@ -31,10 +31,34 @@ export const translateMessage = (msg: string) => {
   return msg;
 };
 
+// Define error type interface
+interface GraphQLError {
+  message?: string;
+  extensions?: {
+    code?: string;
+    details?: Array<{ message?: string }>;
+    context?: {
+      cognitoError?: string;
+    };
+  };
+}
+
+interface ErrorWithGraphQL {
+  errors?: GraphQLError[];
+  result?: {
+    errors?: GraphQLError[];
+  };
+  graphQLErrors?: GraphQLError[];
+}
+
 export const translateError = (err: unknown): string => {
   try {
-    const errorObj = JSON.parse(JSON.stringify(err));
-    const gqlError = errorObj?.errors?.[0];
+    const errorObj = err as ErrorWithGraphQL;
+
+    const gqlError =
+      errorObj?.errors?.[0] ||
+      errorObj?.result?.errors?.[0] ||
+      errorObj?.graphQLErrors?.[0];
 
     const cognitoError =
       (gqlError?.extensions?.details?.[0]?.message?.trim()
@@ -49,6 +73,9 @@ export const translateError = (err: unknown): string => {
     }
     if (cognitoError.includes("User is not confirmed"))
       return "Tài khoản chưa được xác thực email.";
+    if (cognitoError.includes("Password attempts exceeded"))
+      return "Bạn đã nhập sai mật khẩu quá nhiều lần. Tài khoản tạm bị khoá.";
+
     // Signup
     if (cognitoError.includes("User already exists"))
       return "Người dùng đã tồn tại (email này đã được sử dụng).";
@@ -56,6 +83,7 @@ export const translateError = (err: unknown): string => {
       return "Số điện thoại không hợp lệ.";
     if (cognitoError.includes("InvalidPasswordException"))
       return "Mật khẩu không hợp lệ. Vui lòng đặt mật khẩu mạnh hơn.";
+
     // Confirm register
     if (cognitoError.includes("Invalid verification code provided"))
       return "Mã xác nhận không đúng. Vui lòng thử lại.";
@@ -63,6 +91,7 @@ export const translateError = (err: unknown): string => {
       return "Mã xác nhận đã hết hạn. Vui lòng yêu cầu gửi lại.";
     if (cognitoError.includes("Confirmation code must be 6 digits"))
       return "Mã xác nhận phải có 6 chữ số.";
+
     // Confirm forgot password
     if (
       cognitoError.includes(
@@ -70,6 +99,8 @@ export const translateError = (err: unknown): string => {
       )
     )
       return "Mã xác nhận không đúng. Vui lòng thử lại.";
+
+    // Validation error
     if (gqlError?.extensions?.code === "VALIDATION_ERROR") {
       const details = gqlError?.extensions?.details;
       if (Array.isArray(details) && details.length > 0) {
@@ -78,8 +109,13 @@ export const translateError = (err: unknown): string => {
       return "Thông tin nhập vào không hợp lệ.";
     }
 
-    return gqlError?.message || "Có lỗi xảy ra. Vui lòng thử lại sau.";
-  } catch {
+    return (
+      cognitoError ||
+      gqlError?.message ||
+      "Có lỗi xảy ra. Vui lòng thử lại sau."
+    );
+  } catch (e) {
+    console.error("translateError failed:", e, err);
     return "Có lỗi xảy ra. Vui lòng thử lại sau.";
   }
 };
