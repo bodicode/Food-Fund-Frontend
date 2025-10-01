@@ -32,7 +32,7 @@ import { UsersRound } from "@/components/animate-ui/icons/users-round";
 import { Ellipsis } from "@/components/animate-ui/icons/ellipsis";
 import { usePathname, useRouter } from "next/navigation";
 import { useGsapNavigation } from "@/hooks/useGsapNavigation";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   DropdownMenu,
@@ -41,8 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { translateMessage } from "@/lib/translator";
-import { graphQLAuthService } from "@/services/auth.service";
+import { logout } from "@/store/slices/auth-slice";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -50,6 +49,7 @@ export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement | null>(null);
+  const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -57,14 +57,9 @@ export function Navigation() {
 
   const handleLogout = async () => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      const res = await graphQLAuthService.signout(accessToken || "");
+      dispatch(logout());
 
-      toast.success(translateMessage(res.message));
-
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-
+      toast.success("Đăng xuất thành công");
       router.push("/login");
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Có lỗi xảy ra";
@@ -99,11 +94,10 @@ export function Navigation() {
     <header
       ref={headerRef}
       className={`fixed left-1/2 z-50 -translate-x-1/2 transition-colors duration-300
-      ${
-        pathname === "/"
+      ${pathname === "/"
           ? "top-4 text-white bg-transparent w-[92%] max-w-7xl rounded-2xl"
           : "top-0 text-color bg-color-base w-full"
-      }
+        }
     `}
     >
       <nav className="container mx-auto">

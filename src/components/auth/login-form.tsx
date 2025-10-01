@@ -21,6 +21,7 @@ import { graphQLAuthService } from "@/services/auth.service";
 import { translateError, translateMessage } from "@/lib/translator";
 import { SignInInput } from "@/types/api/sign-in";
 import { decodeIdToken } from "@/lib/jwt-utils";
+import Cookies from "js-cookie";
 
 type LoginFormProps = {
   onSwitchToRegister?: () => void;
@@ -64,9 +65,9 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         })
       );
 
-      localStorage.setItem("accessToken", signIn.accessToken);
-      localStorage.setItem("refreshToken", signIn.refreshToken);
-      localStorage.setItem("idToken", signIn.idToken);
+      // localStorage.setItem("accessToken", signIn.accessToken);
+      // localStorage.setItem("refreshToken", signIn.refreshToken);
+      // localStorage.setItem("idToken", signIn.idToken);
       localStorage.setItem(
         "user",
         JSON.stringify({
@@ -77,11 +78,27 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         })
       );
 
+      Cookies.set("idToken", signIn.idToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      Cookies.set("role", decoded["custom:role"] || "DONOR", {
+        secure: true,
+        sameSite: "strict",
+      });
+      if (decoded["custom:role"]?.toUpperCase() === "ADMIN") {
+        router.push("/admin/users");
+      } else if (decoded["custom:role"]?.toUpperCase() === "KITCHEN") {
+        router.push("/kitchen");
+      } else if (decoded["custom:role"]?.toUpperCase() === "DELIVERY") {
+        router.push("/delivery");
+      } else {
+        router.push("/");
+      }
+
       toast.success(`Đăng nhập thành công`, {
         description: translateMessage(`Chào mừng ${decoded?.name || email}`),
       });
-
-      router.push("/");
     } catch (err: unknown) {
       toast.error("Lỗi đăng nhập", {
         description: translateError(err),

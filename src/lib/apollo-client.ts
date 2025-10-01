@@ -10,10 +10,11 @@ import { toast } from "sonner";
 import { normalizeApolloError } from "@/lib/apollo-error";
 import { logout } from "@/store/slices/auth-slice";
 import { store } from "@/store";
+import Cookies from "js-cookie";
 
 const authLink = new ApolloLink((operation, forward) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("accessToken");
+    const token = Cookies.get("accessToken");
 
     operation.setContext(({ headers = {} }) => ({
       headers: {
@@ -38,7 +39,7 @@ const errorLink = onError((error) => {
       store.dispatch(logout());
       window.location.replace("/login");
     } else {
-      toast.error(err.message || "Có lỗi xảy ra khi gọi API");
+      console.error(err.message || "Có lỗi xảy ra khi gọi API");
     }
   });
 });
