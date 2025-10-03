@@ -1,13 +1,144 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, XCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Pencil, XCircle } from "lucide-react";
 import { useCategories } from "@/hooks/use-category";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { categoryService } from "@/services/category.service";
+import { Trash2Icon } from "@/components/animate-ui/icons/trash-2";
+import { PlusIcon } from "@/components/animate-ui/icons/plus";
+import { X } from "@/components/animate-ui/icons/x";
 
 export default function CategoryPage() {
     const { categories, loading, error, fetchCategories } = useCategories();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+    const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState({ title: "", description: "" });
+    const [formError, setFormError] = useState("");
+
+    const handleInputChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+        if (formError) setFormError("");
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setFormError("");
+        setIsSubmitting(true);
+
+        try {
+            let result = null;
+
+            if (editingCategoryId) {
+                result = await categoryService.updateCategory(editingCategoryId, {
+                    title: formData.title.trim(),
+                    description: formData.description.trim(),
+                });
+
+                if (result) {
+                    toast.success("Cập nhật danh mục thành công!", {
+                        description: `Danh mục "${result.title}" đã được cập nhật.`,
+                    });
+                }
+            } else {
+                result = await categoryService.createCategory({
+                    title: formData.title.trim(),
+                    description: formData.description.trim(),
+                });
+
+                if (result) {
+                    toast.success("Tạo danh mục thành công!", {
+                        description: `Danh mục "${result.title}" đã được tạo.`,
+                    });
+                }
+            }
+
+            if (result) {
+                setFormData({ title: "", description: "" });
+                setIsDialogOpen(false);
+                setEditingCategoryId(null);
+                await fetchCategories();
+            }
+        } catch (err) {
+            const errorMessage =
+                err instanceof Error
+                    ? err.message
+                    : "Có lỗi xảy ra. Vui lòng thử lại.";
+
+            setFormError(errorMessage);
+            toast.error(editingCategoryId ? "Cập nhật thất bại!" : "Tạo thất bại!", {
+                description: errorMessage,
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!deletingCategoryId) return;
+        setIsSubmitting(true);
+        try {
+            const success = await categoryService.deleteCategory(deletingCategoryId);
+            if (success) {
+                toast.success("Xóa danh mục thành công!");
+                await fetchCategories();
+            } else {
+                toast.error("Xóa thất bại!", {
+                    description: "Không thể xóa danh mục, vui lòng thử lại.",
+                });
+            }
+        } catch (err) {
+            toast.error("Xóa thất bại!", {
+                description: err instanceof Error ? err.message : "Có lỗi xảy ra.",
+            });
+        } finally {
+            setIsSubmitting(false);
+            setIsDeleteDialogOpen(false);
+            setDeletingCategoryId(null);
+        }
+    };
+
+    const openEditDialog = (id: string, title: string, description: string) => {
+        setEditingCategoryId(id);
+        setFormData({ title, description: description || "" });
+        setIsDialogOpen(true);
+    };
+
+    const openDeleteDialog = (id: string) => {
+        setDeletingCategoryId(id);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        if (!isSubmitting) {
+            setIsDialogOpen(false);
+            setFormData({ title: "", description: "" });
+            setFormError("");
+            setEditingCategoryId(null);
+        }
+    };
 
     return (
         <div className="lg:container mx-auto p-6 space-y-6">
@@ -22,9 +153,9 @@ export default function CategoryPage() {
                 </div>
                 <Button
                     className="bg-primary hover:bg-primary/90"
-                    onClick={fetchCategories}
+                    onClick={() => setIsDialogOpen(true)}
                 >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <PlusIcon animate animateOnHover animateOnView animateOnTap className="w-4 h-4" />
                     Thêm Danh mục
                 </Button>
             </div>
@@ -32,7 +163,7 @@ export default function CategoryPage() {
             {error && (
                 <Card className="border-red-200 bg-red-50 dark:bg-red-950">
                     <CardContent className="p-6 flex items-center gap-2 text-red-600">
-                        <XCircle className="w-5 h-5" />
+                        <X animate animateOnHover animateOnTap animateOnView className="w-5 h-5" />
                         <span>{error}</span>
                     </CardContent>
                 </Card>
@@ -44,9 +175,6 @@ export default function CategoryPage() {
                 </div>
             ) : (
                 <Card className="overflow-hidden bg-white dark:bg-[#1e293b]">
-                    <CardHeader>
-                        <CardTitle>Danh mục chiến dịch</CardTitle>
-                    </CardHeader>
                     <CardContent>
                         {categories.length === 0 ? (
                             <div className="text-center py-10 text-gray-500">
@@ -60,6 +188,7 @@ export default function CategoryPage() {
                                             <th className="px-4 py-3">ID</th>
                                             <th className="px-4 py-3">Tên danh mục</th>
                                             <th className="px-4 py-3">Mô tả</th>
+                                            <th className="px-4 py-3"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -73,6 +202,22 @@ export default function CategoryPage() {
                                                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                                                     {c.description}
                                                 </td>
+                                                <td className="px-4 py-3 text-right flex justify-end gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => openEditDialog(c.id, c.title, c.description || "")}
+                                                    >
+                                                        <Pencil className="w-4 h-4 mr-1" />
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={() => openDeleteDialog(c.id)}
+                                                    >
+                                                        <Trash2Icon animate animateOnTap animateOnView className="w-4 h-4 mr-1" />
+                                                    </Button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -82,6 +227,146 @@ export default function CategoryPage() {
                     </CardContent>
                 </Card>
             )}
+
+            <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold">
+                            {editingCategoryId ? "Cập nhật Danh mục" : "Tạo Danh mục Mới"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {editingCategoryId
+                                ? "Chỉnh sửa thông tin danh mục."
+                                : "Điền thông tin để tạo danh mục mới."}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                        {formError && (
+                            <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
+                                <X animate animateOnHover animateOnTap animateOnView className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-sm text-red-600 dark:text-red-400">
+                                    {formError}
+                                </span>
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="title"
+                                className="text-sm font-medium text-gray-700 dark:text-gray-200"
+                            >
+                                Tên danh mục <span className="text-red-500">*</span>
+                            </label>
+                            <Input
+                                id="title"
+                                name="title"
+                                type="text"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                disabled={isSubmitting}
+                                required
+                                className="h-11"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="description"
+                                className="text-sm font-medium text-gray-700 dark:text-gray-200"
+                            >
+                                Mô tả <span className="text-red-500">*</span>
+                            </label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                disabled={isSubmitting}
+                                required
+                                rows={4}
+                                className="resize-none"
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleCloseDialog}
+                                disabled={isSubmitting}
+                                className="flex-1"
+                            >
+                                Hủy
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="flex-1 bg-primary hover:bg-primary/90"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader animate loop className="w-4 h-4 mr-2" />
+                                    </>
+                                ) : (
+                                    <>
+                                        {editingCategoryId ? (
+                                            <>
+                                                <Pencil className="w-4 h-4 mr-2" /> Cập nhật
+                                            </>
+                                        ) : (
+                                            <>
+                                                <PlusIcon animate animateOnHover animateOnView animateOnTap className="w-4 h-4 mr-2" /> Thêm
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-red-600">
+                            Xác nhận xóa
+                        </DialogTitle>
+                        <DialogDescription className="dark:text-white">
+                            Bạn có chắc muốn xóa danh mục này? Hành động này không thể hoàn tác.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-3 pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                            disabled={isSubmitting}
+                            className="flex-1"
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={isSubmitting}
+                            className="flex-1"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader animate loop className="w-4 h-4 mr-2" />
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2Icon animate animateOnTap animateOnView className="w-4 h-4 mr-1" />
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
