@@ -295,6 +295,11 @@ export function Navigation() {
                 },
               ]}
             />
+
+            <Link className="nav-hover-btn nav-hover-white-btn mx-2" href="/register">
+              Tạo Chiến dịch
+            </Link>
+
             {!user ? (
               <Link href="/login" className="hover:opacity-80 py-1">
                 Đăng nhập
@@ -485,6 +490,10 @@ export function Navigation() {
                       },
                     ]}
                   />
+
+                  <Link className="text-xs font-semibold uppercase px-2" href="/register">
+                    Tạo Chiến dịch
+                  </Link>
 
                   {!user ? (
                     <Link
