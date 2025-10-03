@@ -12,6 +12,10 @@
     @apply bg-[#000000];
   }
 
+  .nav-hover-white-btn::after {
+    @apply bg-[#ffffff];
+  }
+
   .btn-color {
     @apply bg-[#ad4e28] hover:bg-[#8c3e1f] text-white cursor-pointer;
   }
