@@ -10,13 +10,9 @@ import {
   PieChart,
   LineChart,
   Globe,
-  LogOut,
   HeartHandshake,
   DollarSign,
   ShieldCheck,
-  Moon,
-  Sun,
-  Settings,
   Menu,
   Tag,
 } from "lucide-react";
@@ -36,6 +32,9 @@ import {
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/slices/auth-slice";
 import { toast } from "sonner";
+import { LogOutIcon } from "@/components/animate-ui/icons/log-out";
+import { MoonIcon } from "@/components/animate-ui/icons/moon";
+import { SunIcon } from "@/components/animate-ui/icons/sun";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -148,7 +147,6 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-white text-gray-900 dark:bg-[#0f172a] dark:text-gray-200 transition-colors">
-      {/* Sidebar (desktop) */}
       <aside className="hidden lg:flex w-64 bg-gray-100 dark:bg-[#1e293b] flex-col transition-colors">
         <div className="h-16 flex items-center justify-center border-b border-gray-300 dark:border-gray-700">
           <h1 className="text-xl font-bold text-[#38bdf8]">FoodFund Admin</h1>
@@ -160,16 +158,14 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
             className="w-full flex items-center gap-2"
             onClick={handleLogout}
           >
-            <LogOut className="w-5 h-5" /> Đăng xuất
+            <LogOutIcon animate animateOnHover animateOnTap className="w-5 h-5" /> Đăng xuất
           </Button>
         </div>
       </aside>
 
-      {/* Main */}
       <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            {/* Menu trigger for mobile */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button size="icon" variant="ghost" className="lg:hidden">
@@ -189,7 +185,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                     className="w-full flex items-center gap-2"
                     onClick={handleLogout}
                   >
-                    <LogOut className="w-5 h-5" /> Đăng xuất
+                    <LogOutIcon animate animateOnHover animateOnTap className="w-5 h-5" /> Đăng xuất
                   </Button>
                 </div>
               </SheetContent>
@@ -207,13 +203,13 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             >
               {theme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <SunIcon animate animateOnHover animateOnView className="w-5 h-5" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <MoonIcon animate animateOnHover animateOnView className="w-5 h-5" />
               )}
             </Button>
-            <Button size="icon" variant="ghost">
-              <Settings className="w-5 h-5" />
+            <Button size="icon" variant="ghost" onClick={handleLogout}>
+              <LogOutIcon animate animateOnHover animateOnTap className="w-5 h-5" />
             </Button>
           </div>
         </header>

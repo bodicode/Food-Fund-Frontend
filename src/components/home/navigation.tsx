@@ -312,6 +312,14 @@ export function Navigation() {
                   </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-52">
+                  {user.role === "ADMIN" &&
+                    <DropdownMenuItem
+                      onClick={() => router.push("/admin/users")}
+                      className="cursor-pointer text-sm py-3"
+                    >
+                      Dashboard
+                    </DropdownMenuItem>
+                  }
                   <DropdownMenuItem
                     onClick={() => router.push("/profile")}
                     className="cursor-pointer text-sm py-3"
@@ -507,6 +515,10 @@ export function Navigation() {
                       <p className="px-2 text-sm font-semibold text-gray-700">
                         Xin chào, {user.name}
                       </p>
+                      {user.role == "ADMIN" ?
+                        <Link href="/admin/users">
+                          Dashboard
+                        </Link> : ""}
                       <button
                         onClick={handleLogout}
                         className="cursor-pointer w-full text-left block rounded-md px-2 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
