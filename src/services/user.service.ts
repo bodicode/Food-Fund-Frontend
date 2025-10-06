@@ -1,5 +1,5 @@
-import { UPDATE_USER_PROFILE } from "@/graphql/mutations/update-user-profile";
-import { GET_USER_PROFILE } from "@/graphql/query/get-user";
+import { UPDATE_USER_PROFILE } from "@/graphql/mutations/auth/update-user-profile";
+import { GET_USER_PROFILE } from "@/graphql/query/auth/get-user";
 import client from "@/lib/apollo-client";
 import { UserProfile } from "@/types/api/user";
 

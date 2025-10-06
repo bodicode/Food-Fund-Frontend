@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; // ✅ thêm useSearchParams
 import { Button } from "@/components/ui/button";
 import { ProfileTab } from "@/components/profile/tabs/profile-tab";
 import { CampaignsTab } from "@/components/profile/tabs/campaign-tab";
 import { HistoryTab } from "@/components/profile/tabs/history-tab";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { graphQLAuthService } from "@/services/auth.service";
 import { translateMessage } from "@/lib/translator";
-import { userService } from "@/services/user.service";
+// import { userService } from "@/services/user.service";
 import { UserProfile } from "@/types/api/user";
 import { Menu } from "lucide-react";
 import {
@@ -21,33 +21,39 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-type TabKey = "profile" | "campaigns" | "history" | "settings";
+type TabKey = "profile" | "campaigns" | "history";
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
-    userService.getProfile().then((data) => {
-      if (data) setProfile(data);
-    });
-  }, []);
+    const tabFromUrl = searchParams.get("tab") as TabKey | null;
+    if (tabFromUrl && ["profile", "campaigns", "history"].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
+
+  // useEffect(() => {
+  //   userService.getProfile().then((data) => {
+  //     if (data) setProfile(data);
+  //   });
+  // }, []);
 
   const handleLogout = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       const res = await graphQLAuthService.signout(accessToken || "");
-
       toast.success(translateMessage(res.message));
-
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-
       router.push("/login");
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Có lỗi xảy ra";
+      const errorMessage =
+        err instanceof Error ? err.message : "Có lỗi xảy ra";
       toast.error("Đăng xuất thất bại", { description: errorMessage });
     }
   };
@@ -67,53 +73,34 @@ export default function ProfilePage() {
         <h3 className="mt-3 font-semibold text-gray-800 text-base md:text-lg">
           {profile?.full_name || "Người dùng"}
         </h3>
-        <p className="text-sm text-gray-500">
-          {profile?.email || "email@example.com"}
-        </p>
+        <p className="text-sm text-gray-500">{profile?.email}</p>
         <p className="text-sm text-gray-500 my-4">
           {profile?.bio || "Thêm mô tả về bạn..."}
         </p>
       </div>
 
       <nav className="flex flex-col gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`justify-start text-sm  ${
-            activeTab === "profile"
+        {[
+          { key: "profile", label: "Hồ sơ cá nhân" },
+          { key: "campaigns", label: "Chiến dịch của tôi" },
+          { key: "history", label: "Lịch sử ủng hộ" },
+        ].map((tab) => (
+          <Button
+            key={tab.key}
+            variant="ghost"
+            size="sm"
+            className={`justify-start text-sm ${activeTab === tab.key
               ? "btn-color hover:text-white hover:opacity-90"
               : "hover:bg-gray-100"
-          }`}
-          onClick={() => setActiveTab("profile")}
-        >
-          Hồ sơ cá nhân
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`justify-start text-sm  ${
-            activeTab === "campaigns"
-              ? "btn-color hover:text-white hover:opacity-90"
-              : "hover:bg-gray-100"
-          }`}
-          onClick={() => setActiveTab("campaigns")}
-        >
-          Chiến dịch của tôi
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`justify-start text-sm  ${
-            activeTab === "history"
-              ? "btn-color hover:text-white hover:opacity-90"
-              : "hover:bg-gray-100"
-          }`}
-          onClick={() => setActiveTab("history")}
-        >
-          Lịch sử ủng hộ
-        </Button>
+              }`}
+            onClick={() => {
+              setActiveTab(tab.key as TabKey);
+              router.push(`/profile?tab=${tab.key}`);
+            }}
+          >
+            {tab.label}
+          </Button>
+        ))}
       </nav>
 
       <div className="mt-6 border-t pt-4">

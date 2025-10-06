@@ -1,16 +1,19 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
-import authReducer from "./slices/auth-slice";
+
+import authReducer from "@/store/slices/auth-slice";
+import campaignFormReducer from "@/store/slices/campaign-form-slice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  campaignForm: campaignFormReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"],
+  whitelist: ["auth", "campaignForm"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

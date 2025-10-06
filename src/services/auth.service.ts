@@ -1,8 +1,8 @@
 import client from "@/lib/apollo-client";
-import { LOGIN_MUTATION } from "@/graphql/mutations/login";
-import { SIGNUP_MUTATION } from "@/graphql/mutations/signup";
-import { CONFIRM_SIGNUP_MUTATION } from "@/graphql/mutations/confirm-signup";
-import { RESEND_CONFIRM_CODE_MUTATION } from "@/graphql/mutations/resend-confirm-code";
+import { LOGIN_MUTATION } from "@/graphql/mutations/auth/login";
+import { SIGNUP_MUTATION } from "@/graphql/mutations/auth/signup";
+import { CONFIRM_SIGNUP_MUTATION } from "@/graphql/mutations/auth/confirm-signup";
+import { RESEND_CONFIRM_CODE_MUTATION } from "@/graphql/mutations/auth/resend-confirm-code";
 
 import {
   SignUpInput,
@@ -18,11 +18,11 @@ import {
   ForgotPasswordInput,
   ForgotPasswordResponse,
 } from "@/types/api/forgot-password";
-import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/forgor-password";
-import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/confirm-forgot-password";
+import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/auth/forgor-password";
+import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/auth/confirm-forgot-password";
 import { decodeIdToken } from "@/lib/jwt-utils";
 import { SignInInput, SignInResponse } from "@/types/api/sign-in";
-import { SIGNOUT_MUTATION } from "@/graphql/mutations/signout";
+import { SIGNOUT_MUTATION } from "@/graphql/mutations/auth/signout";
 
 export interface AuthService {
   login(input: SignInInput): Promise<SignInResponse["signIn"]>;

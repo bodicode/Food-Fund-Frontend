@@ -17,6 +17,7 @@ export interface Campaign {
     id: string;
     title: string;
   };
+  createdAt: string;
 }
 
 export interface ListCampaignsResponse {
@@ -46,3 +47,24 @@ export type CampaignStatus =
   | "REJECTED"
   | "COMPLETED"
   | "CANCELLED";
+
+export interface ChangeCampaignStatusResponse {
+  changeCampaignStatus: {
+    id: string;
+    status: Campaign["status"];
+    approvedAt?: string;
+  };
+}
+export interface CreateCampaignInput {
+  title: string;
+  description: string;
+  coverImageFileKey: string;
+  location: string;
+  targetAmount: string;
+  startDate: string;
+  endDate: string;
+  categoryId: string;
+}
+export interface CreateCampaignResponse {
+  createCampaign: Campaign;
+}

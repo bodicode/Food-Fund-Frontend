@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Pencil, XCircle } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useCategories } from "@/hooks/use-category";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import {
