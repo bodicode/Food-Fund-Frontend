@@ -23,18 +23,18 @@ export function ProfileTab() {
 
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    userService.getProfile().then((profile) => {
-      if (profile) {
-        setUser(profile);
-        setName(profile.full_name || "");
-        setUserName(profile.user_name || "");
-        setPhone(profile.phone_number || "");
-        setBio(profile.bio || "");
-        setAvatar(profile.avatar_url || "");
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   userService.getProfile().then((profile) => {
+  //     if (profile) {
+  //       setUser(profile);
+  //       setName(profile.full_name || "");
+  //       setUserName(profile.user_name || "");
+  //       setPhone(profile.phone_number || "");
+  //       setBio(profile.bio || "");
+  //       setAvatar(profile.avatar_url || "");
+  //     }
+  //   });
+  // }, []);
 
   useEffect(() => {
     if (isEditing && nameInputRef.current) {
@@ -199,9 +199,8 @@ export function ProfileTab() {
             value={phone}
             readOnly={!isEditing}
             onChange={(e) => handlePhoneChange(e.target.value)}
-            className={`mt-1 ${isEditing ? "" : "bg-gray-50"} ${
-              phoneError ? "border-red-500" : ""
-            }`}
+            className={`mt-1 ${isEditing ? "" : "bg-gray-50"} ${phoneError ? "border-red-500" : ""
+              }`}
           />
           {phoneError && (
             <p className="text-red-500 text-sm mt-1">{phoneError}</p>

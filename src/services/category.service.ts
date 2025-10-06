@@ -1,7 +1,7 @@
-import { CREATE_CATEGORY_MUTATION } from "@/graphql/mutations/create-category-campaign";
-import { UPDATE_CATEGORY_MUTATION } from "@/graphql/mutations/update-category-campaign";
-import { DELETE_CATEGORY_MUTATION } from "@/graphql/mutations/delete-category-campaign";
-import { GET_CATEGORIES } from "@/graphql/query/get-category";
+import { CREATE_CATEGORY_MUTATION } from "@/graphql/mutations/category/create-category-campaign";
+import { UPDATE_CATEGORY_MUTATION } from "@/graphql/mutations/category/update-category-campaign";
+import { DELETE_CATEGORY_MUTATION } from "@/graphql/mutations/category/delete-category-campaign";
+import { GET_CATEGORIES } from "@/graphql/query/category/get-category";
 import client from "@/lib/apollo-client";
 import {
     Category,
@@ -11,6 +11,7 @@ import {
     UpdateCategoryResponse,
     DeleteCategoryResponse,
 } from "@/types/api/category";
+import { GET_CATEGORY_BY_ID } from "@/graphql/query/category/get-category-by-id";
 
 export const categoryService = {
     async getCategories(): Promise<Category[]> {
@@ -23,6 +24,20 @@ export const categoryService = {
         } catch (err) {
             console.error("Error fetching categories:", err);
             return [];
+        }
+    },
+
+    async getCategoryById(id: string): Promise<Category | null> {
+        try {
+            const { data } = await client.query<{ campaignCategory: Category }>({
+                query: GET_CATEGORY_BY_ID,
+                variables: { id },
+                fetchPolicy: "no-cache",
+            });
+            return data?.campaignCategory || null;
+        } catch (err) {
+            console.error(`Error fetching category with id ${id}:`, err);
+            return null;
         }
     },
 

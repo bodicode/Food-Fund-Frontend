@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { categoryService } from "@/services/category.service";
+import { campaignService } from "@/services/campaign.service";
 import { Category } from "@/types/api/category";
 import { Campaign } from "@/types/api/campaign";
 
@@ -16,6 +17,24 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import {
     Search,
@@ -28,21 +47,49 @@ import {
     DollarSign,
     Users,
     MapPin,
+    ThumbsUp,
+    ThumbsDown,
+    PlayCircle,
+    StopCircle,
+    CheckCircle2,
 } from "lucide-react";
 import Image from "next/image";
 import { useCampaigns } from "@/hooks/use-campaign";
+import { toast } from "sonner";
 
 const statusConfig = {
-    PENDING: { label: "Chờ duyệt", variant: "secondary" as const, icon: Clock },
-    APPROVED: { label: "Đã duyệt", variant: "default" as const, icon: CheckCircle },
-    ACTIVE: { label: "Đang hoạt động", variant: "default" as const, icon: CheckCircle },
-    REJECTED: { label: "Từ chối", variant: "destructive" as const, icon: XCircle },
-    COMPLETED: { label: "Hoàn thành", variant: "outline" as const, icon: CheckCircle },
-    CANCELLED: { label: "Đã hủy", variant: "destructive" as const, icon: XCircle },
+    PENDING: { label: "Chờ duyệt", variant: "secondary" as const, icon: Clock, color: "bg-yellow-100 text-yellow-800" },
+    APPROVED: { label: "Đã duyệt", variant: "default" as const, icon: CheckCircle, color: "bg-blue-100 text-blue-800" },
+    ACTIVE: { label: "Đang hoạt động", variant: "default" as const, icon: CheckCircle, color: "bg-green-100 text-green-800" },
+    REJECTED: { label: "Từ chối", variant: "destructive" as const, icon: XCircle, color: "bg-red-100 text-red-800" },
+    COMPLETED: { label: "Hoàn thành", variant: "outline" as const, icon: CheckCircle, color: "bg-gray-100 text-gray-800" },
+    CANCELLED: { label: "Đã hủy", variant: "destructive" as const, icon: XCircle, color: "bg-red-100 text-red-800" },
+};
+
+const statusActions = {
+    PENDING: [
+        { status: "APPROVED" as const, label: "Phê duyệt", icon: ThumbsUp, variant: "default" as const },
+        { status: "REJECTED" as const, label: "Từ chối", icon: ThumbsDown, variant: "destructive" as const },
+    ],
+    APPROVED: [
+        { status: "ACTIVE" as const, label: "Kích hoạt", icon: PlayCircle, variant: "default" as const },
+        { status: "REJECTED" as const, label: "Từ chối", icon: ThumbsDown, variant: "destructive" as const },
+    ],
+    ACTIVE: [
+        { status: "COMPLETED" as const, label: "Hoàn thành", icon: CheckCircle2, variant: "outline" as const },
+        { status: "CANCELLED" as const, label: "Hủy bỏ", icon: StopCircle, variant: "destructive" as const },
+    ],
+    REJECTED: [],
+    COMPLETED: [],
+    CANCELLED: [],
 };
 
 export default function AdminCampaignsPage() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+    const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+    const [newStatus, setNewStatus] = useState<Campaign["status"] | null>(null);
+    const [isChangingStatus, setIsChangingStatus] = useState(false);
 
     const {
         campaigns,
@@ -64,7 +111,7 @@ export default function AdminCampaignsPage() {
         const config = statusConfig[status];
         const Icon = config.icon;
         return (
-            <Badge variant={config.variant} className="flex items-center gap-1">
+            <Badge className={`${config.color} flex items-center gap-1 border-0`}>
                 <Icon className="w-3 h-3" />
                 {config.label}
             </Badge>
@@ -77,20 +124,61 @@ export default function AdminCampaignsPage() {
         return Math.min((receivedNum / targetNum) * 100, 100);
     };
 
+    const handleStatusChange = async () => {
+        if (!selectedCampaign || !newStatus) return;
+
+        setIsChangingStatus(true);
+        try {
+            const result = await campaignService.changeStatus(selectedCampaign.id, newStatus);
+
+            if (!result) {
+                throw new Error("Không nhận được dữ liệu phản hồi từ server");
+            }
+
+            toast.success("Đã thay đổi trạng thái chiến dịch thành công!");
+            await fetchCampaigns();
+            setStatusDialogOpen(false);
+        } catch (error) {
+            console.error("Error changing status:", error);
+            toast.error("Không thể thay đổi trạng thái. Vui lòng thử lại!");
+        } finally {
+            setIsChangingStatus(false);
+            setSelectedCampaign(null);
+            setNewStatus(null);
+        }
+    };
+
+
+    const openStatusDialog = (campaign: Campaign, status: Campaign["status"]) => {
+        setSelectedCampaign(campaign);
+        setNewStatus(status);
+        setStatusDialogOpen(true);
+    };
+
     return (
-        <div className="lg:container mx-auto p-6 space-y-6">
+        <div className="lg:container mx-auto p-4 sm:p-6 space-y-6">
+            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quản lý Chiến dịch</h1>
-                    <p className="text-gray-600 mt-1 dark:text-white">Quản lý và theo dõi các chiến dịch gây quỹ</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                        Quản lý Chiến dịch
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-600 mt-1 dark:text-gray-400">
+                        Quản lý và theo dõi các chiến dịch gây quỹ
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="outline" className="px-3 py-1">
+                        <Filter className="w-3 h-3 mr-1" />
+                        {campaigns.length} chiến dịch
+                    </Badge>
                 </div>
             </div>
 
-
-            <Card>
-                <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row gap-4">
-
+            {/* Filters */}
+            <Card className="shadow-sm">
+                <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <Input
@@ -103,7 +191,6 @@ export default function AdminCampaignsPage() {
                                 className="pl-10"
                             />
                         </div>
-
 
                         <Select
                             value={params.filter?.status?.[0] || "ALL"}
@@ -128,7 +215,6 @@ export default function AdminCampaignsPage() {
                                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
                             </SelectContent>
                         </Select>
-
 
                         <Select
                             value={params.filter?.categoryId || "ALL"}
@@ -156,16 +242,21 @@ export default function AdminCampaignsPage() {
                 </CardContent>
             </Card>
 
-
+            {/* Error State */}
             {error && (
                 <Card className="border-red-200 bg-red-50">
                     <CardContent className="p-6 text-red-600">{error}</CardContent>
                 </Card>
             )}
 
-
+            {/* Loading State */}
             {loading ? (
-                <div className="flex items-center justify-center h-64">Loading...</div>
+                <div className="flex items-center justify-center h-64">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-gray-600">Đang tải...</p>
+                    </div>
+                </div>
             ) : campaigns.length === 0 ? (
                 <Card>
                     <CardContent className="p-12 text-center">
@@ -175,75 +266,159 @@ export default function AdminCampaignsPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {campaigns.map((campaign) => (
-                        <Card key={campaign.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="relative">
+                        <Card key={campaign.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+                            {/* Image */}
+                            <div className="relative overflow-hidden">
                                 <Image
-                                    src={campaign.coverImage || ""}
+                                    src={campaign.coverImage || "/placeholder.jpg"}
                                     alt={campaign.title}
                                     width={400}
                                     height={200}
-                                    className="w-full h-48 object-cover"
+                                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
-                                <div className="absolute top-4 right-4">{getStatusBadge(campaign.status)}</div>
+                                <div className="absolute top-3 right-3">{getStatusBadge(campaign.status)}</div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </div>
-                            <CardHeader className="px-2">
-                                <CardTitle className="text-lg line-clamp-2 h-14 text-center uppercase">{campaign.title}</CardTitle>
-                                <div className="h-10 text-center text-sm text-gray-400">
-                                    <MapPin className="mr-1 w-4 h-4 inline-block" />
-                                    {campaign.location}
+
+                            <CardHeader className="px-4 pb-2">
+                                <CardTitle className="text-base sm:text-lg line-clamp-2 min-h-[3.5rem]">
+                                    {campaign.title}
+                                </CardTitle>
+                                <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-2">
+                                    <MapPin className="mr-1 w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                    <span className="line-clamp-1">{campaign.location}</span>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="text-sm text-gray-400 line-clamp-2">{campaign.description}</p>
 
+                            <CardContent className="space-y-3 sm:space-y-4 px-4 pb-4">
+                                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 min-h-[2.5rem]">
+                                    {campaign.description}
+                                </p>
+
+                                {/* Progress */}
                                 <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Tiến độ</span>
-                                        <span className="font-medium">
+                                    <div className="flex justify-between text-xs sm:text-sm">
+                                        <span className="text-gray-500">Tiến độ</span>
+                                        <span className="font-semibold text-primary">
                                             {getProgressPercentage(campaign.receivedAmount, campaign.targetAmount).toFixed(1)}%
                                         </span>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                         <div
-                                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                                            className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500 shadow-sm"
                                             style={{ width: `${getProgressPercentage(campaign.receivedAmount, campaign.targetAmount)}%` }}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <DollarSign className="w-4 h-4 text-green-600" />
+                                {/* Stats */}
+                                <div className="grid grid-cols-2 gap-3 sm:gap-4 py-3 border-t border-gray-100">
+                                    <div className="flex items-start gap-2">
+                                        <div className="p-2 bg-green-50 rounded-lg">
+                                            <DollarSign className="w-4 h-4 text-green-600" />
+                                        </div>
                                         <div>
-                                            <div className="font-medium">{formatCurrency(campaign.receivedAmount)}</div>
-                                            <div className="text-gray-500">Đã gây quỹ</div>
+                                            <div className="font-semibold text-sm sm:text-base text-gray-900">
+                                                {formatCurrency(campaign.receivedAmount)}
+                                            </div>
+                                            <div className="text-xs text-gray-500">Đã gây quỹ</div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <Users className="w-4 h-4 text-blue-600" />
+                                    <div className="flex items-start gap-2">
+                                        <div className="p-2 bg-blue-50 rounded-lg">
+                                            <Users className="w-4 h-4 text-blue-600" />
+                                        </div>
                                         <div>
-                                            <div className="font-medium">{campaign.donationCount}</div>
-                                            <div className="text-gray-500">Lượt quyên góp</div>
+                                            <div className="font-semibold text-sm sm:text-base text-gray-900">
+                                                {campaign.donationCount}
+                                            </div>
+                                            <div className="text-xs text-gray-500">Lượt đóng góp</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="text-sm text-gray-500">Mục tiêu: {formatCurrency(campaign.targetAmount)}</div>
 
+                                <div className="text-xs sm:text-sm text-gray-500 border-t border-gray-100 pt-3">
+                                    Mục tiêu: <span className="font-semibold text-gray-700">{formatCurrency(campaign.targetAmount)}</span>
+                                </div>
+
+                                {/* Actions */}
                                 <div className="flex gap-2 pt-2">
-                                    <Button variant="outline" size="sm" className="flex-1">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 hover:bg-gray-50"
+                                    >
                                         <Eye className="w-4 h-4 mr-2" /> Xem chi tiết
                                     </Button>
-                                    <Button variant="outline" size="sm">
-                                        <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" size="sm" className="hover:bg-gray-50">
+                                                <MoreHorizontal className="w-4 h-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-48">
+                                            <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            {statusActions[campaign.status].length > 0 && (
+                                                <>
+                                                    <DropdownMenuLabel className="text-xs text-gray-500">
+                                                        Thay đổi trạng thái
+                                                    </DropdownMenuLabel>
+                                                    {statusActions[campaign.status].map((action) => {
+                                                        const Icon = action.icon;
+                                                        return (
+                                                            <DropdownMenuItem
+                                                                key={action.status}
+                                                                onClick={() => openStatusDialog(campaign, action.status)}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                <Icon className="w-4 h-4 mr-2" />
+                                                                {action.label}
+                                                            </DropdownMenuItem>
+                                                        );
+                                                    })}
+                                                    <DropdownMenuSeparator />
+                                                </>
+                                            )}
+                                            <DropdownMenuItem className="cursor-pointer">
+                                                <Eye className="w-4 h-4 mr-2" />
+                                                Xem chi tiết
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             </CardContent>
                         </Card>
                     ))}
                 </div>
             )}
+
+            {/* Status Change Confirmation Dialog */}
+            <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận thay đổi trạng thái</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bạn có chắc chắn muốn thay đổi trạng thái chiến dịch{" "}
+                            <span className="font-semibold">{selectedCampaign?.title}</span> thành{" "}
+                            <span className="font-semibold">{newStatus && statusConfig[newStatus].label}</span>?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isChangingStatus}>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleStatusChange}
+                            disabled={isChangingStatus}
+                            className="bg-primary hover:bg-primary/90"
+                        >
+                            {isChangingStatus ? "Đang xử lý..." : "Xác nhận"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
