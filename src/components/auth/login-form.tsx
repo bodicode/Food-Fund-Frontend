@@ -23,9 +23,29 @@ import { SignInInput } from "@/types/api/sign-in";
 import { decodeIdToken } from "@/lib/jwt-utils";
 import Cookies from "js-cookie";
 
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+
 type LoginFormProps = {
   onSwitchToRegister?: () => void;
 };
+
+// Đặt ở đầu file (hoặc tách riêng vào types/auth.ts)
+interface GoogleJwtPayload {
+  iss: string; // "https://accounts.google.com"
+  azp: string;
+  aud: string;
+  sub: string; // Google user ID
+  email: string;
+  email_verified: boolean;
+  name: string;
+  picture: string;
+  given_name: string;
+  family_name: string;
+  iat: number;
+  exp: number;
+}
+
 
 export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
@@ -41,16 +61,13 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     setLoading(true);
 
     try {
-      const signIn = await graphQLAuthService.login({
+      const signInRes = await graphQLAuthService.login({
         email,
         password,
       } as SignInInput);
 
-      const decoded = decodeIdToken(signIn.idToken);
-
-      if (!decoded?.sub) {
-        throw new Error("Không thể xác định thông tin người dùng từ token");
-      }
+      const decoded = decodeIdToken(signInRes.idToken);
+      if (!decoded?.sub) throw new Error("Không thể xác định người dùng từ token");
 
       dispatch(
         setCredentials({
@@ -60,51 +77,47 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             email: decoded.email || "",
             role: decoded["custom:role"],
           },
-          accessToken: signIn.accessToken,
-          refreshToken: signIn.refreshToken,
+          accessToken: signInRes.accessToken,
+          refreshToken: signInRes.refreshToken,
         })
       );
 
-      // localStorage.setItem("accessToken", signIn.accessToken);
-      // localStorage.setItem("refreshToken", signIn.refreshToken);
-      // localStorage.setItem("idToken", signIn.idToken);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: decoded.sub,
-          name: decoded.name,
-          email: decoded.email,
-          role: decoded["custom:role"],
-        })
-      );
+      Cookies.set("idToken", signInRes.idToken, { secure: true, sameSite: "strict" });
+      Cookies.set("role", decoded["custom:role"] || "DONOR", { secure: true, sameSite: "strict" });
 
-      Cookies.set("idToken", signIn.idToken, {
-        secure: true,
-        sameSite: "strict",
-      });
-      Cookies.set("role", decoded["custom:role"] || "DONOR", {
-        secure: true,
-        sameSite: "strict",
-      });
-      if (decoded["custom:role"]?.toUpperCase() === "ADMIN") {
-        router.push("/admin/users");
-      } else if (decoded["custom:role"]?.toUpperCase() === "KITCHEN") {
-        router.push("/kitchen");
-      } else if (decoded["custom:role"]?.toUpperCase() === "DELIVERY") {
-        router.push("/delivery");
-      } else {
-        router.push("/");
-      }
+      const role = decoded["custom:role"]?.toUpperCase();
+      if (role === "ADMIN") router.push("/admin/users");
+      else if (role === "KITCHEN") router.push("/kitchen");
+      else if (role === "DELIVERY") router.push("/delivery");
+      else router.push("/");
 
-      toast.success(`Đăng nhập thành công`, {
+      toast.success("Đăng nhập thành công", {
         description: translateMessage(`Chào mừng ${decoded?.name || email}`),
       });
     } catch (err: unknown) {
-      toast.error("Lỗi đăng nhập", {
-        description: translateError(err),
-      });
+      toast.error("Lỗi đăng nhập", { description: translateError(err) });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = (credentialResponse: CredentialResponse) => {
+    try {
+      const token = credentialResponse.credential;
+      if (!token) return;
+
+      const googleUser = jwtDecode<GoogleJwtPayload>(token);
+
+      console.log("✅ Google User:", googleUser);
+
+      toast.success("Đăng nhập Google thành công", {
+        description: `Chào ${googleUser.name}`,
+      });
+
+      router.push("/");
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Đăng nhập Google thất bại!");
     }
   };
 
@@ -116,7 +129,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-4">
         <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
           <Input
             type="email"
@@ -141,11 +154,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               onClick={() => setShowPassword((prev) => !prev)}
               className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-[#ad4e28] hover:text-[#8c3e1f] hover:bg-transparent"
             >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5" />
-              ) : (
-                <Eye className="h-5 w-5" />
-              )}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </Button>
           </div>
 
@@ -154,13 +163,27 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             disabled={loading}
             className="font-semibold rounded-lg py-2 btn-color"
           >
-            {loading ? (
-              <Loader animate loop className="h-5 w-5" />
-            ) : (
-              "Đăng nhập"
-            )}
+            {loading ? <Loader animate loop className="h-5 w-5" /> : "Đăng nhập"}
           </Button>
         </form>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm" />
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => toast.error("Đăng nhập Google thất bại!")}
+            shape="pill"
+            text="signin_with"
+            size="large"
+            theme="outline"
+          />
+        </div>
       </CardContent>
 
       <CardFooter className="flex flex-col gap-3 text-sm text-[#ad4e28] items-center">
