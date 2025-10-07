@@ -9,6 +9,7 @@ import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
+import { statusConfig } from "@/lib/translator";
 
 export function CampaignsTab() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -49,6 +50,19 @@ export function CampaignsTab() {
     );
   }
 
+  // ✅ Helper để render Badge trạng thái dùng config chung
+  const renderStatusBadge = (status: Campaign["status"]) => {
+    const config = statusConfig[status];
+    if (!config) return null;
+    const Icon = config.icon;
+    return (
+      <Badge className={`${config.color} flex items-center gap-1 border-0`}>
+        <Icon className="w-3 h-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-xl font-bold mb-6 text-[#ad4e28]">
@@ -82,21 +96,7 @@ export function CampaignsTab() {
                   Ngày tạo:{" "}
                   {format(new Date(c.createdAt), "dd/MM/yyyy", { locale: vi })}
                 </p>
-                <Badge
-                  variant="secondary"
-                  className={`mt-2 ${c.status === "PENDING"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : c.status === "ACTIVE"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
-                >
-                  {c.status === "PENDING"
-                    ? "Chờ duyệt"
-                    : c.status === "ACTIVE"
-                      ? "Đang gây quỹ"
-                      : "Khác"}
-                </Badge>
+                <div className="mt-2">{renderStatusBadge(c.status)}</div>
               </div>
             </div>
 
