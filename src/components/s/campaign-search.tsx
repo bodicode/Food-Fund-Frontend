@@ -49,7 +49,7 @@ export default function CampaignSearchPage() {
     params,
     setParams,
     fetchCampaigns,
-  } = useCampaigns({ limit: 3, offset: 0 });
+  } = useCampaigns({ limit: 9, offset: 0 });
 
   useEffect(() => {
     if (tabParam && tabMap[tabParam]) {
