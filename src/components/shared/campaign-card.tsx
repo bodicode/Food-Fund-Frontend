@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useLayoutEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AlarmClock } from "@/components/animate-ui/icons/alarm-clock";
@@ -37,7 +38,6 @@ const fmtVND = (n: number) =>
 export function CampaignCard({
   id,
   title,
-  description,
   coverImage,
   location,
   status,
@@ -50,6 +50,7 @@ export function CampaignCard({
   deadline,
 }: CampaignCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const raised = Number(receivedAmount);
   const goal = Number(targetAmount);
@@ -108,14 +109,23 @@ export function CampaignCard({
 
   const isPending = status === "PENDING";
 
+  const handleClick = () => {
+    if (isPending) return;
+    router.push(`/campaign/${id}`);
+  };
+
   return (
     <div
       ref={cardRef}
       key={id}
-      className={`${isHero
-        ? "fc-hero fc-parallax group relative rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl"
-        : "fc-card fc-parallax group relative rounded-xl overflow-hidden bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg"
-        } ${isEmergency ? "border border-red-400 bg-white/70 backdrop-blur-xl" : ""}
+      onClick={handleClick}
+      className={`cursor-pointer select-none ${
+        isHero
+          ? "fc-hero fc-parallax group relative rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl"
+          : "fc-card fc-parallax group relative rounded-xl overflow-hidden bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg"
+      } ${
+        isEmergency ? "border border-red-400 bg-white/70 backdrop-blur-xl" : ""
+      }
         ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       <div className="relative overflow-hidden">
@@ -124,7 +134,9 @@ export function CampaignCard({
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[820px]" : "h-[220px] md:h-[300px]"} object-cover`}
+          className={`fc-img w-full ${
+            isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
+          } object-cover transition-transform duration-500 group-hover:scale-105`}
         />
 
         {isEmergency && (
@@ -133,10 +145,11 @@ export function CampaignCard({
           </span>
         )}
 
-        {/* Overlay chờ duyệt */}
         {isPending && (
           <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
-            <span className="text-gray-700 font-semibold text-lg">Chờ duyệt</span>
+            <span className="text-gray-700 font-semibold text-lg">
+              Chờ duyệt
+            </span>
           </div>
         )}
 
@@ -169,19 +182,14 @@ export function CampaignCard({
 
       <div className={`${isHero ? "p-4" : "p-3"}`}>
         <h3
-          className={`${isHero
-            ? "font-semibold text-lg line-clamp-2"
-            : "font-medium text-lg line-clamp-2 h-14"
-            }`}
+          className={`${
+            isHero
+              ? "font-semibold text-lg line-clamp-2"
+              : "font-medium text-lg line-clamp-2 h-14"
+          }`}
         >
           {title}
         </h3>
-
-        {description && (
-          <p className="h-10 text-sm text-gray-500 line-clamp-2 mt-1">
-            {description}
-          </p>
-        )}
 
         {isEmergency && deadline && (
           <div className="mt-3 text-sm text-red-600 font-medium flex items-center gap-x-1">
@@ -198,7 +206,13 @@ export function CampaignCard({
 
         {location && (
           <div className="mt-2 text-xs text-gray-400 italic line-clamp-1">
-            <MapPin animate animateOnView loop className="w-4 h-4 inline-block" /> {location}
+            <MapPin
+              animate
+              animateOnView
+              loop
+              className="w-4 h-4 inline-block"
+            />{" "}
+            {location}
           </div>
         )}
 

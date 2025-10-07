@@ -3,6 +3,7 @@
 import { CHANGE_CAMPAIGN_STATUS } from "@/graphql/mutations/campaign/change-campaign-status";
 import { CREATE_CAMPAIGN } from "@/graphql/mutations/campaign/create-campaign";
 import { GET_CAMPAIGNS } from "@/graphql/query/campaign/get-campaign";
+import { GET_CAMPAIGN_BY_ID } from "@/graphql/query/campaign/get-campaign-by-id";
 import { GET_MY_CAMPAIGNS } from "@/graphql/query/campaign/get-my-campaign";
 import client from "@/lib/apollo-client";
 import {
@@ -52,6 +53,21 @@ export const campaignService = {
     }
   },
 
+  async getCampaignById(id: string): Promise<Campaign | null> {
+    try {
+      const { data } = await client.query<{ campaign: Campaign }>({
+        query: GET_CAMPAIGN_BY_ID,
+        variables: { id },
+        fetchPolicy: "no-cache",
+      });
+
+      return data?.campaign || null;
+    } catch (error) {
+      console.error("❌ Error fetching campaign by ID:", error);
+      return null;
+    }
+  },
+
   async changeStatus(
     id: string,
     status: Campaign["status"]
@@ -74,9 +90,7 @@ export const campaignService = {
     }
   },
 
-  async createCampaign(
-    input: CreateCampaignInput
-  ): Promise<Campaign | null> {
+  async createCampaign(input: CreateCampaignInput): Promise<Campaign | null> {
     try {
       const { data } = await client.mutate<CreateCampaignResponse>({
         mutation: CREATE_CAMPAIGN,

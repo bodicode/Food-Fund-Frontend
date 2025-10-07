@@ -4,7 +4,13 @@ export interface Campaign {
   description?: string;
   coverImage?: string;
   location?: string;
-  status: "PENDING" | "APPROVED" | "ACTIVE" | "REJECTED" | "COMPLETED" | "CANCELLED";
+  status:
+    | "PENDING"
+    | "APPROVED"
+    | "ACTIVE"
+    | "REJECTED"
+    | "COMPLETED"
+    | "CANCELLED";
   targetAmount: string;
   donationCount: number;
   receivedAmount: string;
@@ -12,6 +18,8 @@ export interface Campaign {
   endDate?: string;
   creator: {
     id: string;
+    full_name: string;
+    email: string;
   };
   category?: {
     id: string;
