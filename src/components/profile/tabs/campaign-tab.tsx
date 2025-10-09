@@ -7,14 +7,105 @@ import { Campaign } from "@/types/api/campaign";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
-import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
 import { statusConfig } from "@/lib/translator";
+import Link from "next/link";
+
+const LoadingSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div key={i} className="bg-white rounded-xl shadow-sm p-4 animate-pulse">
+        <div className="w-full h-40 bg-gray-200 rounded-lg mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+        <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+        <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+      </div>
+    ))}
+  </div>
+);
+
+const EmptyState = () => (
+  <div className="text-center py-16 bg-gray-50 rounded-xl">
+    <svg
+      className="mx-auto h-12 w-12 text-gray-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        vectorEffect="non-scaling-stroke"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+      />
+    </svg>
+    <h3 className="mt-2 text-sm font-medium text-gray-900">
+      Chưa có chiến dịch
+    </h3>
+    <p className="mt-1 text-sm text-gray-500">
+      Bắt đầu tạo chiến dịch đầu tiên của bạn.
+    </p>
+    <div className="mt-6">
+      <Link
+        href="/create-campaign"
+        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#ad4e28] hover:bg-[#9c4624]"
+      >
+        + Tạo chiến dịch mới
+      </Link>
+    </div>
+  </div>
+);
+
+const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
+  const router = useRouter();
+  const config = statusConfig[campaign.status];
+  const Icon = config?.icon;
+
+  return (
+    <div
+      onClick={() => router.push(`/profile/my-campaign/${campaign.id}`)}
+      className="bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group"
+    >
+      <div className="relative w-full h-40">
+        {campaign.coverImage ? (
+          <Image
+            src={campaign.coverImage}
+            alt={campaign.title}
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+            No image
+          </div>
+        )}
+        {config && Icon && (
+          <Badge
+            className={`${config.color} absolute top-3 right-3 flex items-center gap-1 border-0`}
+          >
+            <Icon className="w-3 h-3" />
+            {config.label}
+          </Badge>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-bold text-lg text-gray-900 truncate group-hover:text-[#ad4e28]">
+          {campaign.title}
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Ngày tạo:{" "}
+          {format(new Date(campaign.createdAt), "dd/MM/yyyy", { locale: vi })}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export function CampaignsTab() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,82 +124,28 @@ export function CampaignsTab() {
     fetchData();
   }, []);
 
-  if (loading) {
+  const renderContent = () => {
+    if (loading) {
+      return <LoadingSkeleton />;
+    }
+    if (campaigns.length === 0) {
+      return <EmptyState />;
+    }
     return (
-      <div className="flex items-center justify-center py-10 text-gray-500">
-        <Loader className="w-5 h-5 animate-spin mr-2" />
-        Đang tải chiến dịch của bạn...
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {campaigns.map((c) => (
+          <CampaignCard key={c.id} campaign={c} />
+        ))}
       </div>
-    );
-  }
-
-  if (campaigns.length === 0) {
-    return (
-      <div className="text-center py-10 text-gray-500">
-        <p>Bạn chưa tạo chiến dịch nào.</p>
-      </div>
-    );
-  }
-
-  // ✅ Helper để render Badge trạng thái dùng config chung
-  const renderStatusBadge = (status: Campaign["status"]) => {
-    const config = statusConfig[status];
-    if (!config) return null;
-    const Icon = config.icon;
-    return (
-      <Badge className={`${config.color} flex items-center gap-1 border-0`}>
-        <Icon className="w-3 h-3" />
-        {config.label}
-      </Badge>
     );
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <h2 className="text-xl font-bold mb-6 text-[#ad4e28]">
+    <div className="bg-white p-6">
+      <h2 className="text-2xl font-bold mb-6 text-[#ad4e28] hidden md:block">
         Chiến dịch của tôi
       </h2>
-
-      <ul className="divide-y divide-gray-200">
-        {campaigns.map((c) => (
-          <li
-            key={c.id}
-            className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-          >
-            <div className="flex items-center gap-4">
-              {c.coverImage ? (
-                <Image
-                  src={c.coverImage}
-                  alt={c.title}
-                  width={80}
-                  height={80}
-                  className="rounded-lg object-cover w-20 h-20"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                  No image
-                </div>
-              )}
-
-              <div>
-                <h3 className="font-semibold text-gray-900">{c.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Ngày tạo:{" "}
-                  {format(new Date(c.createdAt), "dd/MM/yyyy", { locale: vi })}
-                </p>
-                <div className="mt-2">{renderStatusBadge(c.status)}</div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => router.push(`/campaign/${c.id}`)}
-              className="text-sm text-[#ad4e28] font-medium hover:underline self-start sm:self-auto"
-            >
-              Xem chi tiết →
-            </button>
-          </li>
-        ))}
-      </ul>
+      {renderContent()}
     </div>
   );
 }

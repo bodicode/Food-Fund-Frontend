@@ -2,6 +2,7 @@
 
 import { CHANGE_CAMPAIGN_STATUS } from "@/graphql/mutations/campaign/change-campaign-status";
 import { CREATE_CAMPAIGN } from "@/graphql/mutations/campaign/create-campaign";
+import { UPDATE_CAMPAIGN } from "@/graphql/mutations/campaign/update-campaign";
 import { GET_CAMPAIGNS } from "@/graphql/query/campaign/get-campaign";
 import { GET_CAMPAIGN_BY_ID } from "@/graphql/query/campaign/get-campaign-by-id";
 import { GET_MY_CAMPAIGNS } from "@/graphql/query/campaign/get-my-campaign";
@@ -13,6 +14,7 @@ import {
   ChangeCampaignStatusResponse,
   CreateCampaignInput,
   CreateCampaignResponse,
+  UpdateCampaignInput,
 } from "@/types/api/campaign";
 
 export const campaignService = {
@@ -102,6 +104,31 @@ export const campaignService = {
       return data.createCampaign;
     } catch (error) {
       console.error("❌ Error creating campaign:", error);
+      throw error;
+    }
+  },
+
+  async updateCampaign(
+    id: string,
+    input: UpdateCampaignInput
+  ): Promise<Campaign | null> {
+    try {
+      const { data } = await client.mutate<{
+        updateCampaign: Campaign;
+      }>({
+        mutation: UPDATE_CAMPAIGN,
+        variables: { id, input },
+        fetchPolicy: "no-cache",
+        refetchQueries: [{ query: GET_CAMPAIGNS }],
+      });
+
+      if (!data?.updateCampaign) {
+        throw new Error("Không nhận được dữ liệu phản hồi từ server");
+      }
+
+      return data.updateCampaign;
+    } catch (error) {
+      console.error("❌ Error updating campaign:", error);
       throw error;
     }
   },

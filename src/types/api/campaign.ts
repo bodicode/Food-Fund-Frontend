@@ -76,3 +76,13 @@ export interface CreateCampaignInput {
 export interface CreateCampaignResponse {
   createCampaign: Campaign;
 }
+export interface UpdateCampaignInput {
+  title?: string;
+  description?: string;
+  targetAmount?: string;
+  categoryId?: string;
+  coverImageFileKey?: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+}

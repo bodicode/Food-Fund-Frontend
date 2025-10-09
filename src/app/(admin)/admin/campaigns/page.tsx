@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { categoryService } from "@/services/category.service";
 import { campaignService } from "@/services/campaign.service";
 import { Category } from "@/types/api/category";
@@ -52,6 +53,7 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { statusActions, statusConfig } from "@/lib/translator";
 
 export default function AdminCampaignsPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
@@ -100,9 +102,8 @@ export default function AdminCampaignsPage() {
         newStatus
       );
 
-      if (!result) {
+      if (!result)
         throw new Error("Không nhận được dữ liệu phản hồi từ server");
-      }
 
       toast.success("Đã thay đổi trạng thái chiến dịch thành công!");
       await fetchCampaigns();
@@ -234,21 +235,12 @@ export default function AdminCampaignsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="flex flex-col items-center gap-3">
-            <Loader className="w-12 h-12" animate animateOnView />
-            <p className="text-gray-600">Đang tải...</p>
-          </div>
+          <Loader className="w-12 h-12" animate animateOnView />
         </div>
       ) : campaigns.length === 0 ? (
         <Card>
-          <CardContent className="p-12 text-center">
-            <Filter className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Không tìm thấy chiến dịch nào
-            </h3>
-            <p className="text-gray-600">
-              Thử thay đổi bộ lọc hoặc tìm kiếm để xem kết quả khác.
-            </p>
+          <CardContent className="p-12 text-center text-gray-500">
+            Không tìm thấy chiến dịch nào
           </CardContent>
         </Card>
       ) : (
@@ -258,7 +250,6 @@ export default function AdminCampaignsPage() {
               key={campaign.id}
               className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
             >
-              {/* Image */}
               <div className="relative overflow-hidden">
                 <Image
                   src={campaign.coverImage || "/placeholder.jpg"}
@@ -270,7 +261,6 @@ export default function AdminCampaignsPage() {
                 <div className="absolute top-3 right-3">
                   {getStatusBadge(campaign.status)}
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
 
               <CardHeader className="px-4 pb-2">
@@ -278,7 +268,7 @@ export default function AdminCampaignsPage() {
                   {campaign.title}
                 </CardTitle>
                 <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-2">
-                  <MapPin className="mr-1 w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <MapPin className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="line-clamp-1">{campaign.location}</span>
                 </div>
               </CardHeader>
@@ -297,7 +287,7 @@ export default function AdminCampaignsPage() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500 shadow-sm"
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
                       style={{
                         width: `${getProgressPercentage(
                           campaign.receivedAmount,
@@ -314,18 +304,19 @@ export default function AdminCampaignsPage() {
                       <DollarSign className="w-4 h-4 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
+                      <div className="font-semibold text-sm sm:text-base text-gray-900">
                         {formatCurrency(campaign.receivedAmount)}
                       </div>
                       <div className="text-xs text-gray-500">Đã gây quỹ</div>
                     </div>
                   </div>
+
                   <div className="flex items-start gap-2">
                     <div className="p-2 bg-blue-50 rounded-lg">
                       <Users className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
+                      <div className="font-semibold text-sm sm:text-base text-gray-900">
                         {campaign.donationCount}
                       </div>
                       <div className="text-xs text-gray-500">Lượt đóng góp</div>
@@ -333,18 +324,14 @@ export default function AdminCampaignsPage() {
                   </div>
                 </div>
 
-                <div className="text-xs sm:text-sm text-gray-500 border-t border-gray-100 pt-3">
-                  Mục tiêu:{" "}
-                  <span className="font-semibold text-gray-700">
-                    {formatCurrency(campaign.targetAmount)}
-                  </span>
-                </div>
-
                 <div className="flex gap-2 pt-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex-1 hover:bg-gray-50"
+                    onClick={() =>
+                      router.push(`/admin/campaigns/${campaign.id}`)
+                    }
                   >
                     <Eye className="w-4 h-4 mr-2" /> Xem chi tiết
                   </Button>
@@ -385,7 +372,12 @@ export default function AdminCampaignsPage() {
                           <DropdownMenuSeparator />
                         </>
                       )}
-                      <DropdownMenuItem className="cursor-pointer">
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() =>
+                          router.push(`/admin/campaigns/${campaign.id}`)
+                        }
+                      >
                         <Eye className="w-4 h-4 mr-2" />
                         Xem chi tiết
                       </DropdownMenuItem>
