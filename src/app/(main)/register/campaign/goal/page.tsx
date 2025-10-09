@@ -8,14 +8,7 @@ import { updateForm } from "@/store/slices/campaign-form-slice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-
-const formatCurrency = (value: string): string => {
-  const num = value.replace(/\D/g, "");
-  if (!num) return "";
-  return new Intl.NumberFormat("vi-VN").format(Number(num));
-};
-
-const parseCurrency = (value: string): string => value.replace(/\D/g, "");
+import { formatCurrency, parseCurrency } from "@/lib/utils";
 
 export default function CreateCampaignStepGoal() {
   const router = useRouter();
@@ -31,7 +24,7 @@ export default function CreateCampaignStepGoal() {
   }, [form.targetAmount]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
+    const raw = parseCurrency(e.target.value);
     setTargetAmount(formatCurrency(raw));
   };
 

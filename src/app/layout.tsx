@@ -11,7 +11,7 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "FoodFund",
   description: "FoodFund is a platform for funding food projects",
-  icons: "/images/favicon.ico",
+  icons: "/images/tab.png",
 };
 
 export default function RootLayout({

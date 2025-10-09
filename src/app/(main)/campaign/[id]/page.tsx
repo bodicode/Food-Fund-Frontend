@@ -82,7 +82,6 @@ export default function CampaignDetailPage() {
     router.push(`/map/${campaign.id}`);
   };
 
-  // 👇 chỉ thêm motion.wrapper để animate
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -30,12 +29,11 @@ type LoginFormProps = {
   onSwitchToRegister?: () => void;
 };
 
-// Đặt ở đầu file (hoặc tách riêng vào types/auth.ts)
 interface GoogleJwtPayload {
-  iss: string; // "https://accounts.google.com"
+  iss: string;
   azp: string;
   aud: string;
-  sub: string; // Google user ID
+  sub: string;
   email: string;
   email_verified: boolean;
   name: string;
@@ -45,7 +43,6 @@ interface GoogleJwtPayload {
   iat: number;
   exp: number;
 }
-
 
 export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
@@ -67,7 +64,8 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       } as SignInInput);
 
       const decoded = decodeIdToken(signInRes.idToken);
-      if (!decoded?.sub) throw new Error("Không thể xác định người dùng từ token");
+      if (!decoded?.sub)
+        throw new Error("Không thể xác định người dùng từ token");
 
       dispatch(
         setCredentials({
@@ -82,8 +80,14 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         })
       );
 
-      Cookies.set("idToken", signInRes.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set("role", decoded["custom:role"] || "DONOR", { secure: true, sameSite: "strict" });
+      Cookies.set("idToken", signInRes.idToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      Cookies.set("role", decoded["custom:role"] || "DONOR", {
+        secure: true,
+        sameSite: "strict",
+      });
 
       const role = decoded["custom:role"]?.toUpperCase();
       if (role === "ADMIN") router.push("/admin/users");
@@ -107,8 +111,6 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       if (!token) return;
 
       const googleUser = jwtDecode<GoogleJwtPayload>(token);
-
-      console.log("✅ Google User:", googleUser);
 
       toast.success("Đăng nhập Google thành công", {
         description: `Chào ${googleUser.name}`,
@@ -145,17 +147,8 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               placeholder="Mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28] pr-10"
+              className="w-full bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28]"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-[#ad4e28] hover:text-[#8c3e1f] hover:bg-transparent"
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </Button>
           </div>
 
           <Button
@@ -163,7 +156,11 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             disabled={loading}
             className="font-semibold rounded-lg py-2 btn-color"
           >
-            {loading ? <Loader animate loop className="h-5 w-5" /> : "Đăng nhập"}
+            {loading ? (
+              <Loader animate loop className="h-5 w-5" />
+            ) : (
+              "Đăng nhập"
+            )}
           </Button>
         </form>
 
