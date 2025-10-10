@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import "leaflet/dist/leaflet.css";
@@ -12,6 +12,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import { Map, MapPin } from "lucide-react";
 
 delete (
   L.Icon.Default.prototype as unknown as {
@@ -47,6 +48,7 @@ export default function CampaignMapPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [pos, setPos] = useState<LatLng | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   const fmtVND = (n: number) =>
     new Intl.NumberFormat("vi-VN", {
@@ -90,87 +92,79 @@ export default function CampaignMapPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader animate loop className="h-8 w-8 text-color" />
+      <div className="h-screen flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-50 to-white">
+        <Loader animate loop className="h-10 w-10 text-color" />
+        <p className="text-gray-600 font-medium">Đang tải thông tin...</p>
       </div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="h-screen flex items-center justify-center text-gray-500">
-        Không tìm thấy chiến dịch.
+      <div className="h-screen flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-gray-50 to-white">
+        <div className="text-6xl">🗺️</div>
+        <p className="text-gray-500 font-medium">Không tìm thấy chiến dịch.</p>
+        <button
+          onClick={() => router.push('/s')}
+          className="px-6 py-2 bg-[#ad4e28] text-white rounded-full font-medium hover:opacity-90 transition"
+        >
+          Quay lại trang chủ
+        </button>
       </div>
     );
   }
 
   const raised = Number(campaign.receivedAmount || 0);
   const target = Number(campaign.targetAmount || 1);
-  const progress = Math.min(Math.round((raised / target) * 100), 100);
 
   return (
-    <div className="relative flex flex-col md:flex-row">
-      <div className="absolute overflow-y-hidden md:w-[420px] w-full top-[80px] left-0 h-[calc(100vh-158px)] bg-white border-r border-gray-200 p-5 z-10">
-        <h2 className="text-lg font-semibold mb-1 text-gray-800">
-          Chi tiết chiến dịch
-        </h2>
+    <div className="relative flex flex-col lg:flex-row h-screen">
+      <button
+        onClick={() => setShowSidebar(!showSidebar)}
+        className="lg:hidden fixed top-20 right-4 z-30 bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-50 transition"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {showSidebar ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
 
-        <div className="rounded-xl overflow-hidden shadow">
+      <div
+        className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 transition-transform duration-300 fixed lg:absolute overflow-y-auto lg:w-[440px] w-[90%] max-w-[400px] top-[65px] left-0 h-[100vh] lg:h-[calc(100vh-65px)] bg-white/95 backdrop-blur-md lg:border-r border-gray-200 p-4 sm:p-6 z-20 lg:z-10 hide-scrollbar`}
+      >
+
+        <div className="rounded-2xl overflow-hidden shadow-md ring-1 ring-gray-200">
           <Image
             src={campaign.coverImage || "/images/default-cover.jpg"}
             alt={campaign.title}
             width={600}
             height={300}
-            className="object-cover w-full h-[200px]"
+            className="object-cover w-full h-[180px] sm:h-[220px]"
           />
         </div>
 
-        <div className="mt-3">
-          <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
+        <div className="mt-4">
+          <span className="text-xs font-semibold bg-gradient-to-r from-orange-100 to-amber-100 text-[#ad4e28] px-3 py-1.5 rounded-full border border-orange-200">
             {campaign.category?.title || "Khác"}
           </span>
         </div>
 
-        <h1 className="text-lg font-bold text-gray-900 mt-2">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-3 leading-tight">
           {campaign.title}
         </h1>
 
         {campaign.location && (
-          <div className="mt-1 text-sm text-gray-600 flex items-start gap-1">
-            <span>📍</span>
-            <span>{campaign.location}</span>
+          <div className="mt-3 text-sm text-gray-600 flex items-start gap-2 bg-gray-50 p-3 rounded-lg">
+            <span className="text-lg"><MapPin className="mr-1 w-4 h-4 inline" /></span>
+            <span className="flex-1">{campaign.location}</span>
           </div>
         )}
 
-        <p className="text-sm mt-2 text-gray-700">
-          Tạo bởi{" "}
-          <span className="font-semibold text-[#ad4e28]">
-            {campaign.creator?.full_name || "Tổ chức thiện nguyện"}
-          </span>
-        </p>
-
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-700">
-          <div className="flex items-center gap-1 text-green-600 font-medium">
-            🎯 Mục tiêu chiến dịch
-          </div>
-          <span className="font-semibold">{fmtVND(target)}</span>
-        </div>
-
-        <div className="mt-2 flex items-center justify-between text-sm text-gray-600">
-          <span>Đã đạt được</span>
-          <span className="font-semibold text-[#ad4e28]">
-            {fmtVND(raised)} ({progress}%)
-          </span>
-        </div>
-
-        <div className="mt-2 w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-          <div
-            className="h-2 bg-[#f97316] rounded-full"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        <div className="mt-5 flex gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => {
               const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -178,20 +172,27 @@ export default function CampaignMapPage() {
               )}`;
               window.open(mapUrl, "_blank");
             }}
-            className="flex-1 border border-[#ad4e28] text-[#ad4e28] py-2 rounded-lg font-medium hover:bg-[#ad4e28]/10 transition"
+            className="flex-1 border-2 border-[#ad4e28] text-[#ad4e28] py-3 rounded-xl font-semibold hover:bg-[#ad4e28]/10 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
-            Chỉ đường
+            <span><Map className="inline mr-1 w-4 h-4" /> Chỉ đường</span>
           </button>
           <button
             onClick={() => router.push(`/campaign/${campaign.id}`)}
-            className="flex-1 bg-[#ad4e28] text-white py-2 rounded-lg font-medium hover:opacity-90 transition"
+            className="flex-1 bg-gradient-to-r from-[#ad4e28] to-[#8b3e20] text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
           >
             Xem chi tiết
           </button>
         </div>
       </div>
 
-      <div className="flex-1 md:ml-[420px] h-[calc(100vh-72px)] mt-[72px] md:mt-0 relative z-0">
+      {showSidebar && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-10 top-[65px]"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
+
+      <div className="flex-1 lg:ml-[100px] h-[100vh] relative z-0 pt-16">
         {pos ? (
           <MapContainer center={pos} zoom={14} className="h-full w-full">
             <TileLayer
@@ -200,18 +201,26 @@ export default function CampaignMapPage() {
             />
             <Marker position={pos}>
               <Popup>
-                <div className="space-y-1">
-                  <div className="font-semibold">{campaign.title}</div>
-                  <div className="text-xs text-gray-500">
-                    {campaign.location}
+                <div className="space-y-2 p-2">
+                  <div className="font-bold text-base text-gray-900">{campaign.title}</div>
+                  <div className="text-sm text-gray-600 flex items-start gap-1">
+                    <span>📍</span>
+                    <span>{campaign.location}</span>
                   </div>
+                  <button
+                    onClick={() => router.push(`/campaign/${campaign.id}`)}
+                    className="w-full mt-2 bg-[#ad4e28] text-white py-2 px-4 rounded-lg text-sm font-semibold hover:opacity-90 transition"
+                  >
+                    Xem chi tiết
+                  </button>
                 </div>
               </Popup>
             </Marker>
           </MapContainer>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Không tìm thấy vị trí
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4 bg-gradient-to-br from-gray-50 to-white">
+            <div className="text-6xl">🗺️</div>
+            <p className="font-medium">Không tìm thấy vị trí</p>
           </div>
         )}
       </div>

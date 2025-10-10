@@ -81,47 +81,44 @@ export default function Hero() {
               alt={`Hero background ${index}`}
               fill
               priority={index === 0}
-              className={`object-cover object-center transition-opacity duration-1000 ${
-                index === currentImage ? "opacity-100" : "opacity-0"
-              }`}
+              className={`object-cover object-center transition-opacity duration-1000 ${index === currentImage ? "opacity-100" : "opacity-0"
+                }`}
             />
           ))}
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
         </div>
 
-        <div className="relative z-10 h-full flex items-end">
-          <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">
-            <div>
-              <h1 className="hero-title text-4xl md:text-5xl font-bold leading-tight text-yellow-300 text-nowrap">
+        <div className="relative z-10 h-full flex items-center lg:items-end">
+          <div className="container mx-auto px-6 md:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 pb-12 md:pb-16 lg:pb-20">
+            <div className="lg:col-span-2">
+              <h1 className="hero-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-yellow-300 drop-shadow-2xl">
                 &quot;Chia sẻ bữa ăn.
               </h1>
 
-              <h1 className="hero-title text-4xl md:text-5xl font-bold leading-tight text-yellow-300 text-nowrap">
+              <h1 className="hero-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-yellow-300 drop-shadow-2xl">
                 Gieo mầm hy vọng.&quot;
               </h1>
 
-              <div className="hero-left">
-                <p className="text-sm uppercase mt-2 text-white/80">
+              <div className="hero-left mt-4 md:mt-6">
+                <p className="text-sm md:text-base uppercase text-white/90 font-semibold tracking-wide drop-shadow-lg">
                   FoodFund - chung tay vì cộng đồng
                 </p>
               </div>
             </div>
 
-            <div />
-
-            <div className="hero-right text-right mt-12">
-              <p className="text-white/90 text-md mb-6">
+            <div className="hero-right lg:text-right space-y-6">
+              <p className="text-white/95 text-sm md:text-base lg:text-lg leading-relaxed drop-shadow-lg">
                 Mỗi đóng góp của bạn là một phần ăn được trao đi – đến đúng
                 người, đúng lúc. FoodFund kết nối cộng đồng, nhà bếp và tình
-                thương để lan tỏa những điều tốt đẹp.
+                thương để lan toả những điều tốt đẹp.
               </p>
 
               <Button
                 asChild
                 size="lg"
-                className="px-6 py-2 rounded-full bg-white text-black hover:bg-white/90 transition"
+                className="px-8 py-6 rounded-full bg-white text-black hover:bg-yellow-300 hover:text-black font-semibold text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-95"
               >
-                <Link href="/donate">Khám phá chiến dịch</Link>
+                <Link href="/s">Khám phá chiến dịch</Link>
               </Button>
             </div>
           </div>

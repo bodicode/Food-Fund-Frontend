@@ -119,29 +119,28 @@ export function CampaignCard({
       ref={cardRef}
       key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none ${
-        isHero
-          ? "fc-hero fc-parallax group relative rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl"
-          : "fc-card fc-parallax group relative rounded-xl overflow-hidden bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg"
-      } ${
-        isEmergency ? "border border-red-400 bg-white/70 backdrop-blur-xl" : ""
-      }
+      className={`cursor-pointer select-none ${isHero
+        ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-md transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
+        : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+        } ${isEmergency ? "ring-2 ring-red-400 ring-offset-2 bg-white/90 backdrop-blur-xl" : ""
+        }
         ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
         <Image
           src={coverImage}
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${
-            isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
-          } object-cover transition-transform duration-500 group-hover:scale-105`}
+          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
+            } object-cover transition-transform duration-700 group-hover:scale-110`}
         />
 
         {isEmergency && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow flex items-center gap-x-1">
-            Khẩn cấp <Clock12 animate animateOnView loop className="h-5 w-5" />
+          <span className="absolute top-3 right-3 z-20 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg shadow-red-500/50 flex items-center gap-x-1.5 animate-pulse">
+            <Clock12 animate animateOnView loop className="h-4 w-4" />
+            Sắp hết hạn
           </span>
         )}
 
@@ -153,48 +152,49 @@ export function CampaignCard({
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 w-full px-3 pb-3">
-          <div className="bg-black/40 backdrop-blur-md rounded-lg p-2">
-            <div className="flex items-center justify-between text-white text-sm font-semibold mb-1">
+        <div className="absolute bottom-0 left-0 w-full px-4 pb-4 z-20">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border border-white/30">
+            <div className="flex items-center justify-between text-white text-sm font-bold mb-2 drop-shadow-lg">
               <span className="fc-money" data-value={raised}>
                 {fmtVND(raised)}
               </span>
-              <span>{computedProgress}%</span>
+              <span className="text-xs bg-white/25 backdrop-blur-sm text-white px-2.5 py-1 rounded-full font-semibold border border-white/30">{computedProgress}%</span>
             </div>
 
-            <div className="w-full bg-white/40 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-white/20 backdrop-blur-sm h-2.5 rounded-full overflow-hidden border border-white/30">
               <div
-                className="fc-progress h-2 bg-green-color rounded-full"
+                className="fc-progress h-2.5 bg-white/60 backdrop-blur-sm rounded-full shadow-sm relative border-r border-white/40"
                 style={{ width: `${computedProgress}%` }}
                 data-value={computedProgress}
-              />
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/40 rounded-full animate-pulse" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <span
-        className={`absolute ${isHero ? "top-3 left-3" : "top-2 left-2"} 
-          bg-black/70 text-white text-[10px] md:text-xs px-2 py-0.5 rounded`}
+        className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"} z-20
+          bg-[#ad4e28] text-white text-[10px] md:text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20`}
       >
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
 
-      <div className={`${isHero ? "p-4" : "p-3"}`}>
+      <div className={`${isHero ? "p-5" : "p-4"}`}>
         <h3
-          className={`${
-            isHero
-              ? "font-semibold text-lg line-clamp-2"
-              : "font-medium text-lg line-clamp-2 h-14"
-          }`}
+          className={`${isHero
+            ? "font-bold text-xl line-clamp-2 text-gray-900"
+            : "font-semibold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-color transition-colors duration-300"
+            }`}
         >
           {title}
         </h3>
 
         {isEmergency && deadline && (
-          <div className="mt-3 text-sm text-red-600 font-medium flex items-center gap-x-1">
+          <div className="mt-3 text-sm text-red-600 font-semibold flex items-center gap-x-2 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
             <AlarmClock
-              className="w-4 h-4"
+              className="w-5 h-5"
               animate
               animateOnHover
               animateOnView
@@ -205,25 +205,25 @@ export function CampaignCard({
         )}
 
         {location && (
-          <div className="mt-2 text-xs text-gray-400 italic line-clamp-1">
+          <div className="mt-3 text-xs text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
             <MapPin
               animate
               animateOnView
               loop
-              className="w-4 h-4 inline-block"
-            />{" "}
-            {location}
+              className="w-4 h-4 text-gray-400 flex-shrink-0"
+            />
+            <span>{location}</span>
           </div>
         )}
 
-        <div className="mt-2 md:mt-3 space-y-1">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>Đã ủng hộ</span>
-            <span className="fc-money font-medium" data-value={raised}></span>
+        <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500 font-medium">Đã ủng hộ</span>
+            <span className="fc-money font-bold text-color" data-value={raised}></span>
           </div>
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>Mục tiêu</span>
-            <span className="fc-money" data-value={goal}></span>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500 font-medium">Mục tiêu</span>
+            <span className="fc-money font-semibold text-gray-700" data-value={goal}></span>
           </div>
         </div>
       </div>

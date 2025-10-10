@@ -119,54 +119,54 @@ export function FeaturedFundraisers() {
   }, []);
 
   return (
-    <section className="container mx-auto">
+    <section className="container mx-auto py-6 md:pb-20 px-4">
       <div
         ref={rootRef}
-        className="mx-auto px-4 overflow-hidden bg-gradient-to-br from-[#E77731]/90 via-[#E77731]/80 to-[#ad4e28]/85 min-h-[300px]"
+        className="mx-auto overflow-hidden bg-gradient-to-br from-[#E77731] via-[#E77731]/95 to-[#ad4e28] rounded-2xl md:rounded-3xl shadow-2xl min-h-[300px]"
       >
-        <div className="flex items-center justify-between px-4 md:px-8 pt-10 mb-8">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-sm text-center md:text-left">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-8 pt-8 md:pt-12 mb-16 md:mb-20">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg text-center md:text-left">
             Tổ chức, cá nhân gây quỹ nổi bật
           </h2>
           <Link
             href="#"
-            className="hidden md:inline-flex items-center gap-2 text-white/90 hover:text-white text-sm font-medium"
+            className="inline-flex items-center gap-2 text-white hover:text-white/90 text-sm font-semibold transition-all duration-300 hover:gap-3 group"
           >
-            Xem tất cả <span aria-hidden>→</span>
+            <span>Xem tất cả</span>
+            <span aria-hidden className="group-hover:translate-x-1 transition-transform duration-300">→</span>
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 px-4 md:px-8 py-10 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4 md:px-8 pb-8 md:pb-12 items-stretch">
           {fundraisers.map((f) => (
-            <div key={f.id} className="ff-card-wrap">
+            <div key={f.id} className="ff-card-wrap group">
               <article
-                className="ff-card relative bg-white dark:bg-card text-gray-800 dark:text-foreground
-                           rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10
-                           p-6 pt-16 flex flex-col h-full will-change-transform transition-transform"
+                className="ff-card relative bg-white/95 backdrop-blur-sm dark:bg-card text-gray-800 dark:text-foreground
+                           rounded-2xl md:rounded-3xl shadow-xl hover:shadow-2xl ring-1 ring-white/50 dark:ring-white/10
+                           p-5 md:p-6 pt-14 md:pt-16 flex flex-col h-full will-change-transform transition-all duration-500 hover:-translate-y-2"
               >
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -top-8 md:-top-12 
-                             size-24 rounded-full overflow-hidden bg-white shadow-md
-                             ring-4 ring-[#E77731]/20"
+                  className="absolute left-1/2 -translate-x-1/2 -top-8 sm:-top-10 md:-top-14 
+                             size-20 sm:size-24 md:size-28 rounded-full overflow-hidden bg-white shadow-2xl
+                             ring-4 ring-white/50 group-hover:ring-6 group-hover:ring-[#E77731]/30 transition-all duration-500"
                 >
                   <Image
                     src={f.logo}
                     alt={f.name}
-                    width={96}
-                    height={96}
-                    className="object-cover"
+                    width={112}
+                    height={112}
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
 
                 <div className="flex flex-col flex-1 items-center text-center">
-                  <h3 className="text-lg md:text-xl font-semibold mb-1 h-16">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 min-h-[3rem] sm:min-h-[4rem] flex items-center justify-center group-hover:text-[#E77731] transition-colors duration-300 px-2">
                     {f.name}
                   </h3>
 
                   <span
-                    className="text-[13px] px-3 py-1 rounded-full mb-3"
+                    className="text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-3 sm:mb-4 bg-gradient-to-r from-[#E77731]/10 to-[#ad4e28]/10 border border-[#E77731]/20 truncate max-w-full"
                     style={{
-                      backgroundColor: "rgba(231,119,49,0.12)",
                       color: "#E77731",
                     }}
                   >
@@ -174,25 +174,27 @@ export function FeaturedFundraisers() {
                   </span>
 
                   {f.description ? (
-                    <p className="text-sm text-gray-600 dark:text-muted-foreground mb-4 line-clamp-2 min-h-[44px]">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground mb-4 sm:mb-5 line-clamp-2 min-h-[2.5rem] sm:min-h-[2.75rem] px-2">
                       {f.description}
                     </p>
                   ) : (
-                    <div className="min-h-[44px] mb-4" />
+                    <div className="min-h-[2.5rem] sm:min-h-[2.75rem] mb-4 sm:mb-5" />
                   )}
 
-                  <p className="text-sm text-gray-500 dark:text-muted-foreground">
-                    Số tiền gây quỹ
-                  </p>
-                  <p
-                    className="text-xl md:text-2xl font-extrabold mb-5"
-                    style={{ color: "#E77731" }}
-                  >
-                    {fmtVND(f.raised)}
-                  </p>
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl md:rounded-2xl p-3 md:p-4 mb-4 sm:mb-5 w-full border border-[#E77731]/10">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-muted-foreground font-medium mb-1">
+                      Số tiền gây quỹ
+                    </p>
+                    <p
+                      className="text-xl sm:text-2xl md:text-3xl font-bold break-all"
+                      style={{ color: "#E77731" }}
+                    >
+                      {fmtVND(f.raised)}
+                    </p>
+                  </div>
 
-                  <div className="mt-auto w-full flex justify-center">
-                    <button className="btn-color w-full max-w-[220px] h-11 rounded-full font-medium flex items-center justify-center gap-2 transition-colors">
+                  <div className="mt-auto w-full flex justify-center px-2">
+                    <button className="btn-color w-full max-w-[220px] h-10 sm:h-11 md:h-12 rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95">
                       Theo dõi
                     </button>
                   </div>

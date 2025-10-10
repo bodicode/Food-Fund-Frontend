@@ -48,7 +48,7 @@ export function Stories() {
 
   return (
     <section className="py-8 sm:py-12 lg:py-16 bg-white">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 container mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
           <div className="relative order-2 lg:order-1">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight text-neutral-800">

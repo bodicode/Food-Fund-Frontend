@@ -137,8 +137,8 @@ export function Navigation() {
                       href: "/discovery",
                     },
                     {
-                      title: "Khẩn cấp",
-                      desc: "Các trường hợp cần cứu trợ khẩn cấp",
+                      title: "Sắp hết hạn",
+                      desc: "Các chiến dịch còn dưới 7 ngày",
                       href: "/emergency",
                     },
                     {

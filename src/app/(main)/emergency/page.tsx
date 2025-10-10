@@ -1,46 +1,67 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-// import { CampaignCard } from "@/components/shared/campaign-card";
+import { CampaignCard } from "@/components/shared/campaign-card";
+import { campaignService } from "@/services/campaign.service";
+import { Campaign } from "@/types/api/campaign";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type Campaign = {
-  id: string;
-  title: string;
-  image: string;
-  raised: number;
-  goal: number;
-  deadline: string;
+// Hàm tính số ngày còn lại từ endDate
+const getDaysRemaining = (endDate: string): number => {
+  const now = new Date().getTime();
+  const end = new Date(endDate).getTime();
+  const diff = end - now;
+  return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
 };
 
-const campaigns: Campaign[] = [
-  {
-    id: "1",
-    title: "Bữa cơm khẩn cấp cho trẻ em vùng cao",
-    image: "/images/what-we-do-2.jpg",
-    raised: 3500,
-    goal: 5000,
-    deadline: "2025-09-25",
-  },
-  {
-    id: "2",
-    title: "Thực phẩm cho bà con vùng lũ",
-    image: "/images/what-we-do-2.jpg",
-    raised: 7200,
-    goal: 10000,
-    deadline: "2025-09-23",
-  },
-  {
-    id: "3",
-    title: "Nấu 1000 suất ăn cho bệnh viện",
-    image: "/images/what-we-do-2.jpg",
-    raised: 2100,
-    goal: 4000,
-    deadline: "2025-09-22",
-  },
-];
+// Hàm lọc campaigns khẩn cấp (còn <= 7 ngày)
+const filterEmergencyCampaigns = (campaigns: Campaign[]): Campaign[] => {
+  return campaigns.filter((campaign) => {
+    if (!campaign.endDate) return false;
+    const daysLeft = getDaysRemaining(campaign.endDate);
+    return daysLeft > 0 && daysLeft <= 7;
+  });
+};
 
 export default function EmergencyPage() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEmergencyCampaigns = async () => {
+      try {
+        const data = await campaignService.getCampaigns({
+          filter: { status: ["ACTIVE", "APPROVED"] },
+          sortBy: "NEWEST_FIRST",
+          limit: 50,
+          offset: 0,
+        });
+
+        if (data) {
+          // Lọc chỉ lấy campaigns khẩn cấp (còn <= 7 ngày)
+          const emergencyCampaigns = filterEmergencyCampaigns(data);
+
+          // Sắp xếp theo số ngày còn lại (ít nhất trước)
+          emergencyCampaigns.sort((a, b) => {
+            const daysA = getDaysRemaining(a.endDate || "");
+            const daysB = getDaysRemaining(b.endDate || "");
+            return daysA - daysB;
+          });
+
+          setCampaigns(emergencyCampaigns);
+        }
+      } catch (error) {
+        console.error("Error loading emergency campaigns:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmergencyCampaigns();
+  }, []);
+
   return (
     <div className="flex flex-col pb-20">
       {/* Hero */}
@@ -55,45 +76,102 @@ export default function EmergencyPage() {
           alt="Emergency support"
           fill
           className="object-cover"
+          priority
         />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 max-w-2xl px-6">
-          <h1 className="text-5xl font-bold mb-4 drop-shadow-lg">
-            Các chiến dịch khẩn cấp
-          </h1>
-          <p className="text-lg drop-shadow-md">
-            Những chiến dịch gần đến hạn, cần sự hỗ trợ ngay để mang bữa ăn đến
-            cộng đồng.
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        <div className="relative z-10 max-w-3xl px-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 drop-shadow-2xl"
+          >
+            Các chiến dịch sắp hết hạn
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="text-base sm:text-lg md:text-xl drop-shadow-lg leading-relaxed"
+          >
+            Những chiến dịch còn <span className="font-bold text-yellow-300">dưới 7 ngày</span>
+          </motion.p>
         </div>
       </motion.section>
 
       {/* List */}
-      <section className="-mt-24 px-6 md:px-16 relative z-20">
-        <div className="grid gap-8 md:grid-cols-3">
-          {campaigns.map((c, idx) => (
+      <section className="-mt-24 px-4 sm:px-6 md:px-16 relative z-20">
+        <div className="container mx-auto max-w-7xl">
+          {loading ? (
+            <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Skeleton key={idx} className="h-[450px] w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : campaigns.length === 0 ? (
             <motion.div
-              key={c.id}
-              initial={{ opacity: 0, y: 60 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.6,
-                delay: 0.2 * idx,
-                ease: "easeOut",
-              }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-3xl shadow-xl p-12 text-center"
             >
-              {/* <CampaignCard
-                title={c.title}
-                image={c.image}
-                donations={Math.floor(c.raised / 1000)}
-                raised={c.raised}
-                goal={c.goal}
-                progress={(c.raised / c.goal) * 100}
-                deadline={c.deadline}
-                isEmergency
-              /> */}
+              <div className="text-6xl mb-4">🎉</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                Không có chiến dịch khẩn cấp
+              </h3>
+              <p className="text-gray-600">
+                Hiện tại không có chiến dịch nào cần hỗ trợ gấp. Hãy khám phá các chiến dịch khác!
+              </p>
             </motion.div>
-          ))}
+          ) : (
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"
+              >
+                <p className="text-red-800 font-semibold flex items-center gap-2">
+                  <span>Tìm thấy <span className="font-bold">{campaigns.length}</span> chiến dịch sắp hết hạn</span>
+                </p>
+              </motion.div>
+
+              <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {campaigns.map((campaign, idx) => {
+                  const progress = Math.round(
+                    (Number(campaign.receivedAmount) / Number(campaign.targetAmount || 1)) * 100
+                  );
+
+                  return (
+                    <motion.div
+                      key={campaign.id}
+                      initial={{ opacity: 0, y: 60 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.6,
+                        delay: 0.1 * idx,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <CampaignCard
+                        id={campaign.id}
+                        title={campaign.title}
+                        coverImage={campaign.coverImage || "/images/default-campaign.jpg"}
+                        location={campaign.location}
+                        status={campaign.status}
+                        donationCount={campaign.donationCount || 0}
+                        receivedAmount={campaign.receivedAmount}
+                        targetAmount={campaign.targetAmount}
+                        progress={progress}
+                        deadline={campaign.endDate}
+                        isEmergency
+                      />
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>
