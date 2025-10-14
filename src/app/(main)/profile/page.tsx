@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { graphQLAuthService } from "@/services/auth.service";
 import { translateMessage } from "@/lib/translator";
 import { UserProfile } from "@/types/api/user";
+import { userService } from "@/services/user.service";
 
 type TabKey = "profile" | "campaigns" | "history";
 
@@ -45,7 +46,7 @@ const SidebarContent = ({
       <div className="flex flex-col items-center text-center p-4 border-b">
         <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-offset-2 ring-[#ad4e28]/50">
           <Image
-            src={profile?.avatar_url || "/images/avatar.webp"}
+            src="/images/avatar.webp"
             alt={profile?.full_name || "User avatar"}
             width={96}
             height={96}
@@ -65,11 +66,10 @@ const SidebarContent = ({
           <Button
             key={tab.key}
             variant="ghost"
-            className={`justify-start items-center gap-3 px-3 text-base ${
-              activeTab === tab.key
-                ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
-                : "hover:bg-gray-100 text-gray-700"
-            }`}
+            className={`justify-start items-center gap-3 px-3 text-base ${activeTab === tab.key
+              ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
+              : "hover:bg-gray-100 text-gray-700"
+              }`}
             onClick={() => onNavigate(tab.key as TabKey)}
           >
             <tab.icon className="w-5 h-5" />
@@ -153,6 +153,21 @@ export default function ProfilePage() {
     }
   };
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const me = await userService.getMyProfile();
+        if (mounted) setProfile(me);
+      } finally {
+        if (mounted) setLoadingProfile(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const sidebarProps = {
     profile,
     activeTab,
@@ -161,7 +176,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl pt-24 md:pt-28 pb-10">
+    <div className="container mx-auto max-w-7xl pt-24 md:pt-28 pb-10 px-3">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:hidden flex justify-between items-center px-4 col-span-1">
           <h1 className="text-xl font-bold text-[#ad4e28]">

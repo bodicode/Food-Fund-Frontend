@@ -1,7 +1,8 @@
-import { UPDATE_USER_PROFILE } from "@/graphql/mutations/auth/update-user-profile";
 import { GET_USER_PROFILE } from "@/graphql/query/auth/get-user";
+import { GET_MY_PROFILE } from "@/graphql/query/auth/get-my-profile";
 import client from "@/lib/apollo-client";
-import { UserProfile } from "@/types/api/user";
+import { UserProfile, UpdateMyProfileInput } from "@/types/api/user";
+import { UPDATE_MY_PROFILE } from "@/graphql/mutations/auth/update-my-profile";
 
 export const userService = {
   getProfile: async (): Promise<UserProfile | null> => {
@@ -17,13 +18,27 @@ export const userService = {
     return data.getUserProfile;
   },
 
-  updateProfile: async (
-    input: Partial<UserProfile>
-  ): Promise<UserProfile | null> => {
-    const { data } = await client.mutate<{ updateUser: UserProfile }>({
-      mutation: UPDATE_USER_PROFILE,
-      variables: { updateUserProfileInput: input },
+  getMyProfile: async (): Promise<UserProfile | null> => {
+    const { data } = await client.query<{
+      getMyProfile: { message: string; userProfile: UserProfile | null };
+    }>({
+      query: GET_MY_PROFILE,
+      fetchPolicy: "network-only",
+
     });
-    return data?.updateUser ?? null;
+
+    return data?.getMyProfile?.userProfile ?? null;
+  },
+  
+  updateMyProfile: async (
+    input: UpdateMyProfileInput
+  ): Promise<UserProfile | null> => {
+    const { data } = await client.mutate<{ updateMyProfile: UserProfile }>(
+      {
+        mutation: UPDATE_MY_PROFILE,
+        variables: { input },
+      }
+    );
+    return data?.updateMyProfile ?? null;
   },
 };

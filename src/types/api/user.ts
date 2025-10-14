@@ -1,4 +1,5 @@
 export type UserProfile = {
+  address?: string | null;
   avatar_url: string;
   bio: string;
   created_at: string;
@@ -10,4 +11,12 @@ export type UserProfile = {
   role: string;
   updated_at: string;
   user_name: string;
+};
+
+export type UpdateMyProfileInput = {
+  address?: string;
+  avatar_url?: string;
+  bio?: string;
+  full_name?: string;
+  phone_number?: string;
 };

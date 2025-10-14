@@ -16,50 +16,103 @@ import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import type { DecodedIdToken } from "@/lib/jwt-utils";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/store/slices/auth-slice";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 type RegisterFormProps = {
   onSwitchToLogin?: () => void;
   authService: typeof graphQLAuthService;
 };
-interface GoogleJwtPayload {
-  iss: string;
-  aud: string;
-  sub: string;
-  email: string;
-  email_verified: boolean;
-  name: string;
-  picture: string;
-  given_name: string;
-  family_name: string;
-  iat: number;
-  exp: number;
-}
-
 
 export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [step, setStep] = useState<"register" | "confirm">("register");
   const [emailForConfirm, setEmailForConfirm] = useState("");
 
   const router = useRouter()
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const handleGoogleRegister = async (credentialResponse: CredentialResponse) => {
     try {
+      if (user) {
+        toast.info("Bạn đã đăng nhập");
+        router.push("/");
+        return;
+      }
+
       const token = credentialResponse.credential;
       if (!token) return;
 
-      // Decode ID Token để lấy thông tin user
-      const googleUser = jwtDecode<GoogleJwtPayload>(token);
+      console.log("Google idToken:", token);
 
-      console.log("✅ Google user info:", googleUser);
+      const res = await graphQLAuthService.googleAuthentication({ idToken: token });
 
-      // Gửi token Google về backend của bạn để tạo tài khoản
-      // const result = await graphQLAuthService.registerWithGoogle({ token });
+      const decoded = jwtDecode<DecodedIdToken>(res.idToken);
+
+      if (!res.isNewUser) {
+        toast.info("Tài khoản đã tồn tại, bạn đã được đăng nhập");
+
+        if (decoded?.sub) {
+          dispatch(
+            setCredentials({
+              user: {
+                id: decoded.sub,
+                name: decoded.name || "",
+                email: decoded.email || "",
+                role: decoded["custom:role"],
+              },
+              accessToken: res.accessToken,
+              refreshToken: res.refreshToken,
+            })
+          );
+        }
+
+        Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
+        Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
+        Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
+        Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", { secure: true, sameSite: "strict" });
+
+        const role = decoded["custom:role"]?.toUpperCase();
+        if (role === "ADMIN") router.push("/admin/users");
+        else if (role === "KITCHEN") router.push("/kitchen");
+        else if (role === "DELIVERY") router.push("/delivery");
+        else router.push("/");
+        return;
+      }
+
+      if (decoded?.sub) {
+        dispatch(
+          setCredentials({
+            user: {
+              id: decoded.sub,
+              name: decoded.name || "",
+              email: decoded.email || "",
+              role: decoded["custom:role"],
+            },
+            accessToken: res.accessToken,
+            refreshToken: res.refreshToken,
+          })
+        );
+      }
+
+      Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
+      Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
+      Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
+      Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", { secure: true, sameSite: "strict" });
 
       toast.success("Đăng ký Google thành công", {
-        description: `Chào ${googleUser.name}!`,
+        description: `Chào ${decoded?.name || "bạn"}!`,
       });
 
-      router.push("/"); // redirect sau khi đăng ký thành công
+      const role = decoded["custom:role"]?.toUpperCase();
+      if (role === "ADMIN") router.push("/admin/users");
+      else if (role === "KITCHEN") router.push("/kitchen");
+      else if (role === "DELIVERY") router.push("/delivery");
+      else router.push("/");
     } catch (error) {
       console.error("Google register error:", error);
       toast.error("Đăng ký Google thất bại!");
