@@ -22,3 +22,30 @@ export type SignInResponse = {
     user: SignInUser;
   };
 };
+
+export type GoogleAuthInput = {
+  idToken: string;
+};
+
+export type GoogleAuthUser = {
+  createdAt: string;
+  email: string;
+  emailVerified: boolean;
+  id: string;
+  name: string;
+  phoneNumber?: string | null;
+  provider: string;
+  updatedAt: string;
+  username: string;
+};
+
+export type GoogleAuthResponse = {
+  googleAuthentication: {
+    accessToken: string;
+    idToken: string;
+    isNewUser: boolean;
+    message: string;
+    refreshToken: string;
+    user: GoogleAuthUser;
+  };
+};

@@ -86,7 +86,8 @@ export const translateError = (err: unknown): string => {
       return "Tài khoản chưa được xác thực email.";
     if (cognitoError.includes("Password attempts exceeded"))
       return "Bạn đã nhập sai mật khẩu quá nhiều lần. Tài khoản tạm bị khoá.";
-
+    if (cognitoError.includes("Subgraph auth circuit is open"))
+      return "Bạn nhập sai quá nhiều, vui lòng thử lại sau.";
     // Signup
     if (cognitoError.includes("User already exists"))
       return "Người dùng đã tồn tại (email này đã được sử dụng).";

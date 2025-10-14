@@ -21,11 +21,31 @@ import {
 import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/auth/forgor-password";
 import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/auth/confirm-forgot-password";
 import { decodeIdToken } from "@/lib/jwt-utils";
-import { SignInInput, SignInResponse } from "@/types/api/sign-in";
+import { SignInInput, SignInResponse, GoogleAuthInput, GoogleAuthResponse } from "@/types/api/sign-in";
 import { SIGNOUT_MUTATION } from "@/graphql/mutations/auth/signout";
+import { GOOGLE_AUTH_MUTATION } from "@/graphql/mutations/auth/google-auth";
 
 export interface AuthService {
   login(input: SignInInput): Promise<SignInResponse["signIn"]>;
+  googleAuthentication(input: { idToken: string }): Promise<{
+    accessToken: string;
+    idToken: string;
+    isNewUser: boolean;
+    message: string;
+    refreshToken: string;
+    user: {
+      createdAt: string;
+      email: string;
+      emailVerified: boolean;
+      id: string;
+      name: string;
+      phoneNumber?: string | null;
+      provider: string;
+      updatedAt: string;
+      username: string;
+    };
+    decodedUser: ReturnType<typeof decodeIdToken>;
+  }>;
   signup(input: SignUpInput): Promise<SignUpResponse["signUp"]>;
   confirmSignup(
     input: ConfirmSignUpInput
@@ -68,6 +88,33 @@ export const graphQLAuthService: AuthService = {
       };
     } catch (error) {
       console.error("AuthService.login error:", error);
+      throw error;
+    }
+  },
+
+  async googleAuthentication(input: { idToken: string }) {
+    try {
+      const { data, error } = await client.mutate<
+        GoogleAuthResponse,
+        { googleAuthenticationInput2: GoogleAuthInput }
+      >({
+        mutation: GOOGLE_AUTH_MUTATION,
+        variables: { googleAuthenticationInput2: input },
+      });
+
+      if (!data?.googleAuthentication) {
+        return Promise.reject(error);
+      }
+
+      const { idToken } = data.googleAuthentication;
+      const decodedUser = decodeIdToken(idToken);
+
+      return {
+        ...data.googleAuthentication,
+        decodedUser,
+      };
+    } catch (error) {
+      console.error("AuthService.googleAuthentication error:", error);
       throw error;
     }
   },

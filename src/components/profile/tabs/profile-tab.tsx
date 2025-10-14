@@ -18,23 +18,25 @@ export function ProfileTab() {
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
+  const [address, setAddress] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // useEffect(() => {
-  //   userService.getProfile().then((profile) => {
-  //     if (profile) {
-  //       setUser(profile);
-  //       setName(profile.full_name || "");
-  //       setUserName(profile.user_name || "");
-  //       setPhone(profile.phone_number || "");
-  //       setBio(profile.bio || "");
-  //       setAvatar(profile.avatar_url || "");
-  //     }
-  //   });
-  // }, []);
+  useEffect(() => {
+    userService.getMyProfile().then((profile) => {
+      if (profile) {
+        setUser(profile);
+        setName(profile.full_name || "");
+        setUserName(profile.user_name || "");
+        setPhone(profile.phone_number || "");
+        setBio(profile.bio || "");
+        setAvatar(profile.avatar_url || "");
+        setAddress(profile.address || "");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (isEditing && nameInputRef.current) {
@@ -80,6 +82,7 @@ export function ProfileTab() {
     }
 
     const payload = cleanInput({
+      address,
       full_name: name,
       phone_number: phone,
       bio,
@@ -94,7 +97,7 @@ export function ProfileTab() {
 
     try {
       setIsSaving(true);
-      const updated = await userService.updateProfile(payload);
+      const updated = await userService.updateMyProfile(payload);
       if (updated) {
         setUser(updated);
         toast.success("Cập nhật hồ sơ thành công 🎉");
@@ -209,6 +212,19 @@ export function ProfileTab() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
+            Địa chỉ
+          </label>
+          <Input
+            type="text"
+            value={address}
+            readOnly={!isEditing}
+            onChange={(e) => setAddress(e.target.value)}
+            className={`mt-1 ${isEditing ? "" : "bg-gray-50"}`}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
             Vai trò
           </label>
           <Input
@@ -216,19 +232,6 @@ export function ProfileTab() {
             value={translateRole(user.role)}
             readOnly
             className="mt-1 bg-gray-50"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Avatar URL
-          </label>
-          <Input
-            type="text"
-            value={avatar}
-            readOnly={!isEditing}
-            onChange={(e) => setAvatar(e.target.value)}
-            className={`mt-1 ${isEditing ? "" : "bg-gray-50"}`}
           />
         </div>
 
