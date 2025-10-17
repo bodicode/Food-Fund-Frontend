@@ -39,7 +39,7 @@ export default function CreateCampaignStepStory() {
         );
 
         toast.success("Lưu thành công!");
-        router.push("/register/campaign/date");
+        router.push("/register/campaign/preview");
     };
 
     const handleBack = () => {

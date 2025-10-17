@@ -38,6 +38,14 @@ export const translateMessage = (msg: string) => {
   if (msg.includes("User signed out successfully")) {
     return "Đăng xuất thành công.";
   }
+  // Request Create Organization
+  if (
+    msg.includes(
+      "Organization request has been submitted successfully. Waiting for admin approval."
+    )
+  ) {
+    return "Gửi yêu cầu thành công. Vui lòng chờ quản trị viên duyệt";
+  }
 
   return msg;
 };
@@ -142,8 +150,8 @@ export const translateRole = (role?: string): string => {
       return "Quản trị viên";
     case "KITCHEN":
       return "Nhân viên bếp";
-    case "DELIVERY":
-      return "Nhân viên giao hàng";
+    case "DELIVERY_STAFF":
+      return "Giao hàng";
     case "FUNDRAISER":
       return "Nhà vận động";
     default:
@@ -159,6 +167,12 @@ export const statusConfig = {
     color: "bg-yellow-100 text-yellow-800",
   },
   APPROVED: {
+    label: "Đã duyệt",
+    variant: "default" as const,
+    icon: CheckCircle,
+    color: "bg-blue-100 text-blue-800",
+  },
+  VERIFIED: {
     label: "Đã duyệt",
     variant: "default" as const,
     icon: CheckCircle,
@@ -190,7 +204,6 @@ export const statusConfig = {
   },
 };
 
-// ===== Cấu hình hành động theo trạng thái =====
 export const statusActions = {
   PENDING: [
     {

@@ -7,7 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AlarmClock } from "@/components/animate-ui/icons/alarm-clock";
 import { Clock12 } from "@/components/animate-ui/icons/clock-12";
-import { MapPin } from "../animate-ui/icons/map-pin";
+import { MapPin } from "@/components/animate-ui/icons/map-pin";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,14 +17,23 @@ type CampaignCardProps = {
   description?: string;
   coverImage: string;
   location?: string;
-  status?: string;
+  status?:
+    | "PENDING"
+    | "APPROVED"
+    | "ACTIVE"
+    | "REJECTED"
+    | "COMPLETED"
+    | "CANCELLED";
   donationCount: number;
   receivedAmount: string;
   targetAmount: string;
-  progress?: number;
+  fundraisingStartDate?: string;
+  fundraisingEndDate?: string;
+  categoryId?: string;
+  creatorName?: string;
+
   isHero?: boolean;
   isEmergency?: boolean;
-  deadline?: string;
   className?: string;
 };
 
@@ -38,23 +47,26 @@ const fmtVND = (n: number) =>
 export function CampaignCard({
   id,
   title,
+  // description,
   coverImage,
   location,
   status,
   donationCount,
   receivedAmount,
   targetAmount,
-  progress,
+  // fundraisingStartDate,
+  fundraisingEndDate,
+  // categoryId,
+  creatorName,
   isHero = false,
   isEmergency = false,
-  deadline,
 }: CampaignCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const raised = Number(receivedAmount);
   const goal = Number(targetAmount);
-  const computedProgress = progress ?? Math.round((raised / goal) * 100);
+  const progress = goal > 0 ? Math.round((raised / goal) * 100) : 0;
 
   useLayoutEffect(() => {
     if (!cardRef.current) return;
@@ -87,7 +99,7 @@ export function CampaignCard({
           const obj = { val: 0 };
           gsap.to(obj, {
             val: value,
-            duration: 0.5,
+            duration: 0.6,
             ease: "power1.out",
             snap: { val: 1000 },
             scrollTrigger: { trigger: node, start: "top 90%", once: true },
@@ -99,13 +111,13 @@ export function CampaignCard({
     }, cardRef);
 
     return () => ctx.revert();
-  }, [computedProgress, raised, goal]);
+  }, [progress, raised, goal]);
 
-  function daysLeft(deadline?: string) {
-    if (!deadline) return null;
-    const diff = new Date(deadline).getTime() - new Date().getTime();
+  const daysLeft = () => {
+    if (!fundraisingEndDate) return null;
+    const diff = new Date(fundraisingEndDate).getTime() - Date.now();
     return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
-  }
+  };
 
   const isPending = status === "PENDING";
 
@@ -119,22 +131,28 @@ export function CampaignCard({
       ref={cardRef}
       key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none ${isHero
-        ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-md transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
-        : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
-        } ${isEmergency ? "ring-2 ring-red-400 ring-offset-2 bg-white/90 backdrop-blur-xl" : ""
-        }
-        ${isPending ? "opacity-50 pointer-events-none" : ""}`}
+      className={`cursor-pointer select-none ${
+        isHero
+          ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-md transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
+          : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+      } ${
+        isEmergency
+          ? "ring-2 ring-red-400 ring-offset-2 bg-white/90 backdrop-blur-xl"
+          : ""
+      } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
+      {/* Cover Image */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+
         <Image
-          src={coverImage}
+          src={coverImage || "/images/default-cover.jpg"}
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
-            } object-cover transition-transform duration-700 group-hover:scale-110`}
+          className={`fc-img w-full ${
+            isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
+          } object-cover transition-transform duration-700 group-hover:scale-110`}
         />
 
         {isEmergency && (
@@ -152,20 +170,23 @@ export function CampaignCard({
           </div>
         )}
 
+        {/* Progress overlay */}
         <div className="absolute bottom-0 left-0 w-full px-4 pb-4 z-20">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border border-white/30">
             <div className="flex items-center justify-between text-white text-sm font-bold mb-2 drop-shadow-lg">
               <span className="fc-money" data-value={raised}>
                 {fmtVND(raised)}
               </span>
-              <span className="text-xs bg-white/25 backdrop-blur-sm text-white px-2.5 py-1 rounded-full font-semibold border border-white/30">{computedProgress}%</span>
+              <span className="text-xs bg-white/25 backdrop-blur-sm text-white px-2.5 py-1 rounded-full font-semibold border border-white/30">
+                {progress}%
+              </span>
             </div>
 
             <div className="w-full bg-white/20 backdrop-blur-sm h-2.5 rounded-full overflow-hidden border border-white/30">
               <div
                 className="fc-progress h-2.5 bg-white/60 backdrop-blur-sm rounded-full shadow-sm relative border-r border-white/40"
-                style={{ width: `${computedProgress}%` }}
-                data-value={computedProgress}
+                style={{ width: `${progress}%` }}
+                data-value={progress}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/40 rounded-full animate-pulse" />
               </div>
@@ -174,24 +195,28 @@ export function CampaignCard({
         </div>
       </div>
 
+      {/* Donation Count Badge */}
       <span
-        className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"} z-20
-          bg-[#ad4e28] text-white text-[10px] md:text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20`}
+        className={`absolute ${
+          isHero ? "top-4 left-4" : "top-3 left-3"
+        } z-20 bg-[#ad4e28] text-white text-[10px] md:text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20`}
       >
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
 
+      {/* Content */}
       <div className={`${isHero ? "p-5" : "p-4"}`}>
         <h3
-          className={`${isHero
-            ? "font-bold text-xl line-clamp-2 text-gray-900"
-            : "font-semibold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-color transition-colors duration-300"
-            }`}
+          className={`${
+            isHero
+              ? "font-bold text-xl line-clamp-2 text-gray-900"
+              : "font-semibold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-color transition-colors duration-300"
+          }`}
         >
           {title}
         </h3>
 
-        {isEmergency && deadline && (
+        {isEmergency && fundraisingEndDate && (
           <div className="mt-3 text-sm text-red-600 font-semibold flex items-center gap-x-2 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
             <AlarmClock
               className="w-5 h-5"
@@ -200,7 +225,7 @@ export function CampaignCard({
               animateOnView
               loop
             />
-            <span>Còn {daysLeft(deadline)} ngày</span>
+            <span>Còn {daysLeft()} ngày</span>
           </div>
         )}
 
@@ -216,14 +241,28 @@ export function CampaignCard({
           </div>
         )}
 
+        {/* Creator info */}
+        {creatorName && (
+          <div className="mt-2 text-xs text-gray-400 italic">
+            Bởi {creatorName}
+          </div>
+        )}
+
+        {/* Raised & Goal */}
         <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 font-medium">Đã ủng hộ</span>
-            <span className="fc-money font-bold text-color" data-value={raised}></span>
+            <span
+              className="fc-money font-bold text-color"
+              data-value={raised}
+            ></span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 font-medium">Mục tiêu</span>
-            <span className="fc-money font-semibold text-gray-700" data-value={goal}></span>
+            <span
+              className="fc-money font-semibold text-gray-700"
+              data-value={goal}
+            ></span>
           </div>
         </div>
       </div>

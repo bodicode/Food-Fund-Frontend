@@ -8,24 +8,31 @@ export const GET_CAMPAIGN_BY_ID = gql`
       description
       coverImage
       location
-      startDate
-      endDate
       status
       targetAmount
       donationCount
       receivedAmount
-      createdAt
-      createdBy
+      fundraisingStartDate
+      fundraisingEndDate
+      cookingDate
+      deliveryDate
+      ingredientPurchaseDate
+      cookingFundsAmount
+      deliveryFundsAmount
+      ingredientFundsAmount
+      cookingBudgetPercentage
+      ingredientBudgetPercentage
+      deliveryBudgetPercentage
       category {
         id
         title
-        description
       }
       creator {
-        id
         full_name
         email
+        phone_number
       }
+      created_at
     }
   }
 `;

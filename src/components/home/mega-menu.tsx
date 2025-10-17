@@ -6,7 +6,7 @@ import {
   HoverCardTrigger,
   HoverCardContent,
 } from "@/components/ui/hover-card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { useState } from "react";
 import { ChevronDownIcon } from "../animate-ui/icons/chevron-down";
 

@@ -4,17 +4,24 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export function ThemeTransition({ children }: { children: React.ReactNode }) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+
+    requestAnimationFrame(() => setReady(true));
+  }, []);
 
   if (!mounted) return null;
 
   return (
     <div
-      key={theme} 
-      className="transition-all duration-700 ease-in-out opacity-0 animate-fadeIn"
+      className={`transition-colors duration-300 ${
+        ready ? "opacity-100" : "opacity-0"
+      }`}
+      data-theme={resolvedTheme}
     >
       {children}
     </div>

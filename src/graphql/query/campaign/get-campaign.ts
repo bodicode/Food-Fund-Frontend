@@ -24,15 +24,22 @@ export const GET_CAMPAIGNS = gql`
       targetAmount
       donationCount
       receivedAmount
-      startDate
-      endDate
+      fundraisingStartDate
+      fundraisingEndDate
+      cookingDate
+      deliveryDate
+      ingredientPurchaseDate
+      cookingFundsAmount
+      deliveryFundsAmount
+      ingredientFundsAmount
+      cookingBudgetPercentage
+      ingredientBudgetPercentage
+      deliveryBudgetPercentage
+      categoryId
       creator {
-        id
+        full_name
       }
-      category {
-        id
-        title
-      }
+      created_at
     }
   }
 `;

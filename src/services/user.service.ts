@@ -1,5 +1,6 @@
 import { GET_USER_PROFILE } from "@/graphql/query/auth/get-user";
 import { GET_MY_PROFILE } from "@/graphql/query/auth/get-my-profile";
+import { GET_ALL_USERS } from "@/graphql/query/auth/get-all-users";
 import client from "@/lib/apollo-client";
 import { UserProfile, UpdateMyProfileInput } from "@/types/api/user";
 import { UPDATE_MY_PROFILE } from "@/graphql/mutations/auth/update-my-profile";
@@ -28,6 +29,21 @@ export const userService = {
     });
 
     return data?.getMyProfile?.userProfile ?? null;
+  },
+
+  getAllUsers: async (
+    limit: number,
+    offset: number
+  ): Promise<UserProfile[]> => {
+    const { data } = await client.query<{
+      getAllUsers: UserProfile[];
+    }>({
+      query: GET_ALL_USERS,
+      variables: { limit, offset },
+      fetchPolicy: "network-only",
+    });
+
+    return data?.getAllUsers ?? [];
   },
   
   updateMyProfile: async (
