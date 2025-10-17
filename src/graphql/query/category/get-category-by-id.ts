@@ -6,8 +6,8 @@ export const GET_CATEGORY_BY_ID = gql`
       id
       title
       description
-      createdAt
-      updatedAt
+      created_at
+      updated_at
     }
   }
 `;

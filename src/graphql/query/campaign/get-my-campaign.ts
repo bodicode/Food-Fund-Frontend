@@ -7,7 +7,7 @@ export const GET_MY_CAMPAIGNS = gql`
       title
       coverImage
       status
-      createdAt
+      created_at
       createdBy
     }
   }

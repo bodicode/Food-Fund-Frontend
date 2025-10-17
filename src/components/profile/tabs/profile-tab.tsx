@@ -7,7 +7,7 @@ import { translateRole } from "@/lib/translator";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { UserProfile } from "@/types/api/user";
 import { userService } from "@/services/user.service";
-import { cleanInput } from "@/lib/utils";
+import { cleanInput } from "@/lib/utils/utils";
 import { toast } from "sonner";
 
 export function ProfileTab() {

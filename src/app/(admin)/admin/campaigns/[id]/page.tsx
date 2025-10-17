@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { campaignService } from "@/services/campaign.service";
-import { categoryService } from "@/services/category.service";
 import { Campaign } from "@/types/api/campaign";
-import { Category } from "@/types/api/category";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,20 +17,18 @@ import {
   Users,
   CheckCircle,
   XCircle,
-  RefreshCcw,
   ArrowLeft,
   TrendingUp,
   Clock,
 } from "lucide-react";
 import { statusConfig } from "@/lib/translator";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils/date-utils";
 
 export default function AdminCampaignDetailPage() {
   const { id } = useParams();
   const router = useRouter();
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -44,11 +40,6 @@ export default function AdminCampaignDetailPage() {
         const data = await campaignService.getCampaignById(id as string);
         if (!data) throw new Error("Không tìm thấy chiến dịch.");
         setCampaign(data);
-
-        if (data.category?.id) {
-          const cat = await categoryService.getCategoryById(data.category.id);
-          setCategory(cat);
-        }
       } catch (error) {
         console.error(error);
         toast.error("Không thể tải thông tin chiến dịch.");
@@ -91,7 +82,7 @@ export default function AdminCampaignDetailPage() {
         <div className="text-center space-y-4">
           <Loader animate loop className="w-8 h-8 mx-auto text-[#38bdf8]" />
           <p className="text-gray-600 dark:text-gray-300 font-medium">
-            Đang tải thông tin...
+            Đang tải...
           </p>
         </div>
       </div>
@@ -172,18 +163,6 @@ export default function AdminCampaignDetailPage() {
                   Hủy chiến dịch
                 </Button>
               )}
-
-              {campaign.status === "REJECTED" && (
-                <Button
-                  onClick={() => handleStatusChange("PENDING")}
-                  disabled={isUpdating}
-                  variant="outline"
-                  className="border-[#38bdf8] text-[#38bdf8] hover:bg-[#38bdf8]/10 dark:border-[#38bdf8] dark:text-[#38bdf8] dark:hover:bg-[#38bdf8]/10"
-                >
-                  <RefreshCcw className="w-4 h-4 mr-2" />
-                  Chuyển lại chờ duyệt
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -199,14 +178,12 @@ export default function AdminCampaignDetailPage() {
             >
               {statusConfig[campaign.status].label}
             </Badge>
-            {category && (
-              <Badge
-                variant="outline"
-                className="border-2 border-[#38bdf8] text-[#38bdf8] bg-[#38bdf8]/10 dark:border-[#38bdf8] dark:text-[#38bdf8] dark:bg-[#38bdf8]/10 px-4 py-1.5 text-sm font-semibold"
-              >
-                {category.title}
-              </Badge>
-            )}
+            <Badge
+              variant="outline"
+              className="border-2 border-[#38bdf8] text-[#38bdf8] bg-[#38bdf8]/10 dark:border-[#38bdf8] dark:text-[#38bdf8] dark:bg-[#38bdf8]/10 px-4 py-1.5 text-sm font-semibold"
+            >
+              {campaign.category?.title}
+            </Badge>
             <span className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full">
               ID: {campaign.id}
             </span>
@@ -337,7 +314,7 @@ export default function AdminCampaignDetailPage() {
                         Ngày bắt đầu
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {formatDate(campaign.startDate)}
+                        {formatDate(campaign.fundraisingStartDate)}
                       </p>
                     </div>
                   </div>
@@ -351,7 +328,7 @@ export default function AdminCampaignDetailPage() {
                         Ngày kết thúc
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {formatDate(campaign.endDate)}
+                        {formatDate(campaign.fundraisingEndDate)}
                       </p>
                     </div>
                   </div>

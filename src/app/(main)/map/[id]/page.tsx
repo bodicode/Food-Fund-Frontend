@@ -13,6 +13,7 @@ import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Map, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 delete (
   L.Icon.Default.prototype as unknown as {
@@ -49,13 +50,6 @@ export default function CampaignMapPage() {
   const [pos, setPos] = useState<LatLng | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
-
-  const fmtVND = (n: number) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(n);
 
   useEffect(() => {
     if (!id) return;
@@ -105,7 +99,7 @@ export default function CampaignMapPage() {
         <div className="text-6xl">🗺️</div>
         <p className="text-gray-500 font-medium">Không tìm thấy chiến dịch.</p>
         <button
-          onClick={() => router.push('/s')}
+          onClick={() => router.push("/s")}
           className="px-6 py-2 bg-[#ad4e28] text-white rounded-full font-medium hover:opacity-90 transition"
         >
           Quay lại trang chủ
@@ -113,30 +107,41 @@ export default function CampaignMapPage() {
       </div>
     );
   }
-
-  const raised = Number(campaign.receivedAmount || 0);
-  const target = Number(campaign.targetAmount || 1);
-
   return (
     <div className="relative flex flex-col lg:flex-row h-screen">
-      <button
+      <Button
         onClick={() => setShowSidebar(!showSidebar)}
         className="lg:hidden fixed top-20 right-4 z-30 bg-white shadow-lg rounded-full p-3 border border-gray-200 hover:bg-gray-50 transition"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           {showSidebar ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           )}
         </svg>
-      </button>
+      </Button>
 
       <div
-        className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 transition-transform duration-300 fixed lg:absolute overflow-y-auto lg:w-[440px] w-[90%] max-w-[400px] top-[65px] left-0 h-[100vh] lg:h-[calc(100vh-65px)] bg-white/95 backdrop-blur-md lg:border-r border-gray-200 p-4 sm:p-6 z-20 lg:z-10 hide-scrollbar`}
+        className={`${
+          showSidebar ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 transition-transform duration-300 fixed lg:absolute overflow-y-auto lg:w-[440px] w-[90%] max-w-[400px] top-[65px] left-0 h-[100vh] lg:h-[calc(100vh-65px)] bg-white/95 backdrop-blur-md lg:border-r border-gray-200 p-4 sm:p-6 z-20 lg:z-10 hide-scrollbar`}
       >
-
         <div className="rounded-2xl overflow-hidden shadow-md ring-1 ring-gray-200">
           <Image
             src={campaign.coverImage || "/images/default-cover.jpg"}
@@ -159,7 +164,9 @@ export default function CampaignMapPage() {
 
         {campaign.location && (
           <div className="mt-3 text-sm text-gray-600 flex items-start gap-2 bg-gray-50 p-3 rounded-lg">
-            <span className="text-lg"><MapPin className="mr-1 w-4 h-4 inline" /></span>
+            <span className="text-lg">
+              <MapPin className="mr-1 w-4 h-4 inline" />
+            </span>
             <span className="flex-1">{campaign.location}</span>
           </div>
         )}
@@ -174,7 +181,9 @@ export default function CampaignMapPage() {
             }}
             className="flex-1 border-2 border-[#ad4e28] text-[#ad4e28] py-3 rounded-xl font-semibold hover:bg-[#ad4e28]/10 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
-            <span><Map className="inline mr-1 w-4 h-4" /> Chỉ đường</span>
+            <span>
+              <Map className="inline mr-1 w-4 h-4" /> Chỉ đường
+            </span>
           </button>
           <button
             onClick={() => router.push(`/campaign/${campaign.id}`)}
@@ -202,7 +211,9 @@ export default function CampaignMapPage() {
             <Marker position={pos}>
               <Popup>
                 <div className="space-y-2 p-2">
-                  <div className="font-bold text-base text-gray-900">{campaign.title}</div>
+                  <div className="font-bold text-base text-gray-900">
+                    {campaign.title}
+                  </div>
                   <div className="text-sm text-gray-600 flex items-start gap-1">
                     <span>📍</span>
                     <span>{campaign.location}</span>

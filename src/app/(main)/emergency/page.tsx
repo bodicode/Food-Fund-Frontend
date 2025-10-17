@@ -8,7 +8,6 @@ import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Hàm tính số ngày còn lại từ endDate
 const getDaysRemaining = (endDate: string): number => {
   const now = new Date().getTime();
   const end = new Date(endDate).getTime();
@@ -16,11 +15,10 @@ const getDaysRemaining = (endDate: string): number => {
   return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
 };
 
-// Hàm lọc campaigns khẩn cấp (còn <= 7 ngày)
 const filterEmergencyCampaigns = (campaigns: Campaign[]): Campaign[] => {
   return campaigns.filter((campaign) => {
-    if (!campaign.endDate) return false;
-    const daysLeft = getDaysRemaining(campaign.endDate);
+    if (!campaign.fundraisingEndDate) return false;
+    const daysLeft = getDaysRemaining(campaign.fundraisingEndDate);
     return daysLeft > 0 && daysLeft <= 7;
   });
 };
@@ -40,13 +38,11 @@ export default function EmergencyPage() {
         });
 
         if (data) {
-          // Lọc chỉ lấy campaigns khẩn cấp (còn <= 7 ngày)
           const emergencyCampaigns = filterEmergencyCampaigns(data);
 
-          // Sắp xếp theo số ngày còn lại (ít nhất trước)
           emergencyCampaigns.sort((a, b) => {
-            const daysA = getDaysRemaining(a.endDate || "");
-            const daysB = getDaysRemaining(b.endDate || "");
+            const daysA = getDaysRemaining(a.fundraisingStartDate || "");
+            const daysB = getDaysRemaining(b.fundraisingEndDate || "");
             return daysA - daysB;
           });
 
@@ -64,7 +60,6 @@ export default function EmergencyPage() {
 
   return (
     <div className="flex flex-col pb-20">
-      {/* Hero */}
       <motion.section
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -94,12 +89,12 @@ export default function EmergencyPage() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="text-base sm:text-lg md:text-xl drop-shadow-lg leading-relaxed"
           >
-            Những chiến dịch còn <span className="font-bold text-yellow-300">dưới 7 ngày</span>
+            Những chiến dịch còn{" "}
+            <span className="font-bold text-yellow-300">dưới 7 ngày</span>
           </motion.p>
         </div>
       </motion.section>
 
-      {/* List */}
       <section className="-mt-24 px-4 sm:px-6 md:px-16 relative z-20">
         <div className="container mx-auto max-w-7xl">
           {loading ? (
@@ -120,7 +115,8 @@ export default function EmergencyPage() {
                 Không có chiến dịch khẩn cấp
               </h3>
               <p className="text-gray-600">
-                Hiện tại không có chiến dịch nào cần hỗ trợ gấp. Hãy khám phá các chiến dịch khác!
+                Hiện tại không có chiến dịch nào cần hỗ trợ gấp. Hãy khám phá
+                các chiến dịch khác!
               </p>
             </motion.div>
           ) : (
@@ -132,16 +128,16 @@ export default function EmergencyPage() {
                 className="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"
               >
                 <p className="text-red-800 font-semibold flex items-center gap-2">
-                  <span>Tìm thấy <span className="font-bold">{campaigns.length}</span> chiến dịch sắp hết hạn</span>
+                  <span>
+                    Tìm thấy{" "}
+                    <span className="font-bold">{campaigns.length}</span> chiến
+                    dịch sắp hết hạn
+                  </span>
                 </p>
               </motion.div>
 
               <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {campaigns.map((campaign, idx) => {
-                  const progress = Math.round(
-                    (Number(campaign.receivedAmount) / Number(campaign.targetAmount || 1)) * 100
-                  );
-
                   return (
                     <motion.div
                       key={campaign.id}
@@ -156,14 +152,14 @@ export default function EmergencyPage() {
                       <CampaignCard
                         id={campaign.id}
                         title={campaign.title}
-                        coverImage={campaign.coverImage || "/images/default-campaign.jpg"}
+                        coverImage={
+                          campaign.coverImage || "/images/default-campaign.jpg"
+                        }
                         location={campaign.location}
                         status={campaign.status}
                         donationCount={campaign.donationCount || 0}
                         receivedAmount={campaign.receivedAmount}
                         targetAmount={campaign.targetAmount}
-                        progress={progress}
-                        deadline={campaign.endDate}
                         isEmergency
                       />
                     </motion.div>

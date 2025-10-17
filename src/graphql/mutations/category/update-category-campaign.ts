@@ -7,7 +7,7 @@ export const UPDATE_CATEGORY_MUTATION = gql`
       title
       description
       isActive
-      updatedAt
+      updated_at
     }
   }
 `;

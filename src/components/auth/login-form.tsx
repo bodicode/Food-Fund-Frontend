@@ -28,7 +28,6 @@ type LoginFormProps = {
   onSwitchToRegister?: () => void;
 };
 
-
 export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -97,10 +96,13 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
       console.log("Google idToken:", token);
 
-      const res = await graphQLAuthService.googleAuthentication({ idToken: token });
+      const res = await graphQLAuthService.googleAuthentication({
+        idToken: token,
+      });
 
       const decoded = decodeIdToken(res.idToken);
-      if (!decoded?.sub) throw new Error("Không thể xác định người dùng từ token");
+      if (!decoded?.sub)
+        throw new Error("Không thể xác định người dùng từ token");
 
       dispatch(
         setCredentials({
@@ -116,9 +118,18 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       );
 
       Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
-      Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
-      Cookies.set("role", decoded["custom:role"] || "DONOR", { secure: true, sameSite: "strict" });
+      Cookies.set("accessToken", res.accessToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      Cookies.set("refreshToken", res.refreshToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      Cookies.set("role", decoded["custom:role"] || "DONOR", {
+        secure: true,
+        sameSite: "strict",
+      });
 
       const role = decoded["custom:role"]?.toUpperCase();
       if (role === "ADMIN") router.push("/admin/users");
@@ -131,7 +142,9 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       });
     } catch (error) {
       console.error("Google login error:", error);
-      toast.error("Đăng nhập Google thất bại!", { description: translateError(error) });
+      toast.error("Đăng nhập Google thất bại!", {
+        description: translateError(error),
+      });
     }
   };
 

@@ -32,11 +32,13 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [step, setStep] = useState<"register" | "confirm">("register");
   const [emailForConfirm, setEmailForConfirm] = useState("");
 
-  const router = useRouter()
+  const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
 
-  const handleGoogleRegister = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleRegister = async (
+    credentialResponse: CredentialResponse
+  ) => {
     try {
       if (user) {
         toast.info("Bạn đã đăng nhập");
@@ -49,7 +51,9 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
       console.log("Google idToken:", token);
 
-      const res = await graphQLAuthService.googleAuthentication({ idToken: token });
+      const res = await graphQLAuthService.googleAuthentication({
+        idToken: token,
+      });
 
       const decoded = jwtDecode<DecodedIdToken>(res.idToken);
 
@@ -71,10 +75,22 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           );
         }
 
-        Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
-        Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
-        Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
-        Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", { secure: true, sameSite: "strict" });
+        Cookies.set("idToken", res.idToken, {
+          secure: true,
+          sameSite: "strict",
+        });
+        Cookies.set("accessToken", res.accessToken, {
+          secure: true,
+          sameSite: "strict",
+        });
+        Cookies.set("refreshToken", res.refreshToken, {
+          secure: true,
+          sameSite: "strict",
+        });
+        Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", {
+          secure: true,
+          sameSite: "strict",
+        });
 
         const role = decoded["custom:role"]?.toUpperCase();
         if (role === "ADMIN") router.push("/admin/users");
@@ -100,9 +116,18 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       }
 
       Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
-      Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
-      Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", { secure: true, sameSite: "strict" });
+      Cookies.set("accessToken", res.accessToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      Cookies.set("refreshToken", res.refreshToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", {
+        secure: true,
+        sameSite: "strict",
+      });
 
       toast.success("Đăng ký Google thành công", {
         description: `Chào ${decoded?.name || "bạn"}!`,
@@ -145,15 +170,6 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         )}
 
         {step === "register" && (
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm" />
-          </div>
-        )}
-
-        {step === "register" && (
           <>
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
@@ -162,7 +178,6 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               <div className="relative flex justify-center text-sm" />
             </div>
 
-            {/* ✅ Nút Google Login đồng nhất với LoginForm */}
             <div className="flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleRegister}

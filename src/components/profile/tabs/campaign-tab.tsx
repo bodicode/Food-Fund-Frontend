@@ -96,7 +96,7 @@ const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
         </h3>
         <p className="text-sm text-gray-500 mt-1">
           Ngày tạo:{" "}
-          {format(new Date(campaign.createdAt), "dd/MM/yyyy", { locale: vi })}
+          {format(new Date(campaign.created_at), "dd/MM/yyyy", { locale: vi })}
         </p>
       </div>
     </div>

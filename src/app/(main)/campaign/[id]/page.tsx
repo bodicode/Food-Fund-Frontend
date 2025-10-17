@@ -2,25 +2,44 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import Image from "next/image";
-import { motion } from "framer-motion"; // 👈 thêm framer-motion
+
 import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
-import { Clock, Goal, MapPin } from "lucide-react";
 
-const fmtVND = (n: number) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(n);
+import { statusConfig } from "@/lib/translator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  MapPin,
+  Users,
+  DollarSign,
+  CalendarDays,
+  GoalIcon,
+  Info,
+  Share2,
+  Copy,
+} from "lucide-react";
+
+import { ProgressBar } from "@/components/campaign/progress-bar";
+import { DateRow } from "@/components/campaign/date-row";
+import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
+import { ActionPanel } from "@/components/campaign/action-panel";
+import { OrganizerCard } from "@/components/campaign/organization-card";
+import { QRCard } from "@/components/campaign/qr-card";
+import { calcDaysLeft, calcProgress, coverSrc, toNumber } from "@/lib/utils/utils";
+import { Stat } from "@/components/campaign/stat";
+import { formatCurrency } from "@/lib/utils/currency-utils";
+import { formatDate } from "@/lib/utils/date-utils";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -47,39 +66,54 @@ export default function CampaignDetailPage() {
     );
   }
 
-  const raised = Number(campaign.receivedAmount || 0);
-  const goal = Number(campaign.targetAmount || 1);
-  const progress = Math.min(Math.round((raised / goal) * 100), 100);
+  const raised = toNumber(campaign.receivedAmount, 0);
+  const goal = Math.max(toNumber(campaign.targetAmount, 0), 1);
+  const progress = calcProgress(campaign.receivedAmount, campaign.targetAmount);
+  const timeLeft = calcDaysLeft(
+    campaign.fundraisingEndDate,
+    campaign.fundraisingStartDate
+  );
+  const status = statusConfig[campaign.status];
 
-  // Calculate days left
-  const calculateDaysLeft = (endDate?: string, startDate?: string): string => {
-    if (!endDate) return "Không xác định";
+  const ingredientPct = toNumber(campaign.ingredientBudgetPercentage, 0);
+  const cookingPct = toNumber(campaign.cookingBudgetPercentage, 0);
+  const deliveryPct = toNumber(campaign.deliveryBudgetPercentage, 0);
 
-    const now = new Date();
-    const end = new Date(endDate);
-    const start = startDate ? new Date(startDate) : null;
+  const ingredientAmt =
+    toNumber(campaign.ingredientFundsAmount, 0) ||
+    Math.round((ingredientPct / 100) * goal);
 
-    if (start && now < start) {
-      const diffToStart = Math.ceil(
-        (start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      return `Chưa bắt đầu (còn ${diffToStart} ngày)`;
+  const cookingAmt =
+    toNumber(campaign.cookingFundsAmount, 0) ||
+    Math.round((cookingPct / 100) * goal);
+
+  const deliveryAmt =
+    toNumber(campaign.deliveryFundsAmount, 0) ||
+    Math.round((deliveryPct / 100) * goal);
+
+  const hasBudget =
+    ingredientAmt > 0 ||
+    cookingAmt > 0 ||
+    deliveryAmt > 0 ||
+    ingredientPct > 0 ||
+    cookingPct > 0 ||
+    deliveryPct > 0;
+
+  const handleDirection = () => router.push(`/map/${campaign.id}`);
+
+  const handleShare = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: campaign.title, url });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      }
+    } catch (e) {
+      console.error(e);
     }
-
-    if (now > end) {
-      return "Đã kết thúc";
-    }
-
-    const diff = Math.ceil(
-      (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return `${diff} ngày`;
-  };
-
-  const timeLeft = calculateDaysLeft(campaign.endDate, campaign.startDate);
-
-  const handleDirection = () => {
-    router.push(`/map/${campaign.id}`);
   };
 
   return (
@@ -89,145 +123,215 @@ export default function CampaignDetailPage() {
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <div className="container mx-auto pt-30 pb-20 px-4 md:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-color mb-6">
+        <div className="relative rounded-3xl overflow-hidden ring-1 ring-gray-200 shadow-sm mb-8">
+          <Image
+            src={coverSrc(campaign.coverImage)}
+            alt={campaign.title}
+            width={1600}
+            height={900}
+            priority
+            className="object-cover w-full h-[280px] md:h-[420px]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from black/40 via-black/10 to-transparent" />
+
+          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+            <Badge
+              className={`${status.color} flex items-center gap-1 border-0 shadow`}
+            >
+              <status.icon className="w-4 h-4" /> {status.label}
+            </Badge>
+            {campaign.category?.title && (
+              <Badge variant="secondary" className="bg-white/90 text-gray-800">
+                {campaign.category.title}
+              </Badge>
+            )}
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow">
               {campaign.title}
             </h1>
-
-            <div className="rounded-2xl overflow-hidden shadow-md mb-6">
-              <Image
-                src={campaign.coverImage || "/images/default-cover.jpg"}
-                alt={campaign.title}
-                width={1200}
-                height={600}
-                className="object-cover w-full h-[400px] md:h-[500px]"
-              />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                onClick={handleShare}
+                className="backdrop-blur bg-white/80"
+              >
+                {copied ? (
+                  <Copy className="w-4 h-4 mr-2" />
+                ) : (
+                  <Share2 className="w-4 h-4 mr-2" />
+                )}
+                {copied ? "Đã sao chép" : "Chia sẻ"}
+              </Button>
+              <Button
+                onClick={() =>
+                  router.push(`/campaign/${campaign.id}/donations`)
+                }
+                variant="outline"
+                className="bg-white/80 backdrop-blur border-white/70"
+              >
+                Xem quyên góp
+              </Button>
             </div>
+          </div>
+        </div>
 
-            <div className="mb-8">
-              <span className="inline-block bg-[#ad4e28]/10 text-[#ad4e28] text-sm font-medium px-3 py-1 rounded-full">
-                {campaign.category?.title || "Chiến dịch"}
+        <div className="bg-white rounded-2xl shadow-sm border p-6 mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-600 font-medium">
+              Tiến độ gây quỹ
+            </div>
+            <div className="text-sm font-semibold text-[#ad4e28]">
+              {progress}%
+            </div>
+          </div>
+
+          <ProgressBar value={progress} />
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center mt-5">
+            <Stat
+              icon={<DollarSign className="mx-auto w-5 h-5" />}
+              label="Đã nhận"
+              value={formatCurrency(raised)}
+              tone="text-green-600"
+            />
+            <Stat
+              icon={<GoalIcon className="mx-auto w-5 h-5" />}
+              label="Mục tiêu"
+              value={formatCurrency(goal)}
+              tone="text-yellow-600"
+            />
+            <Stat
+              icon={<Users className="mx-auto w-5 h-5" />}
+              label="Lượt đóng góp"
+              value={String(campaign.donationCount ?? 0)}
+              tone="text-blue-600"
+            />
+            <Stat
+              icon={<CalendarDays className="mx-auto w-5 h-5" />}
+              label="Ngày bắt đầu"
+              value={formatDate(campaign.fundraisingStartDate)}
+            />
+            <Stat
+              icon={<CalendarDays className="mx-auto w-5 h-5" />}
+              label="Ngày kết thúc"
+              value={formatDate(campaign.fundraisingEndDate)}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-10">
+          <div>
+            <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
+              {campaign.location && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
+                  <MapPin className="w-4 h-4" /> {campaign.location}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800">
+                <CalendarDays className="w-4 h-4" />
+                Còn lại: <b className="ml-1">{timeLeft}</b>
               </span>
             </div>
 
-            <div
-              className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: campaign.description || "" }}
-            />
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src="/images/avatar.webp"
-                  alt="Avatar"
-                  width={50}
-                  height={50}
-                  className="rounded-full border"
-                />
-                <div>
-                  <h3 className="font-semibold text-orange-600">
-                    {campaign?.creator?.full_name || "Người vận động"}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Tiền ủng hộ được chuyển đến tổ chức này
-                  </p>
-                </div>
+            <div className="bg-white rounded-2xl border p-6 mb-8">
+              <div className="mb-4 flex items-center gap-2 text-gray-800">
+                <Info className="w-4 h-4" />
+                <h3 className="font-semibold">Mô tả chiến dịch</h3>
               </div>
-
-              <div className="flex justify-between items-center text-sm mb-3 border-t pt-3">
-                <span className="flex items-center gap-1 text-green-600 font-semibold">
-                  <Goal className="inline w-4 h-4" /> Mục tiêu chiến dịch
-                </span>
-                <span className="font-bold">{fmtVND(goal)}</span>
-              </div>
-
-              <div className="flex justify-between items-center text-sm mb-3">
-                <span className="flex items-center gap-1 text-blue-600 font-semibold">
-                  <Clock className="inline w-4 h-4" /> Thời gian còn lại
-                </span>
-                <span className="font-semibold">{timeLeft}</span>
-              </div>
-
-              {campaign.location && (
-                <div className="flex items-center text-gray-500 text-sm mb-4 gap-1">
-                  <span>
-                    <MapPin className="inline mr-2 w-4 h-4" />
-                    {campaign.location}
-                  </span>
-                </div>
-              )}
-
-              <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-3">
+              {campaign.description ? (
                 <div
-                  className="h-3 bg-[#f97316] rounded-full transition-all"
-                  style={{ width: `${progress}%` }}
+                  className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: campaign.description }}
                 />
-              </div>
-
-              <div className="flex justify-between text-sm mb-4">
-                <span>Đã đạt được</span>
-                <span className="font-semibold text-[#ad4e28]">
-                  {fmtVND(raised)} ({progress}%)
-                </span>
-              </div>
-
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={handleDirection}
-                  className="flex-1 py-2 rounded-lg border border-[#ad4e28] text-[#ad4e28] font-medium hover:bg-[#ad4e28]/10"
-                >
-                  Chỉ đường
-                </button>
-
-                <button className="flex-1 py-2 rounded-lg bg-[#ad4e28] text-white font-medium hover:opacity-90">
-                  Ủng hộ
-                </button>
-              </div>
-
-              <p className="text-xs text-gray-500 mt-3 italic">
-                Chia sẻ chiến dịch để lan tỏa yêu thương
-              </p>
+              ) : (
+                <p className="text-gray-500 text-sm italic">
+                  Chưa có mô tả chi tiết.
+                </p>
+              )}
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 text-center">
-              <h3 className="font-semibold text-gray-800 mb-3">
-                Quét mã QR để ủng hộ
-              </h3>
-              <Image
-                src="/images/qr-code.png"
-                alt="QR Code"
-                width={180}
-                height={180}
-                className="mx-auto mb-3"
-              />
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+            <div className="bg-white rounded-2xl border p-6 mb-8">
               <h3 className="font-semibold text-gray-800 mb-4">
-                Thông tin người vận động
+                Mốc thời gian
               </h3>
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/images/avatar.webp"
-                  alt={campaign?.creator?.full_name || "Người vận động"}
-                  width={50}
-                  height={50}
-                  className="rounded-full border"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DateRow
+                  label="Bắt đầu gây quỹ"
+                  value={formatDate(campaign.fundraisingStartDate)}
                 />
-                <div>
-                  <p className="font-medium">
-                    {campaign?.creator?.full_name || "Người vận động"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {campaign?.creator?.email}
-                  </p>
-                </div>
+                <DateRow
+                  label="Kết thúc gây quỹ"
+                  value={formatDate(campaign.fundraisingEndDate)}
+                />
+                <DateRow
+                  label="Mua nguyên liệu"
+                  value={formatDate(campaign.ingredientPurchaseDate)}
+                />
+                <DateRow
+                  label="Nấu ăn"
+                  value={formatDate(campaign.cookingDate)}
+                />
+                <DateRow
+                  label="Giao/Phân phát"
+                  value={formatDate(campaign.deliveryDate)}
+                />
+                <DateRow
+                  label="Ngày tạo"
+                  value={formatDate(campaign.created_at)}
+                />
               </div>
             </div>
+
+            {hasBudget && (
+              <div className="bg-white rounded-2xl border p-6 mb-8">
+                <h3 className="font-semibold text-gray-800 mb-4">
+                  Phân bổ ngân sách
+                </h3>
+                <BudgetBreakdown
+                  items={[
+                    {
+                      title: "Nguyên liệu",
+                      amount: ingredientAmt,
+                      percent: ingredientPct,
+                    },
+                    {
+                      title: "Nấu ăn",
+                      amount: cookingAmt,
+                      percent: cookingPct,
+                    },
+                    {
+                      title: "Vận chuyển",
+                      amount: deliveryAmt,
+                      percent: deliveryPct,
+                    },
+                  ]}
+                />
+              </div>
+            )}
           </div>
+
+          <aside className="space-y-6 xl:sticky xl:top-28 h-fit">
+            <ActionPanel
+              canEdit={campaign.status === "PENDING"}
+              onEdit={() =>
+                router.push(`/profile/my-campaign/${campaign.id}/edit`)
+              }
+              onViewDonations={() =>
+                router.push(`/campaign/${campaign.id}/donations`)
+              }
+              onDirection={handleDirection}
+            />
+
+            <OrganizerCard
+              name={campaign.creator?.full_name}
+              email={campaign.creator?.email}
+              phone={campaign.creator?.phone_number}
+            />
+
+            <QRCard />
+          </aside>
         </div>
       </div>
     </motion.div>

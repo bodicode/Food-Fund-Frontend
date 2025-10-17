@@ -1,405 +1,602 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useMemo, useRef, useState } from "react";
+import {
+  Building2,
+  HeartHandshake,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  CreditCard,
+  Globe,
+  FileText,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Building2, Mail, Phone, Globe, User, MapPin, Briefcase, FileText, ChefHat, Truck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-type Staff = {
-    name: string;
-    email: string;
-};
+import { organizationService } from "@/services/organization.service";
+import type { CreateOrganizationInput } from "@/types/api/organization";
+import { toast } from "sonner";
+import { Loader } from "@/components/animate-ui/icons/loader";
 
-export default function OrgRegisterForm() {
-    const [form, setForm] = useState({
-        orgName: "",
-        sector: "",
-        address: "",
-        representative: "",
-        orgEmail: "",
-        phone: "",
-        website: "",
-        description: "",
-        agree: false,
+type FormKeys =
+  | "name"
+  | "activity_field"
+  | "address"
+  | "phone_number"
+  | "email"
+  | "representative_name"
+  | "representative_identity_number"
+  | "website"
+  | "description";
+
+export default function OrgRegisterPage() {
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [form, setForm] = useState<Record<FormKeys, string>>({
+    name: "",
+    activity_field: "",
+    address: "",
+    phone_number: "",
+    email: "",
+    representative_name: "",
+    representative_identity_number: "",
+    website: "",
+    description: "",
+  });
+
+  const [touched, setTouched] = useState<Partial<Record<FormKeys, boolean>>>(
+    {}
+  );
+  const [errors, setErrors] = useState<Partial<Record<FormKeys, string>>>({});
+
+  const refs = useRef<
+    Record<FormKeys, HTMLInputElement | HTMLTextAreaElement | null>
+  >({
+    name: null,
+    activity_field: null,
+    address: null,
+    phone_number: null,
+    email: null,
+    representative_name: null,
+    representative_identity_number: null,
+    website: null,
+    description: null,
+  });
+
+  const labels: Record<FormKeys, string> = useMemo(
+    () => ({
+      name: "Tên tổ chức",
+      activity_field: "Lĩnh vực hoạt động",
+      address: "Địa chỉ",
+      phone_number: "Số điện thoại",
+      email: "Email đại diện",
+      representative_name: "Tên người đại diện",
+      representative_identity_number: "CMND/CCCD người đại diện",
+      website: "Website",
+      description: "Mô tả tổ chức",
+    }),
+    []
+  );
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target as { name: FormKeys; value: string };
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (touched[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: value.trim()
+          ? ""
+          : `Vui lòng nhập ${labels[name].toLowerCase()}.`,
+      }));
+    }
+  };
+
+  const handleBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target as { name: FormKeys; value: string };
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: value.trim()
+        ? ""
+        : `Vui lòng nhập ${labels[name].toLowerCase()}.`,
+    }));
+  };
+
+  const validateAll = (): Partial<Record<FormKeys, string>> => {
+    const next: Partial<Record<FormKeys, string>> = {};
+    (Object.keys(form) as FormKeys[]).forEach((k) => {
+      if (!form[k].trim())
+        next[k] = `Vui lòng nhập ${labels[k].toLowerCase()}.`;
+    });
+    return next;
+  };
+
+  const buildInput = (): CreateOrganizationInput => {
+    const trim = (s: string) => s.trim();
+    return {
+      name: trim(form.name),
+      email: trim(form.email),
+      representative_name: trim(form.representative_name),
+      representative_identity_number: trim(form.representative_identity_number),
+      activity_field: trim(form.activity_field),
+      address: trim(form.address),
+      phone_number: trim(form.phone_number),
+      website: trim(form.website),
+      description: trim(form.description),
+    };
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    const nextErrors = validateAll();
+    setErrors(nextErrors);
+    setTouched({
+      name: true,
+      activity_field: true,
+      address: true,
+      phone_number: true,
+      email: true,
+      representative_name: true,
+      representative_identity_number: true,
+      website: true,
+      description: true,
     });
 
-    const [kitchenStaff, setKitchenStaff] = useState<Staff[]>([{ name: "", email: "" }]);
-    const [deliveryStaff, setDeliveryStaff] = useState<Staff[]>([{ name: "", email: "" }]);
+    const hasError = Object.values(nextErrors).some((v) => v && v.length > 0);
+    if (hasError) {
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
 
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const target = e.target;
-        const { name } = target;
+      const firstKey = (Object.keys(nextErrors) as FormKeys[]).find(
+        (k) => nextErrors[k]
+      );
+      if (firstKey && refs.current[firstKey]) {
+        refs.current[firstKey]!.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        refs.current[firstKey]!.focus();
+      }
+      return;
+    }
 
-        let value: string | boolean = target.value;
-        if (target instanceof HTMLInputElement && target.type === "checkbox") {
-            value = target.checked;
-        }
+    const input = buildInput();
 
-        setForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+    try {
+      setLoading(true);
+      const res = await organizationService.createOrganization(input);
 
-    const handleStaffChange = (
-        index: number,
-        field: keyof Staff,
-        value: string,
-        type: "kitchen" | "delivery"
-    ) => {
-        if (type === "kitchen") {
-            const newList = [...kitchenStaff];
-            newList[index][field] = value;
-            setKitchenStaff(newList);
-        } else {
-            const newList = [...deliveryStaff];
-            newList[index][field] = value;
-            setDeliveryStaff(newList);
-        }
-    };
+      if (res.success) toast.success(res.message || "Tạo tổ chức thành công!");
+      else {
+        toast.error(res.message || "Tạo tổ chức thất bại");
+        return;
+      }
 
-    const handleAddStaff = (type: "kitchen" | "delivery") => {
-        const newStaff = { name: "", email: "" };
-        if (type === "kitchen") {
-            setKitchenStaff([...kitchenStaff, newStaff]);
-        } else {
-            setDeliveryStaff([...deliveryStaff, newStaff]);
-        }
-    };
+      setSubmitted(true);
+      setForm({
+        name: "",
+        activity_field: "",
+        address: "",
+        phone_number: "",
+        email: "",
+        representative_name: "",
+        representative_identity_number: "",
+        website: "",
+        description: "",
+      });
+      setErrors({});
+      setTouched({});
 
-    const handleRemoveStaff = (index: number, type: "kitchen" | "delivery") => {
-        if (type === "kitchen") {
-            setKitchenStaff(kitchenStaff.filter((_, i) => i !== index));
-        } else {
-            setDeliveryStaff(deliveryStaff.filter((_, i) => i !== index));
-        }
-    };
+      setTimeout(() => setSubmitted(false), 3000);
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log("Form:", form);
-        console.log("Kitchen Staff:", kitchenStaff);
-        console.log("Delivery Staff:", deliveryStaff);
-    };
+  const fieldClass = (key: FormKeys) =>
+    `pl-11 h-12 border-2 focus-visible:ring-orange-200 ${
+      errors[key]
+        ? "border-red-400 focus:border-red-500"
+        : "focus:border-orange-500"
+    }`;
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
+  const textAreaClass = (key: FormKeys) =>
+    `pl-11 min-h-32 border-2 resize-none focus-visible:ring-orange-200 ${
+      errors[key]
+        ? "border-red-400 focus:border-red-500"
+        : "focus:border-orange-500"
+    }`;
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
+  const ErrorLine = ({ keyName }: { keyName: FormKeys }) =>
+    errors[keyName] ? (
+      <p className="mt-1 text-sm text-red-600">{errors[keyName]}</p>
+    ) : null;
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 pt-30 pb-12 px-4">
-            <div className="max-w-5xl mx-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: -30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center mb-12"
+  return (
+    <div className="min-h-screen pt-30 bg-gradient-to-br from-orange-50 via-white to-pink-50 py-16 px-4 relative overflow-hidden">
+      <div className="fixed top-20 left-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
+      <div
+        className="fixed top-40 right-10 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"
+        style={{ animationDelay: "2s" }}
+      ></div>
+      <div
+        className="fixed bottom-20 left-1/2 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"
+        style={{ animationDelay: "4s" }}
+      ></div>
+
+      <div className="relative max-w-6xl mx-auto">
+        <div className="text-center mb-12 space-y-6">
+          <Badge
+            variant="secondary"
+            className="bg-orange-100 text-orange-700 hover:bg-orange-200 px-4 py-2 text-sm font-medium"
+          >
+            <Sparkles className="w-4 h-4 mr-2 inline" />
+            Dành cho tổ chức từ thiện
+          </Badge>
+
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-orange-500 bg-clip-text text-transparent leading-tight">
+            Đăng ký Tài khoản
+            <br />
+            Tổ chức Minh bạch
+          </h1>
+
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Gia nhập hệ sinh thái từ thiện minh bạch, quản lý quỹ chuyên nghiệp
+            và xây dựng niềm tin với cộng đồng
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-6 pt-4">
+            {["100% Minh bạch", "Bảo mật cao", "Miễn phí đăng ký"].map(
+              (text) => (
+                <div
+                  key={text}
+                  className="flex items-center gap-2 text-gray-700"
                 >
-                    <div className="inline-block p-3 bg-orange-100 rounded-full mb-4">
-                        <Building2 className="h-12 w-12 text-orange-600" />
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-color mb-3">
-                        Đăng Ký Tổ Chức
-                    </h1>
-                    <p className="text-gray-600 text-sm">
-                        Trở thành đối tác của FoodFund và lan tỏa yêu thương
-                    </p>
-                </motion.div>
-
-                <motion.form
-                    onSubmit={handleSubmit}
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="bg-white rounded-2xl p-8 space-y-8"
-                >
-                    <motion.div variants={itemVariants} className="space-y-6">
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="h-1 w-12 bg-brown-color rounded"></div>
-                            <h2 className="text-2xl font-bold text-color">Thông Tin Tổ Chức</h2>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="relative">
-                                <Building2 className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                <Input
-                                    name="orgName"
-                                    value={form.orgName}
-                                    onChange={handleChange}
-                                    placeholder="Tên tổ chức"
-                                    className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                    required
-                                />
-                            </div>
-                            <div className="relative">
-                                <Briefcase className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                <Input
-                                    name="sector"
-                                    value={form.sector}
-                                    onChange={handleChange}
-                                    placeholder="Lĩnh vực hoạt động"
-                                    className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                            <Input
-                                name="address"
-                                value={form.address}
-                                onChange={handleChange}
-                                placeholder="Địa chỉ liên hệ"
-                                className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                required
-                            />
-                        </div>
-
-                        <div className="relative">
-                            <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                            <Input
-                                name="representative"
-                                value={form.representative}
-                                onChange={handleChange}
-                                placeholder="Người đại diện pháp lý"
-                                className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                required
-                            />
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                <Input
-                                    type="email"
-                                    name="orgEmail"
-                                    value={form.orgEmail}
-                                    onChange={handleChange}
-                                    placeholder="Email tổ chức"
-                                    className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                    required
-                                />
-                            </div>
-                            <div className="relative">
-                                <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                <Input
-                                    type="tel"
-                                    name="phone"
-                                    value={form.phone}
-                                    onChange={handleChange}
-                                    placeholder="Số điện thoại"
-                                    className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="relative">
-                            <Globe className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                            <Input
-                                name="website"
-                                value={form.website}
-                                onChange={handleChange}
-                                placeholder="Website / Fanpage (tuỳ chọn)"
-                                className="pl-10 h-12 border-gray-300 focus:border-orange-500 focus:ring-orange-500"
-                            />
-                        </div>
-
-                        <div className="relative">
-                            <FileText className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                            <Textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handleChange}
-                                placeholder="Mô tả ngắn gọn về tổ chức và hoạt động của bạn..."
-                                className="pl-10 pt-3 min-h-[120px] border-gray-300 focus:border-orange-500 focus:ring-orange-500 resize-none"
-                            />
-                        </div>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants} className="space-y-4">
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="h-1 w-12 bg-brown-color rounded"></div>
-                            <ChefHat className="h-6 w-6 text-color" />
-                            <h2 className="text-2xl font-bold text-color">Nhân Viên Bếp</h2>
-                        </div>
-
-                        <div className="space-y-3">
-                            {kitchenStaff.map((staff, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="relative p-5 border-2 border-orange-100 rounded-xl bg-gradient-to-br from-orange-50 to-white hover:shadow-md transition-all"
-                                >
-                                    <div className="absolute top-3 right-3 bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full">
-                                        #{index + 1}
-                                    </div>
-                                    <div className="space-y-3 mt-2">
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                type="text"
-                                                placeholder="Họ và tên nhân viên bếp"
-                                                value={staff.name}
-                                                onChange={(e) => handleStaffChange(index, "name", e.target.value, "kitchen")}
-                                                className="pl-10 h-11 bg-white border-gray-200"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <div className="relative flex-1">
-                                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                                <Input
-                                                    type="email"
-                                                    placeholder="Email nhân viên"
-                                                    value={staff.email}
-                                                    onChange={(e) => handleStaffChange(index, "email", e.target.value, "kitchen")}
-                                                    className="pl-10 h-11 bg-white border-gray-200"
-                                                    required
-                                                />
-                                            </div>
-                                            {index > 0 && (
-                                                <Button
-                                                    type="button"
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    onClick={() => handleRemoveStaff(index, "kitchen")}
-                                                    className="hover:bg-red-50 h-11 w-11"
-                                                >
-                                                    <Trash2 className="h-5 w-5 text-red-500" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => handleAddStaff("kitchen")}
-                            className="w-full border-2 border-dashed border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400 h-12"
-                        >
-                            <PlusCircle className="h-5 w-5 mr-2" />
-                            Thêm nhân viên bếp
-                        </Button>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants} className="space-y-4">
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="h-1 w-12 bg-brown-color rounded"></div>
-                            <Truck className="h-6 w-6 text-color" />
-                            <h2 className="text-2xl font-bold text-color">Nhân Viên Vận Chuyển</h2>
-                        </div>
-
-                        <div className="space-y-3">
-                            {deliveryStaff.map((staff, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="relative p-5 border-2 border-amber-100 rounded-xl bg-gradient-to-br from-amber-50 to-white hover:shadow-md transition-all"
-                                >
-                                    <div className="absolute top-3 right-3 bg-amber-100 text-amber-600 text-xs font-bold px-2 py-1 rounded-full">
-                                        #{index + 1}
-                                    </div>
-                                    <div className="space-y-3 mt-2">
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                type="text"
-                                                placeholder="Họ và tên nhân viên vận chuyển"
-                                                value={staff.name}
-                                                onChange={(e) => handleStaffChange(index, "name", e.target.value, "delivery")}
-                                                className="pl-10 h-11 bg-white border-gray-200"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <div className="relative flex-1">
-                                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                                <Input
-                                                    type="email"
-                                                    placeholder="Email nhân viên"
-                                                    value={staff.email}
-                                                    onChange={(e) => handleStaffChange(index, "email", e.target.value, "delivery")}
-                                                    className="pl-10 h-11 bg-white border-gray-200"
-                                                    required
-                                                />
-                                            </div>
-                                            {index > 0 && (
-                                                <Button
-                                                    type="button"
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    onClick={() => handleRemoveStaff(index, "delivery")}
-                                                    className="hover:bg-red-50 h-11 w-11"
-                                                >
-                                                    <Trash2 className="h-5 w-5 text-red-500" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => handleAddStaff("delivery")}
-                            className="w-full border-2 border-dashed border-amber-300 text-amber-600 hover:bg-amber-50 hover:border-amber-400 h-12"
-                        >
-                            <PlusCircle className="h-5 w-5 mr-2" />
-                            Thêm nhân viên vận chuyển
-                        </Button>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants} className="space-y-6 pt-4">
-                        <div className="flex items-start space-x-3 p-4 bg-orange-50 rounded-xl border border-orange-200">
-                            <input
-                                type="checkbox"
-                                name="agree"
-                                checked={form.agree}
-                                onChange={handleChange}
-                                className="mt-1 h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                                required
-                            />
-                            <label className="text-sm text-gray-700 leading-relaxed">
-                                Tôi cam kết rằng tất cả thông tin được cung cấp là chính xác và đồng ý với{" "}
-                                <span className="font-semibold text-orange-600">điều khoản sử dụng</span> của FoodFund.
-                            </label>
-                        </div>
-
-                        <Button
-                            type="submit"
-                            className="w-full h-14 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-xl"
-                        >
-                            Gửi Đăng Ký
-                        </Button>
-                    </motion.div>
-                </motion.form>
-            </div>
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium">{text}</span>
+                </div>
+              )
+            )}
+          </div>
         </div>
-    );
+
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-pink-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition duration-500"></div>
+
+          <Card className="relative border-0 shadow-2xl bg-white/95 backdrop-blur">
+            <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-orange-600 p-8 rounded-t-2xl">
+              <CardHeader className="text-center space-y-4 p-0">
+                <div className="flex items-center justify-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm transform hover:scale-110 transition-transform">
+                    <Building2 className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm transform hover:scale-110 transition-transform">
+                    <HeartHandshake className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-3xl font-bold text-white">
+                  Thông tin Tổ chức
+                </CardTitle>
+                <CardDescription className="text-orange-50 text-base">
+                  Vui lòng điền đầy đủ thông tin bên dưới
+                </CardDescription>
+              </CardHeader>
+            </div>
+
+            <CardContent className="p-8">
+              <form onSubmit={handleSubmit} noValidate>
+                <div className="space-y-6">
+                  {error && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 p-3">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Tên tổ chức */}
+                    <div className="md:col-span-2 space-y-2">
+                      <Label
+                        htmlFor="name"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Tên tổ chức <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="name"
+                          name="name"
+                          ref={(el) => {
+                            refs.current.name = el;
+                          }}
+                          value={form.name}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="VD: Quỹ Thiện Nguyện Ánh Dương"
+                          className={fieldClass("name")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="name" />
+                    </div>
+
+                    {/* Lĩnh vực hoạt động */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="activity_field"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Lĩnh vực hoạt động{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <HeartHandshake className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="activity_field"
+                          name="activity_field"
+                          ref={(el) => {
+                            refs.current.activity_field = el;
+                          }}
+                          value={form.activity_field}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="VD: Từ thiện, Giáo dục, Y tế"
+                          className={fieldClass("activity_field")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="activity_field" />
+                    </div>
+
+                    {/* Số điện thoại */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="phone_number"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Số điện thoại <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="phone_number"
+                          name="phone_number"
+                          ref={(el) => {
+                            refs.current.phone_number = el;
+                          }}
+                          value={form.phone_number}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="+84 123 456 789"
+                          className={fieldClass("phone_number")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="phone_number" />
+                    </div>
+
+                    {/* Địa chỉ */}
+                    <div className="md:col-span-2 space-y-2">
+                      <Label
+                        htmlFor="address"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Địa chỉ <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="address"
+                          name="address"
+                          ref={(el) => {
+                            refs.current.address = el;
+                          }}
+                          value={form.address}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="30 Nguyễn Trãi, Quận 5, TP.HCM"
+                          className={fieldClass("address")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="address" />
+                    </div>
+
+                    {/* Email */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Email đại diện <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          ref={(el) => {
+                            refs.current.email = el;
+                          }}
+                          value={form.email}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="contact@organization.com"
+                          className={fieldClass("email")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="email" />
+                    </div>
+
+                    {/* Người đại diện */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="representative_name"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Tên người đại diện{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="representative_name"
+                          name="representative_name"
+                          ref={(el) => {
+                            refs.current.representative_name = el;
+                          }}
+                          value={form.representative_name}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="Nguyễn Văn A"
+                          className={fieldClass("representative_name")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="representative_name" />
+                    </div>
+
+                    {/* CCCD */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="representative_identity_number"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        CMND/CCCD người đại diện{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="representative_identity_number"
+                          name="representative_identity_number"
+                          ref={(el) => {
+                            refs.current.representative_identity_number = el;
+                          }}
+                          value={form.representative_identity_number}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="001234567890"
+                          className={fieldClass(
+                            "representative_identity_number"
+                          )}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="representative_identity_number" />
+                    </div>
+
+                    {/* Website */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="website"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Website <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative group">
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Input
+                          id="website"
+                          name="website"
+                          ref={(el) => {
+                            refs.current.website = el;
+                          }}
+                          value={form.website}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="https://yoursite.com"
+                          className={fieldClass("website")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="website" />
+                    </div>
+
+                    {/* Mô tả */}
+                    <div className="md:col-span-2 space-y-2">
+                      <Label
+                        htmlFor="description"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Mô tả tổ chức <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                        <Textarea
+                          id="description"
+                          name="description"
+                          ref={(el) => {
+                            refs.current.description = el;
+                          }}
+                          value={form.description}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          placeholder="Chia sẻ về sứ mệnh, tầm nhìn và các hoạt động chính của tổ chức..."
+                          className={textAreaClass("description")}
+                          disabled={loading}
+                        />
+                      </div>
+                      <ErrorLine keyName="description" />
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-14 text-lg font-bold bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <Loader className="w-5 h-5 inline mr-2" /> Đang gửi
+                          yêu cầu
+                        </span>
+                      ) : submitted ? (
+                        <span className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          Đăng ký thành công!
+                        </span>
+                      ) : (
+                        "Đăng ký Tài khoản Tổ chức"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 }

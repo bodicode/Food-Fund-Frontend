@@ -8,12 +8,21 @@ export const CREATE_CAMPAIGN = gql`
       description
       coverImage
       location
-      targetAmount
-      startDate
-      endDate
       status
+      targetAmount
+      donationCount
+      receivedAmount
+      created_at
       createdBy
-      categoryId
+      category {
+        id
+        title
+        description
+      }
+      creator {
+        id
+        full_name
+      }
     }
   }
 `;

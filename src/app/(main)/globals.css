@@ -259,7 +259,7 @@
     height: auto;
     min-height: 100%;
     overflow-y: auto;
-    overflow-x: clip;
+    overflow-x: auto;
   }
 
   * {

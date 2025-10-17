@@ -16,6 +16,7 @@ import {
   Menu,
   Tag,
   ChevronDown,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ import { toast } from "sonner";
 import { LogOutIcon } from "@/components/animate-ui/icons/log-out";
 import { MoonIcon } from "@/components/animate-ui/icons/moon";
 import { SunIcon } from "@/components/animate-ui/icons/sun";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import Image from "next/image";
 
 interface AdminLayoutProps {
@@ -101,6 +102,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </NavLink>
       <NavLink href="/admin/reports" icon={FileText}>
         Báo cáo
+      </NavLink>
+      <NavLink href="/admin/organization-requests" icon={Building2}>
+        Yêu cầu tổ chức
       </NavLink>
 
       <div className="pt-4">
@@ -183,7 +187,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f172a] transition-colors">
-      <aside className=" hidden lg:flex w-64 bg-white dark:bg-[#1e293b] flex-col fixed h-screen border-r border-gray-200 dark:border-gray-700 shadow-lg transition-colors overflow-hidden">
+      <aside className="z-50 hidden lg:flex w-64 bg-white dark:bg-[#1e293b] flex-col fixed h-screen border-r border-gray-200 dark:border-gray-700 shadow-lg transition-colors overflow-hidden">
         <Image
           onClick={(e) => {
             e.preventDefault();
@@ -319,7 +323,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="relative z-0 flex-1 p-4 lg:p-6 overflow-auto bg-white dark:bg-slate-900">
           <ThemeTransition>{children}</ThemeTransition>
         </main>
       </div>
