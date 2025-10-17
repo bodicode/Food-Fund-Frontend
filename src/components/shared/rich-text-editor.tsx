@@ -27,6 +27,7 @@ import {
   Minus,
   CheckSquare,
 } from "lucide-react";
+import { Button } from "../ui/button";
 
 type RichTextEditorProps = {
   value: string;
@@ -66,49 +67,55 @@ export default function RichTextEditor({
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 border rounded-md p-2 bg-gray-50">
         {/* Text styles */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`p-1 rounded ${
             editor.isActive("bold") ? "bg-gray-200" : ""
           }`}
         >
           <Bold className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={`p-1 rounded ${
             editor.isActive("italic") ? "bg-gray-200" : ""
           }`}
         >
           <Italic className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={`p-1 rounded ${
             editor.isActive("underline") ? "bg-gray-200" : ""
           }`}
         >
           <UnderlineIcon className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleStrike().run()}
           className={`p-1 rounded ${
             editor.isActive("strike") ? "bg-gray-200" : ""
           }`}
         >
           <Strikethrough className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleHighlight().run()}
           className={`p-1 rounded ${
             editor.isActive("highlight") ? "bg-gray-200" : ""
           }`}
         >
           <Highlighter className="w-4 h-4" />
-        </button>
+        </Button>
 
         {/* Headings */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 1 }).run()
           }
@@ -117,8 +124,9 @@ export default function RichTextEditor({
           }`}
         >
           H1
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
@@ -127,8 +135,9 @@ export default function RichTextEditor({
           }`}
         >
           H2
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 3 }).run()
           }
@@ -137,62 +146,69 @@ export default function RichTextEditor({
           }`}
         >
           H3
-        </button>
+        </Button>
 
         {/* Lists */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={`p-1 rounded ${
             editor.isActive("bulletList") ? "bg-gray-200" : ""
           }`}
         >
           <List className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={`p-1 rounded ${
             editor.isActive("orderedList") ? "bg-gray-200" : ""
           }`}
         >
           <ListOrdered className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleTaskList().run()}
           className={`p-1 rounded ${
             editor.isActive("taskList") ? "bg-gray-200" : ""
           }`}
         >
           <CheckSquare className="w-4 h-4" />
-        </button>
+        </Button>
 
         {/* Quote & Code */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           className={`p-1 rounded ${
             editor.isActive("blockquote") ? "bg-gray-200" : ""
           }`}
         >
           <Quote className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           className={`p-1 rounded ${
             editor.isActive("codeBlock") ? "bg-gray-200" : ""
           }`}
         >
           <Code className="w-4 h-4" />
-        </button>
+        </Button>
 
         {/* Horizontal line */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           className="p-1 rounded"
         >
           <Minus className="w-4 h-4" />
-        </button>
+        </Button>
 
         {/* Link */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() => {
             const url = prompt("Nhập link:");
             if (url) editor.chain().focus().setLink({ href: url }).run();
@@ -202,21 +218,23 @@ export default function RichTextEditor({
           }`}
         >
           <LinkIcon className="w-4 h-4" />
-        </button>
+        </Button>
 
         {/* Undo / Redo */}
-        <button
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().undo().run()}
           className="p-1 rounded"
         >
           <Undo className="w-4 h-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={"outline"}
           onClick={() => editor.chain().focus().redo().run()}
           className="p-1 rounded"
         >
           <Redo className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
 
       {/* Editor Area */}

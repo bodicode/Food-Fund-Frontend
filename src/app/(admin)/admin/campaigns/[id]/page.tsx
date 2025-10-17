@@ -335,6 +335,141 @@ export default function AdminCampaignDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* ==== Mốc thời gian chiến dịch ==== */}
+            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+              <CardContent className="p-6 space-y-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#38bdf8]" />
+                  Mốc thời gian chiến dịch
+                </h3>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Bắt đầu gây quỹ
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.fundraisingStartDate)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Kết thúc gây quỹ
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.fundraisingEndDate)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Mua nguyên liệu
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.ingredientPurchaseDate)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Ngày nấu ăn
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.cookingDate)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Ngày giao / phát
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.deliveryDate)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Ngày tạo chiến dịch
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ==== Phân bổ ngân sách ==== */}
+            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+              <CardContent className="p-6 space-y-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-[#38bdf8]" />
+                  Phân bổ ngân sách (%)
+                </h3>
+
+                <div className="space-y-3 text-sm">
+                  {[
+                    {
+                      label: "Nguyên liệu",
+                      value: campaign.ingredientBudgetPercentage,
+                    },
+                    {
+                      label: "Nấu ăn",
+                      value: campaign.cookingBudgetPercentage,
+                    },
+                    {
+                      label: "Vận chuyển",
+                      value: campaign.deliveryBudgetPercentage,
+                    },
+                  ].map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2"
+                    >
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {item.label}
+                      </span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">
+                        {item.value || "0"}%
+                      </span>
+                    </div>
+                  ))}
+
+                  <div className="pt-2 flex justify-between items-center font-semibold text-gray-900 dark:text-gray-100">
+                    <span>Tổng cộng</span>
+                    <span>
+                      {Number(campaign.ingredientBudgetPercentage || 0) +
+                        Number(campaign.cookingBudgetPercentage || 0) +
+                        Number(campaign.deliveryBudgetPercentage || 0)}
+                      %
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ==== Người tạo chiến dịch ==== */}
+            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+              <CardContent className="p-6 space-y-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-[#38bdf8]" />
+                  Người tạo chiến dịch
+                </h3>
+
+                <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                  <p>
+                    <span className="font-semibold">Họ tên:</span>{" "}
+                    {campaign.creator?.full_name || "—"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Email:</span>{" "}
+                    {campaign.creator?.email || "—"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Số điện thoại:</span>{" "}
+                    {campaign.creator?.phone_number || "—"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
