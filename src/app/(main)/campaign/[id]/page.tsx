@@ -29,7 +29,12 @@ import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
 import { ActionPanel } from "@/components/campaign/action-panel";
 import { OrganizerCard } from "@/components/campaign/organization-card";
 import { QRCard } from "@/components/campaign/qr-card";
-import { calcDaysLeft, calcProgress, coverSrc, toNumber } from "@/lib/utils/utils";
+import {
+  calcDaysLeft,
+  calcProgress,
+  coverSrc,
+  toNumber,
+} from "@/lib/utils/utils";
 import { Stat } from "@/components/campaign/stat";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDate } from "@/lib/utils/date-utils";
@@ -130,16 +135,11 @@ export default function CampaignDetailPage() {
             width={1600}
             height={900}
             priority
-            className="object-cover w-full h-[280px] md:h-[420px]"
+            className="object-cover mx-auto w-full h-[320px] md:h-[620px]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from black/40 via-black/10 to-transparent" />
 
           <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-            <Badge
-              className={`${status.color} flex items-center gap-1 border-0 shadow`}
-            >
-              <status.icon className="w-4 h-4" /> {status.label}
-            </Badge>
             {campaign.category?.title && (
               <Badge variant="secondary" className="bg-white/90 text-gray-800">
                 {campaign.category.title}
@@ -148,9 +148,6 @@ export default function CampaignDetailPage() {
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow">
-              {campaign.title}
-            </h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="secondary"
@@ -177,7 +174,7 @@ export default function CampaignDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-6 mb-10">
+        <div className="bg-color-base rounded-2xl shadow-sm border p-6 mb-10">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm text-gray-600 font-medium">
               Tiến độ gây quỹ
@@ -223,6 +220,9 @@ export default function CampaignDetailPage() {
 
         <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-10">
           <div>
+            <h1 className="text-2xl md:text-3xl mb-4 font-bold text-color drop-shadow">
+              {campaign.title}
+            </h1>
             <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
               {campaign.location && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
@@ -252,7 +252,7 @@ export default function CampaignDetailPage() {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl border p-6 mb-8">
+            <div className="rounded-2xl border p-6 mb-8">
               <h3 className="font-semibold text-gray-800 mb-4">
                 Mốc thời gian
               </h3>
@@ -314,23 +314,23 @@ export default function CampaignDetailPage() {
 
           <aside className="space-y-6 xl:sticky xl:top-28 h-fit">
             <ActionPanel
+              organizationName={campaign.creator?.full_name}
               canEdit={campaign.status === "PENDING"}
               onEdit={() =>
                 router.push(`/profile/my-campaign/${campaign.id}/edit`)
               }
-              onViewDonations={() =>
-                router.push(`/campaign/${campaign.id}/donations`)
-              }
+              onDonate={() => {}}
+              goal={formatCurrency(goal)}
               onDirection={handleDirection}
             />
+
+            <QRCard />
 
             <OrganizerCard
               name={campaign.creator?.full_name}
               email={campaign.creator?.email}
               phone={campaign.creator?.phone_number}
             />
-
-            <QRCard />
           </aside>
         </div>
       </div>

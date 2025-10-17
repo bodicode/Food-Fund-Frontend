@@ -130,7 +130,7 @@ export default function MyCampaignDetailPage() {
             width={1600}
             height={900}
             priority
-            className="object-cover w-full h-[280px] md:h-[420px]"
+            className="object-cover w-full h-[320px] md:h-[520px]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
 
@@ -148,9 +148,6 @@ export default function MyCampaignDetailPage() {
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow">
-              {campaign.title}
-            </h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="secondary"
@@ -223,6 +220,9 @@ export default function MyCampaignDetailPage() {
 
         <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-10">
           <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-color mb-4 drop-shadow">
+              {campaign.title}
+            </h1>
             <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
               {campaign.location && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
@@ -236,10 +236,6 @@ export default function MyCampaignDetailPage() {
             </div>
 
             <div className="bg-white rounded-2xl border p-6 mb-8">
-              <div className="mb-4 flex items-center gap-2 text-gray-800">
-                <Info className="w-4 h-4" />
-                <h3 className="font-semibold">Mô tả chiến dịch</h3>
-              </div>
               {campaign.description ? (
                 <div
                   className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
@@ -314,13 +310,12 @@ export default function MyCampaignDetailPage() {
 
           <aside className="space-y-6 xl:sticky xl:top-28 h-fit">
             <ActionPanel
+              organizationName={campaign.creator.full_name}
               canEdit={campaign.status === "PENDING"}
               onEdit={() =>
                 router.push(`/profile/my-campaign/${campaign.id}/edit`)
               }
-              onViewDonations={() =>
-                router.push(`/campaign/${campaign.id}/donations`)
-              }
+              goal={formatCurrency(goal)}
             />
 
             <OrganizerCard

@@ -141,7 +141,6 @@ export function CampaignCard({
           : ""
       } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
-      {/* Cover Image */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
@@ -170,7 +169,6 @@ export function CampaignCard({
           </div>
         )}
 
-        {/* Progress overlay */}
         <div className="absolute bottom-0 left-0 w-full px-4 pb-4 z-20">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border border-white/30">
             <div className="flex items-center justify-between text-white text-sm font-bold mb-2 drop-shadow-lg">
@@ -195,7 +193,6 @@ export function CampaignCard({
         </div>
       </div>
 
-      {/* Donation Count Badge */}
       <span
         className={`absolute ${
           isHero ? "top-4 left-4" : "top-3 left-3"
@@ -204,7 +201,6 @@ export function CampaignCard({
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
 
-      {/* Content */}
       <div className={`${isHero ? "p-5" : "p-4"}`}>
         <h3
           className={`${
@@ -230,7 +226,7 @@ export function CampaignCard({
         )}
 
         {location && (
-          <div className="mt-3 text-xs text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
+          <div className="mt-3 text-xs h-8 text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
             <MapPin
               animate
               animateOnView
@@ -241,14 +237,12 @@ export function CampaignCard({
           </div>
         )}
 
-        {/* Creator info */}
         {creatorName && (
           <div className="mt-2 text-xs text-gray-400 italic">
             Bởi {creatorName}
           </div>
         )}
 
-        {/* Raised & Goal */}
         <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 font-medium">Đã ủng hộ</span>
