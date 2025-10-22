@@ -81,6 +81,80 @@ export interface RejectOrganizationRequestResponse {
 }
 
 export type OrganizationStatus = "PENDING" | "APPROVED" | "REJECTED" | "ALL";
+export type OrganizationRole = "DELIVERY_STAFF" | "KITCHEN_STAFF";
+
 export interface GetMyOrganizationRequestsResponse {
   myOrganizationRequest: Organization[];
+}
+
+export interface JoinOrganizationInput {
+  organization_id: string;
+  requested_role: OrganizationRole;
+}
+
+export interface JoinOrganizationResponse {
+  requestJoinOrganization: {
+    id: string;
+    message: string;
+    requested_role: string;
+    status: string;
+    success: boolean;
+  };
+}
+
+export interface JoinRequestMember {
+  email: string;
+  full_name: string;
+  phone_number?: string;
+  user_name: string;
+}
+
+export interface JoinRequest {
+  id: string;
+  joined_at: string;
+  member: JoinRequestMember;
+  member_id: string;
+  member_role: string;
+  status: string;
+}
+
+export interface GetOrganizationJoinRequestsResponse {
+  getOrganizationJoinRequests: {
+    joinRequests: JoinRequest[];
+    message: string;
+    success: boolean;
+    total: number;
+  };
+}
+
+export interface ApproveJoinRequestResponse {
+  approveJoinRequest: {
+    joinRequest: JoinRequest;
+    message: string;
+    requestId: string;
+    success: boolean;
+  };
+}
+
+export interface RejectJoinRequestResponse {
+  rejectJoinRequest: {
+    joinRequest: JoinRequest;
+    message: string;
+    requestId: string;
+    success: boolean;
+  };
+}
+
+export interface RemovedMember {
+  email: string;
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface RemoveStaffMemberResponse {
+  removeStaffMember: {
+    message: string;
+    removedMember: RemovedMember;
+  };
 }

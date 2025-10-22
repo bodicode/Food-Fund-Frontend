@@ -94,10 +94,11 @@ export function Navigation() {
     <header
       ref={headerRef}
       className={`fixed left-1/2 z-50 -translate-x-1/2 transition-colors duration-300
-      ${pathname === "/"
+      ${
+        pathname === "/"
           ? "top-4 text-white bg-transparent w-[92%] max-w-7xl rounded-2xl"
           : "top-0 text-color bg-color-base w-full"
-        }
+      }
     `}
     >
       <nav className="container mx-auto">
@@ -142,14 +143,9 @@ export function Navigation() {
                       href: "/emergency",
                     },
                     {
-                      title: "Hỗ trợ cá nhân",
-                      desc: "Giúp đỡ người bệnh, trẻ em, người già...",
-                      href: "/s?tab=personal",
-                    },
-                    {
-                      title: "Tổ chức xã hội",
-                      desc: "Gây quỹ cho nhóm thiện nguyện, tổ chức phi lợi nhuận",
-                      href: "/s?tab=organization",
+                      title: "Các tổ chức nổi bật",
+                      desc: "Các tổ chức từ thiện đang hoạt động gây quỹ",
+                      href: "/organizations",
                     },
                   ],
                 },
@@ -296,7 +292,10 @@ export function Navigation() {
               ]}
             />
 
-            <Link className="nav-hover-btn nav-hover-white-btn mx-2" href="/register">
+            <Link
+              className="nav-hover-btn nav-hover-white-btn mx-2"
+              href="/register"
+            >
               Tạo Chiến dịch
             </Link>
 
@@ -312,14 +311,14 @@ export function Navigation() {
                   </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-52">
-                  {user.role === "ADMIN" &&
+                  {user.role === "ADMIN" && (
                     <DropdownMenuItem
                       onClick={() => router.push("/admin/users")}
                       className="cursor-pointer text-sm py-3"
                     >
                       Dashboard
                     </DropdownMenuItem>
-                  }
+                  )}
                   <DropdownMenuItem
                     onClick={() => router.push("/profile")}
                     className="cursor-pointer text-sm py-3"
@@ -499,7 +498,10 @@ export function Navigation() {
                     ]}
                   />
 
-                  <Link className="text-xs font-semibold uppercase px-2" href="/register">
+                  <Link
+                    className="text-xs font-semibold uppercase px-2"
+                    href="/register"
+                  >
                     Tạo Chiến dịch
                   </Link>
 
@@ -515,10 +517,11 @@ export function Navigation() {
                       <p className="px-2 text-sm font-semibold text-gray-700">
                         Xin chào, {user.name}
                       </p>
-                      {user.role == "ADMIN" ?
-                        <Link href="/admin/users">
-                          Dashboard
-                        </Link> : ""}
+                      {user.role == "ADMIN" ? (
+                        <Link href="/admin/users">Dashboard</Link>
+                      ) : (
+                        ""
+                      )}
                       <button
                         onClick={handleLogout}
                         className="cursor-pointer w-full text-left block rounded-md px-2 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"

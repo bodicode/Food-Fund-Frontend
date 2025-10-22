@@ -47,6 +47,14 @@ export const translateMessage = (msg: string) => {
     return "Gửi yêu cầu thành công. Vui lòng chờ quản trị viên duyệt";
   }
 
+  if (
+    msg.includes(
+      "Join request to as Delivery Staff (food distribution) has been submitted successfully. Waiting for approval."
+    )
+  ) {
+    return "Yêu cầu tham gia tổ chức đã được gửi thành công. Vui lòng chờ quản trị viên duyệt";
+  }
+
   return msg;
 };
 
@@ -148,7 +156,7 @@ export const translateRole = (role?: string): string => {
       return "Người ủng hộ";
     case "ADMIN":
       return "Quản trị viên";
-    case "KITCHEN":
+    case "KITCHEN_STAFF":
       return "Nhân viên bếp";
     case "DELIVERY_STAFF":
       return "Giao hàng";
