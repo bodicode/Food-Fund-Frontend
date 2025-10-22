@@ -46,6 +46,7 @@ export function useCampaigns(initialParams: CampaignParams = {}) {
 
     useEffect(() => {
         fetchCampaigns();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return {

@@ -59,3 +59,6 @@ export interface RejectOrganizationRequestResponse {
 }
 
 export type OrganizationStatus = "PENDING" | "APPROVED" | "REJECTED" | "ALL";
+export interface GetMyOrganizationRequestsResponse {
+  myOrganizationRequest: Organization[];
+}

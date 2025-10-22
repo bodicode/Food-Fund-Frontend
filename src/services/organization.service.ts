@@ -2,12 +2,14 @@ import { APPROVE_ORGANIZATION_REQUEST } from "@/graphql/mutations/organization/a
 import { REJECT_ORGANIZATION_REQUEST } from "@/graphql/mutations/organization/rejected-organization-request";
 import { CREATE_ORGANIZATION } from "@/graphql/mutations/organization/request-create-organization";
 import { GET_ALL_ORGANIZATION_REQUESTS } from "@/graphql/query/organization/get-all-organization-request";
+import { GET_MY_ORGANIZATION_REQUESTS } from "@/graphql/query/organization/get-my-organization-request";
 import client from "@/lib/apollo-client";
 import {
   ApproveOrganizationRequestResponse,
   CreateOrganizationInput,
   CreateOrganizationResponse,
   GetAllOrganizationRequestsResponse,
+  GetMyOrganizationRequestsResponse,
   Organization,
   RejectOrganizationRequestResponse,
 } from "@/types/api/organization";
@@ -66,5 +68,18 @@ export const organizationService = {
     });
     if (!data) throw new Error("No data returned from mutation");
     return data.rejectOrganizationRequest.organization;
+  },
+
+  async getMyOrganizationRequests(): Promise<Organization[]> {
+    const { data } = await client.query<GetMyOrganizationRequestsResponse>({
+      query: GET_MY_ORGANIZATION_REQUESTS,
+      fetchPolicy: "network-only",
+    });
+
+    if (!data) {
+      throw new Error("No data returned from query");
+    }
+
+    return data.myOrganizationRequest;
   },
 };

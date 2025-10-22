@@ -10,6 +10,7 @@ import {
   HeartHandshake,
   History as HistoryIcon,
   LogOut,
+  Building2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { graphQLAuthService } from "@/services/auth.service";
 import { translateMessage } from "@/lib/translator";
 import { UserProfile } from "@/types/api/user";
 import { userService } from "@/services/user.service";
+import { OrganizationTab } from "@/components/profile/tabs/organization-tab";
 
 type TabKey = "profile" | "campaigns" | "history";
 
@@ -37,6 +39,7 @@ const SidebarContent = ({
 }) => {
   const navItems = [
     { key: "profile", label: "Hồ sơ cá nhân", icon: UserIcon },
+    { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
     { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
   ];
@@ -66,10 +69,11 @@ const SidebarContent = ({
           <Button
             key={tab.key}
             variant="ghost"
-            className={`justify-start items-center gap-3 px-3 text-base ${activeTab === tab.key
-              ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
-              : "hover:bg-gray-100 text-gray-700"
-              }`}
+            className={`justify-start items-center gap-3 px-3 text-base ${
+              activeTab === tab.key
+                ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
+                : "hover:bg-gray-100 text-gray-700"
+            }`}
             onClick={() => onNavigate(tab.key as TabKey)}
           >
             <tab.icon className="w-5 h-5" />
@@ -121,6 +125,7 @@ export default function ProfilePage() {
   const TABS = useMemo(
     () => ({
       profile: { component: <ProfileTab />, title: "Hồ sơ cá nhân" },
+      organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
       campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
     }),

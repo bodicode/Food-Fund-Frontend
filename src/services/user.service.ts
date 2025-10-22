@@ -2,8 +2,9 @@ import { GET_USER_PROFILE } from "@/graphql/query/auth/get-user";
 import { GET_MY_PROFILE } from "@/graphql/query/auth/get-my-profile";
 import { GET_ALL_USERS } from "@/graphql/query/auth/get-all-users";
 import client from "@/lib/apollo-client";
-import { UserProfile, UpdateMyProfileInput } from "@/types/api/user";
+import { UserProfile, UpdateMyProfileInput, UpdateUserAccountInput } from "@/types/api/user";
 import { UPDATE_MY_PROFILE } from "@/graphql/mutations/auth/update-my-profile";
+import { UPDATE_USER_ACCOUNT } from "@/graphql/mutations/auth/update-user-account";
 
 export const userService = {
   getProfile: async (): Promise<UserProfile | null> => {
@@ -56,5 +57,16 @@ export const userService = {
       }
     );
     return data?.updateMyProfile ?? null;
+  },
+
+  updateUserAccount: async (
+    userId: string,
+    input: UpdateUserAccountInput
+  ): Promise<UserProfile | null> => {
+    const { data } = await client.mutate<{ updateUserAccount: UserProfile }>({
+      mutation: UPDATE_USER_ACCOUNT,
+      variables: { userId, input },
+    });
+    return data?.updateUserAccount ?? null;
   },
 };

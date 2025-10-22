@@ -17,9 +17,9 @@ import {
   DollarSign,
   CalendarDays,
   GoalIcon,
-  Info,
   Share2,
   Copy,
+  Trash2,
 } from "lucide-react";
 
 import { ProgressBar } from "@/components/campaign/progress-bar";
@@ -28,6 +28,8 @@ import { DateRow } from "@/components/campaign/date-row";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
 import { ActionPanel } from "@/components/campaign/action-panel";
 import { OrganizerCard } from "@/components/campaign/organization-card";
+import { DeleteCampaignDialog } from "@/components/campaign/delete-campaign-dialog";
+import { toast } from "sonner";
 import {
   calcDaysLeft,
   calcProgress,
@@ -43,6 +45,7 @@ export default function MyCampaignDetailPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -120,6 +123,28 @@ export default function MyCampaignDetailPage() {
     }
   };
 
+  const handleDeleteCampaign = async () => {
+    if (!campaign) return;
+
+    try {
+      const success = await campaignService.deleteCampaign(campaign.id);
+      if (success) {
+        toast.success("Xóa chiến dịch thành công!", {
+          description: `Chiến dịch "${campaign.title}" đã được xóa.`,
+        });
+        router.push("/profile?tab=campaigns");
+      } else {
+        toast.error("Xóa thất bại!", {
+          description: "Không thể xóa chiến dịch, vui lòng thử lại.",
+        });
+      }
+    } catch (error) {
+      toast.error("Xóa thất bại!", {
+        description: error instanceof Error ? error.message : "Đã xảy ra lỗi.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
       <div className="container mx-auto px-6 max-w-6xl">
@@ -148,7 +173,7 @@ export default function MyCampaignDetailPage() {
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="secondary"
                 onClick={handleShare}
@@ -170,6 +195,16 @@ export default function MyCampaignDetailPage() {
               >
                 Xem quyên góp
               </Button>
+              {(campaign.status === "REJECTED" || campaign.status === "PENDING") && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  className="bg-red-600 hover:bg-red-700 backdrop-blur"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Xóa chiến dịch
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -326,6 +361,14 @@ export default function MyCampaignDetailPage() {
           </aside>
         </div>
       </div>
+
+      {/* Delete Campaign Dialog */}
+      <DeleteCampaignDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteCampaign}
+        campaignTitle={campaign.title}
+      />
     </div>
   );
 }
