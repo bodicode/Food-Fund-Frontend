@@ -226,7 +226,7 @@ export function CampaignCard({
         )}
 
         {location && (
-          <div className="mt-3 text-xs h-8 text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
+          <div className="mt-3 text-xs h-12 xl:h-8 text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
             <MapPin
               animate
               animateOnView
