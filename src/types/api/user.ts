@@ -20,3 +20,12 @@ export type UpdateMyProfileInput = {
   full_name?: string;
   phone_number?: string;
 };
+
+export type UpdateUserAccountInput = {
+  avatar_url?: string;
+  bio?: string;
+  email?: string;
+  full_name?: string;
+  is_active?: boolean;
+  phone_number?: string;
+};

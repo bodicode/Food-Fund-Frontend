@@ -90,7 +90,7 @@ export default function CreateCampaignStepStory() {
                 Câu chuyện gây quỹ
               </label>
               <RichTextEditor
-                value={story ? story.replace(/\n/g, "<br>") : ""}
+                value={story}
                 onChange={setStory}
               />
             </div>

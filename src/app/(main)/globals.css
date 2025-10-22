@@ -46,6 +46,55 @@
 
   .tiptap {
     outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .tiptap br {
+    display: block;
+    content: "";
+    margin: 0.25rem 0;
+  }
+
+  /* Inline formatting */
+  .tiptap strong {
+    font-weight: 700;
+  }
+
+  .tiptap em {
+    font-style: italic;
+  }
+
+  .tiptap u {
+    text-decoration: underline;
+  }
+
+  .tiptap s {
+    text-decoration: line-through;
+  }
+
+  .tiptap mark {
+    background-color: #fef08a;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.125rem;
+  }
+
+  .tiptap code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.875em;
+  }
+
+  .tiptap a {
+    color: #3b82f6;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .tiptap a:hover {
+    color: #2563eb;
   }
   
   .tiptap h1 {
@@ -68,17 +117,37 @@
     font-weight: 600;
     margin: 0.5rem 0;
   }
+
+  .tiptap p {
+    margin: 0.5rem 0;
+  }
   
   .tiptap ul {
     list-style-type: disc;
     margin-left: 1.5rem;
     padding-left: 1.5rem;
+    margin: 0.5rem 0;
   }
   
   .tiptap ol {
     list-style-type: decimal;
     margin-left: 1.5rem;
     padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .tiptap ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .tiptap ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .tiptap ul[data-type="taskList"] li > label {
+    margin-right: 0.5rem;
   }
   
   .tiptap blockquote {
@@ -87,6 +156,27 @@
     color: #555;
     font-style: italic;
     margin: 1rem 0;
+  }
+
+  .tiptap pre {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .tiptap pre code {
+    background-color: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .tiptap hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 1.5rem 0;
   }
 
   ::-webkit-scrollbar {

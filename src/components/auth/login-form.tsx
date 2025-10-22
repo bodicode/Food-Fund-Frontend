@@ -32,7 +32,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const [showPassword, setShowPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -168,7 +168,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
           <div className="relative">
             <Input
-              type={showPassword ? "text" : "password"}
+              type="password"
               placeholder="Mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

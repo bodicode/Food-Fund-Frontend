@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import { translateRole } from "@/lib/translator";
 import { userService } from "@/services/user.service";
 import { UserProfile } from "@/types/api/user";
+import EditUserModal from "@/components/admin/EditUserModal";
+import { Edit } from "lucide-react";
 
 export default function TeamPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -30,7 +34,6 @@ export default function TeamPage() {
         Danh sách người dùng
       </h1>
 
-      {/* ✅ Vùng scroll có nền riêng để không “lòi” nền trang khi kéo ngang */}
       <div
         className="
       w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900"
@@ -47,6 +50,7 @@ export default function TeamPage() {
                 "Vai trò",
                 "Ngày tạo",
                 "Kích hoạt",
+                "Thao tác",
               ].map((h) => (
                 <th
                   key={h}
@@ -66,8 +70,7 @@ export default function TeamPage() {
           <tbody>
             {loading ? (
               <tr>
-                {/* colSpan = số cột */}
-                <td className="px-4 py-4 text-sm" colSpan={8}>
+                <td className="px-4 py-4 text-sm" colSpan={9}>
                   Đang tải...
                 </td>
               </tr>
@@ -125,12 +128,43 @@ export default function TeamPage() {
                   <td className="px-4 py-3 text-sm whitespace-nowrap">
                     {u.is_active ? "✓" : "✗"}
                   </td>
+                  <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    <button
+                      onClick={() => {
+                        setEditingUser(u);
+                        setIsModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium
+                        text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300
+                        bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50
+                        rounded-lg transition-colors"
+                    >
+                      <Edit size={14} />
+                      Sửa
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingUser(null);
+          }}
+          onSuccess={(updatedUser) => {
+            setUsers((prev) =>
+              prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+            );
+          }}
+        />
+      )}
     </div>
   );
 }

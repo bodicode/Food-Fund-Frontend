@@ -44,7 +44,13 @@ export default function RichTextEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        paragraph: {
+          HTMLAttributes: {
+            class: 'tiptap-paragraph',
+          },
+        },
+      }),
       Underline,
       Link,
       ListItem,
@@ -57,8 +63,25 @@ export default function RichTextEditor({
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    editorProps: {
+      transformPastedText(text) {
+        // Convert plain text line breaks to proper paragraphs
+        return text;
+      },
+      transformPastedHTML(html) {
+        // Preserve line breaks when pasting
+        return html.replace(/\n/g, '<br>');
+      },
+    },
     immediatelyRender: false,
   });
+
+  // Sync editor content when value prop changes from outside
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value);
+    }
+  }, [value, editor]);
 
   if (!mounted || !editor) return null;
 

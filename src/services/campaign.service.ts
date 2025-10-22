@@ -3,6 +3,7 @@
 import { CHANGE_CAMPAIGN_STATUS } from "@/graphql/mutations/campaign/change-campaign-status";
 import { CREATE_CAMPAIGN } from "@/graphql/mutations/campaign/create-campaign";
 import { UPDATE_CAMPAIGN } from "@/graphql/mutations/campaign/update-campaign";
+import { DELETE_CAMPAIGN } from "@/graphql/mutations/campaign/delete-campaign";
 import { GET_CAMPAIGNS } from "@/graphql/query/campaign/get-campaign";
 import { GET_CAMPAIGN_BY_ID } from "@/graphql/query/campaign/get-campaign-by-id";
 import { GET_MY_CAMPAIGNS } from "@/graphql/query/campaign/get-my-campaign";
@@ -129,6 +130,21 @@ export const campaignService = {
       return data.updateCampaign;
     } catch (error) {
       console.error("❌ Error updating campaign:", error);
+      throw error;
+    }
+  },
+
+  async deleteCampaign(id: string): Promise<boolean> {
+    try {
+      const { data } = await client.mutate<{ deleteCampaign: boolean }>({
+        mutation: DELETE_CAMPAIGN,
+        variables: { id },
+        refetchQueries: [{ query: GET_CAMPAIGNS }, { query: GET_MY_CAMPAIGNS }],
+      });
+
+      return data?.deleteCampaign ?? false;
+    } catch (error) {
+      console.error("❌ Error deleting campaign:", error);
       throw error;
     }
   },

@@ -9,7 +9,6 @@ import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
 
-import { statusConfig } from "@/lib/translator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,7 +77,6 @@ export default function CampaignDetailPage() {
     campaign.fundraisingEndDate,
     campaign.fundraisingStartDate
   );
-  const status = statusConfig[campaign.status];
 
   const ingredientPct = toNumber(campaign.ingredientBudgetPercentage, 0);
   const cookingPct = toNumber(campaign.cookingBudgetPercentage, 0);
