@@ -79,9 +79,9 @@ export default function OrganizationRequestsPage() {
           r.name.toLowerCase().includes(q) ||
           r.address.toLowerCase().includes(q) ||
           (r.website || "").toLowerCase().includes(q) ||
-          (rep.full_name || "").toLowerCase().includes(q) ||
-          (rep.email || "").toLowerCase().includes(q) ||
-          (rep.user_name || "").toLowerCase().includes(q) ||
+          (rep?.full_name || "").toLowerCase().includes(q) ||
+          (rep?.email || "").toLowerCase().includes(q) ||
+          (rep?.user_name || "").toLowerCase().includes(q) ||
           (r.phone_number || "").toLowerCase().includes(q)
         );
       });

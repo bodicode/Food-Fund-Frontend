@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { organizationService } from "@/services/organization.service";
 import { Organization } from "@/types/api/organization";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date-utils";
-import { Building2, Globe, MapPin, Phone } from "lucide-react";
+import { Building2, Globe, MapPin, Phone, Eye } from "lucide-react";
 
 export function OrganizationTab() {
+  const router = useRouter();
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -109,9 +112,21 @@ export function OrganizationTab() {
               )}
             </div>
 
-            <p className="text-xs text-gray-400 mt-2">
-              Ngày tạo: {formatDate(org.created_at)}
-            </p>
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-400">
+                Ngày tạo: {formatDate(org.created_at)}
+              </p>
+              {org.status === "VERIFIED" && (
+                <Button
+                  size="sm"
+                  onClick={() => router.push("/profile/organization")}
+                  className="bg-[#ad4e28] hover:bg-[#8d3e20] text-white"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Xem chi tiết
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}

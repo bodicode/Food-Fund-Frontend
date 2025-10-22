@@ -13,11 +13,28 @@ export interface CreateOrganizationInput {
 export interface Representative {
   id: string;
   full_name: string;
-  email: string;
+  email?: string;
   user_name: string;
-  avatar_url: string | null;
+  avatar_url?: string | null;
   is_active: boolean;
-  role: string;
+  role?: string;
+  phone_number?: string;
+}
+
+export interface OrganizationMember {
+  id: string;
+  full_name: string;
+  phone_number?: string;
+  user_name: string;
+  is_active: boolean;
+}
+
+export interface OrganizationMembership {
+  id: string;
+  member: OrganizationMember;
+  joined_at: string;
+  member_role: string;
+  status: string;
 }
 
 export interface Organization {
@@ -29,7 +46,12 @@ export interface Organization {
   status: string;
   description: string;
   created_at: string;
-  representative: Representative;
+  updated_at?: string;
+  representative?: Representative | null;
+  representative_id?: string;
+  active_members?: number;
+  total_members?: number;
+  members?: OrganizationMembership[];
 }
 
 export interface CreateOrganizationResponse {
