@@ -11,6 +11,7 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { statusConfig } from "@/lib/translator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin,
   Users,
@@ -26,6 +27,7 @@ import { ProgressBar } from "@/components/campaign/progress-bar";
 import { Stat } from "@/components/campaign/stat";
 import { DateRow } from "@/components/campaign/date-row";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
+import { Timeline } from "@/components/campaign/timeline";
 import { ActionPanel } from "@/components/campaign/action-panel";
 import { OrganizerCard } from "@/components/campaign/organization-card";
 import { DeleteCampaignDialog } from "@/components/campaign/delete-campaign-dialog";
@@ -37,7 +39,10 @@ import {
   toNumber,
 } from "@/lib/utils/utils";
 import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDate } from "@/lib/utils/date-utils";
+import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
+import { CampaignPosts } from "@/components/campaign/campaign-posts";
+import { CreatePostDialog } from "@/components/campaign/create-post-dialog";
+import { Info, Plus } from "lucide-react";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -46,6 +51,9 @@ export default function MyCampaignDetailPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("story");
+  const [isCreatePostDialogOpen, setIsCreatePostDialogOpen] = useState(false);
+  const [refreshPosts, setRefreshPosts] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -270,49 +278,106 @@ export default function MyCampaignDetailPage() {
               </span>
             </div>
 
-            <div className="bg-white rounded-2xl border p-6 mb-8">
-              {campaign.description ? (
-                <div
-                  className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: campaign.description }}
-                />
-              ) : (
-                <p className="text-gray-500 text-sm italic">
-                  Chưa có mô tả chi tiết.
-                </p>
-              )}
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="story">Câu chuyện</TabsTrigger>
+                <TabsTrigger value="posts">Bài viết</TabsTrigger>
+                <TabsTrigger value="donations">Danh sách ủng hộ</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="story">
+                <div className="bg-white rounded-2xl border p-6">
+                  <div className="mb-4 flex items-center gap-2 text-gray-800">
+                    <Info className="w-4 h-4" />
+                    <h3 className="font-semibold">Mô tả chiến dịch</h3>
+                  </div>
+                  {campaign.description ? (
+                    <div
+                      className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: campaign.description }}
+                    />
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">
+                      Chưa có mô tả chi tiết.
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="posts">
+                <div className="mb-4 flex justify-end">
+                  <Button
+                    onClick={() => setIsCreatePostDialogOpen(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tạo bài viết mới
+                  </Button>
+                </div>
+                <CampaignPosts campaignId={campaign.id} key={refreshPosts} />
+              </TabsContent>
+
+              <TabsContent value="donations">
+                <div className="bg-white rounded-2xl border p-6">
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Danh sách ủng hộ sẽ được hiển thị tại đây</p>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <div className="bg-white rounded-2xl border p-6 mb-8">
               <h3 className="font-semibold text-gray-800 mb-4">
                 Mốc thời gian
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DateRow
-                  label="Bắt đầu gây quỹ"
-                  value={formatDate(campaign.fundraisingStartDate)}
-                />
-                <DateRow
-                  label="Kết thúc gây quỹ"
-                  value={formatDate(campaign.fundraisingEndDate)}
-                />
-                <DateRow
-                  label="Mua nguyên liệu"
-                  value={formatDate(campaign.ingredientPurchaseDate)}
-                />
-                <DateRow
-                  label="Nấu ăn"
-                  value={formatDate(campaign.cookingDate)}
-                />
-                <DateRow
-                  label="Giao/Phân phát"
-                  value={formatDate(campaign.deliveryDate)}
-                />
-                <DateRow
-                  label="Ngày tạo"
-                  value={formatDate(campaign.created_at)}
-                />
-              </div>
+              <Timeline
+                items={[
+                  {
+                    label: "Tạo chiến dịch",
+                    date: formatDateTime(campaign.created_at),
+                    status: "completed",
+                  },
+                  {
+                    label: "Bắt đầu gây quỹ",
+                    date: formatDateTime(campaign.fundraisingStartDate),
+                    status:
+                      campaign.fundraisingEndDate &&
+                      new Date(campaign.fundraisingEndDate) <= new Date()
+                        ? "completed"
+                        : campaign.fundraisingStartDate &&
+                          campaign.fundraisingEndDate &&
+                          new Date(campaign.fundraisingStartDate) <=
+                            new Date() &&
+                          new Date() < new Date(campaign.fundraisingEndDate)
+                        ? "current"
+                        : "upcoming",
+                  },
+                  {
+                    label: "Kết thúc gây quỹ",
+                    date: formatDateTime(campaign.fundraisingEndDate),
+                    status:
+                      campaign.fundraisingEndDate &&
+                      new Date(campaign.fundraisingEndDate) <= new Date()
+                        ? "current"
+                        : "upcoming",
+                  },
+                  {
+                    label: "Mua nguyên liệu",
+                    date: formatDateTime(campaign.ingredientPurchaseDate),
+                    status: campaign.ingredientPurchaseDate && new Date(campaign.ingredientPurchaseDate) <= new Date() ? "completed" : "upcoming",
+                  },
+                  {
+                    label: "Nấu ăn",
+                    date: formatDateTime(campaign.cookingDate),
+                    status: campaign.cookingDate && new Date(campaign.cookingDate) <= new Date() ? "completed" : "upcoming",
+                  },
+                  {
+                    label: "Giao/Phân phát",
+                    date: formatDateTime(campaign.deliveryDate),
+                    status: campaign.deliveryDate && new Date(campaign.deliveryDate) <= new Date() ? "completed" : "upcoming",
+                  },
+                ]}
+              />
             </div>
 
             {hasBudget && (
@@ -368,6 +433,14 @@ export default function MyCampaignDetailPage() {
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteCampaign}
         campaignTitle={campaign.title}
+      />
+
+      {/* Create Post Dialog */}
+      <CreatePostDialog
+        isOpen={isCreatePostDialogOpen}
+        onClose={() => setIsCreatePostDialogOpen(false)}
+        campaignId={campaign.id}
+        onSuccess={() => setRefreshPosts((prev) => prev + 1)}
       />
     </div>
   );
