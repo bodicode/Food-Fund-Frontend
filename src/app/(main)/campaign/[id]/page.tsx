@@ -11,6 +11,7 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin,
   Users,
@@ -23,8 +24,8 @@ import {
 } from "lucide-react";
 
 import { ProgressBar } from "@/components/campaign/progress-bar";
-import { DateRow } from "@/components/campaign/date-row";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
+import { Timeline } from "@/components/campaign/timeline";
 import { ActionPanel } from "@/components/campaign/action-panel";
 import { OrganizerCard } from "@/components/campaign/organization-card";
 import { QRCard } from "@/components/campaign/qr-card";
@@ -36,7 +37,8 @@ import {
 } from "@/lib/utils/utils";
 import { Stat } from "@/components/campaign/stat";
 import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDate } from "@/lib/utils/date-utils";
+import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
+import { CampaignPosts } from "@/components/campaign/campaign-posts";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -44,6 +46,7 @@ export default function CampaignDetailPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState("story");
 
   useEffect(() => {
     if (!id) return;
@@ -119,13 +122,38 @@ export default function CampaignDetailPage() {
     }
   };
 
+  // ===== Timeline status helpers =====
+  const now = new Date();
+  const start = campaign.fundraisingStartDate
+    ? new Date(campaign.fundraisingStartDate)
+    : null;
+  const end = campaign.fundraisingEndDate
+    ? new Date(campaign.fundraisingEndDate)
+    : null;
+
+  const statusFor = (d?: string | null) => {
+    if (!d) return "upcoming" as const;
+    const t = new Date(d);
+    return t <= now ? ("completed" as const) : ("upcoming" as const);
+  };
+
+  const fundraisingStartStatus =
+    start && start <= now ? "completed" : "upcoming";
+  const fundraisingEndStatus =
+    end && end <= now
+      ? "completed"
+      : start && end && start <= now && now < end
+      ? "current"
+      : "upcoming";
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }} // không dùng y để tránh transform chặn sticky
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <div className="container mx-auto pt-30 pb-20 px-4 md:px-6">
+        {/* HERO */}
         <div className="relative rounded-3xl overflow-hidden ring-1 ring-gray-200 shadow-sm mb-8">
           <Image
             src={coverSrc(campaign.coverImage)}
@@ -135,7 +163,7 @@ export default function CampaignDetailPage() {
             priority
             className="object-cover mx-auto w-full h-[320px] md:h-[620px]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from black/40 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
 
           <div className="absolute top-4 left-4 flex flex-wrap gap-2">
             {campaign.category?.title && (
@@ -172,6 +200,7 @@ export default function CampaignDetailPage() {
           </div>
         </div>
 
+        {/* STATS */}
         <div className="bg-color-base rounded-2xl shadow-sm border p-6 mb-10">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm text-gray-600 font-medium">
@@ -216,7 +245,9 @@ export default function CampaignDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-10">
+        {/* BODY */}
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10 items-start">
+          {/* LEFT */}
           <div>
             <h1 className="text-2xl md:text-3xl mb-4 font-bold text-color drop-shadow">
               {campaign.title}
@@ -233,60 +264,108 @@ export default function CampaignDetailPage() {
               </span>
             </div>
 
-            <div className="bg-white rounded-2xl border p-6 mb-8">
-              <div className="mb-4 flex items-center gap-2 text-gray-800">
-                <Info className="w-4 h-4" />
-                <h3 className="font-semibold">Mô tả chiến dịch</h3>
-              </div>
-              {campaign.description ? (
-                <div
-                  className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: campaign.description }}
-                />
-              ) : (
-                <p className="text-gray-500 text-sm italic">
-                  Chưa có mô tả chi tiết.
-                </p>
-              )}
-            </div>
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="mb-8"
+            >
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="story">Câu chuyện</TabsTrigger>
+                <TabsTrigger value="posts">Bài viết</TabsTrigger>
+                <TabsTrigger value="donations">Danh sách ủng hộ</TabsTrigger>
+              </TabsList>
 
-            <div className="rounded-2xl border p-6 mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">
-                Mốc thời gian
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DateRow
-                  label="Bắt đầu gây quỹ"
-                  value={formatDate(campaign.fundraisingStartDate)}
-                />
-                <DateRow
-                  label="Kết thúc gây quỹ"
-                  value={formatDate(campaign.fundraisingEndDate)}
-                />
-                <DateRow
-                  label="Mua nguyên liệu"
-                  value={formatDate(campaign.ingredientPurchaseDate)}
-                />
-                <DateRow
-                  label="Nấu ăn"
-                  value={formatDate(campaign.cookingDate)}
-                />
-                <DateRow
-                  label="Giao/Phân phát"
-                  value={formatDate(campaign.deliveryDate)}
-                />
-                <DateRow
-                  label="Ngày tạo"
-                  value={formatDate(campaign.created_at)}
-                />
-              </div>
-            </div>
+              <TabsContent value="story">
+                <div className="bg-white rounded-2xl border p-6">
+                  <div className="mb-4 flex items-center gap-2 text-gray-800">
+                    <Info className="w-4 h-4" />
+                    <h3 className="font-semibold">Mô tả chiến dịch</h3>
+                  </div>
+                  {campaign.description ? (
+                    <div
+                      className="prose prose-sm md:prose-base max-w-none text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: campaign.description }}
+                    />
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">
+                      Chưa có mô tả chi tiết.
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
 
-            {hasBudget && (
-              <div className="bg-white rounded-2xl border p-6 mb-8">
-                <h3 className="font-semibold text-gray-800 mb-4">
-                  Phân bổ ngân sách
+              <TabsContent value="posts">
+                <CampaignPosts campaignId={campaign.id} />
+              </TabsContent>
+
+              <TabsContent value="donations">
+                <div className="bg-white rounded-2xl border p-6">
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">
+                      Danh sách ủng hộ sẽ được hiển thị tại đây
+                    </p>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* TIMELINE */}
+            <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  Mốc thời gian
                 </h3>
+                <p className="text-sm text-gray-600">
+                  Lộ trình thực hiện chiến dịch từ đầu đến cuối
+                </p>
+              </div>
+              <Timeline
+                items={[
+                  {
+                    label: "Tạo chiến dịch",
+                    date: formatDateTime(campaign.created_at),
+                    status: "completed",
+                  },
+                  {
+                    label: "Bắt đầu gây quỹ",
+                    date: formatDateTime(campaign.fundraisingStartDate),
+                    status: fundraisingStartStatus,
+                  },
+                  {
+                    label: "Kết thúc gây quỹ",
+                    date: formatDateTime(campaign.fundraisingEndDate),
+                    status: fundraisingEndStatus, // completed | current | upcoming
+                  },
+                  {
+                    label: "Mua nguyên liệu",
+                    date: formatDateTime(campaign.ingredientPurchaseDate),
+                    status: statusFor(campaign.ingredientPurchaseDate),
+                  },
+                  {
+                    label: "Nấu ăn",
+                    date: formatDateTime(campaign.cookingDate),
+                    status: statusFor(campaign.cookingDate),
+                  },
+                  {
+                    label: "Giao/Phân phát",
+                    date: formatDateTime(campaign.deliveryDate),
+                    status: statusFor(campaign.deliveryDate),
+                  },
+                ]}
+              />
+            </div>
+
+            {/* BUDGET */}
+            {hasBudget && (
+              <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                    Phân bổ ngân sách
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Chi tiết phân bổ và sử dụng ngân sách cho chiến dịch
+                  </p>
+                </div>
                 <BudgetBreakdown
                   items={[
                     {
@@ -310,7 +389,8 @@ export default function CampaignDetailPage() {
             )}
           </div>
 
-          <aside className="space-y-6 xl:sticky xl:top-28 h-fit">
+          {/* RIGHT (STICKY) */}
+          <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
               organizationName={campaign.creator?.full_name}
               canEdit={campaign.status === "PENDING"}
