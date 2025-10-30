@@ -1,3 +1,10 @@
+export enum PostSortOrder {
+  NEWEST_FIRST = "NEWEST_FIRST",
+  OLDEST_FIRST = "OLDEST_FIRST",
+  MOST_LIKED = "MOST_LIKED",
+  MOST_COMMENTED = "MOST_COMMENTED"
+}
+
 export interface Post {
   id: string;
   campaignId: string;
@@ -11,9 +18,9 @@ export interface Post {
   likeCount: number;
   commentCount: number;
   isLikedByMe: boolean;
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface GetPostResponse {
-  post: Post[];
+  postsByCampaign: Post[];
 }

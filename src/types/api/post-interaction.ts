@@ -90,5 +90,5 @@ export interface DeleteCommentResponse {
 }
 
 export interface GetCommentsResponse {
-  postComments: Comment[];
+  postCommentsTree: Comment[];
 }

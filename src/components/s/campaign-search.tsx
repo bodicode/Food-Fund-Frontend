@@ -3,7 +3,6 @@
 import { useLayoutEffect, useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useSearchParams } from "next/navigation";
 
 import { CampaignCard } from "@/components/shared/campaign-card";
 import { Button } from "@/components/ui/button";
@@ -19,37 +18,50 @@ import {
 } from "@/components/ui/select";
 
 import { categoryService } from "@/services/category.service";
-import { Category } from "@/types/api/category";
-import { CampaignStatus } from "@/types/api/campaign";
+import { CategoryStats } from "@/types/api/category";
+import { Campaign, CampaignStatus } from "@/types/api/campaign";
 import { useCampaigns } from "@/hooks/use-campaign";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const tabMap: Record<string, string> = {
-  personal: "Cá nhân",
-  organization: "Tổ chức",
-};
-
 export default function CampaignSearchPage() {
-  const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab");
-
-  const [activeTab, setActiveTab] = useState("Tổ chức");
   const cardsRef = useRef<HTMLDivElement>(null);
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesStats, setCategoriesStats] = useState<CategoryStats[]>([]);
+  const [totalCampaigns, setTotalCampaigns] = useState<number>(0);
+  
   useEffect(() => {
-    categoryService.getCategories().then(setCategories);
+    categoryService.getCampaignCategoriesStats().then((stats) => {
+      setCategoriesStats(stats);
+      // Calculate total campaigns across all categories
+      const total = stats.reduce((sum, category) => sum + category.campaignCount, 0);
+      setTotalCampaigns(total);
+    });
   }, []);
 
   const { campaigns, loading, hasMore, params, setParams, fetchCampaigns } =
     useCampaigns({ limit: 9, offset: 0 });
 
-  useEffect(() => {
-    if (tabParam && tabMap[tabParam]) {
-      setActiveTab(tabMap[tabParam]);
-    }
-  }, [tabParam]);
+  // Custom sorting function for campaigns when showing all statuses
+  const sortCampaignsByStatus = (campaigns: Campaign[]) => {
+    const statusPriority = {
+      'ACTIVE': 1,
+      'APPROVED': 2,
+      'COMPLETED': 3,
+      'PENDING': 4
+    };
+
+    return [...campaigns].sort((a, b) => {
+      const priorityA = statusPriority[a.status as keyof typeof statusPriority] || 999;
+      const priorityB = statusPriority[b.status as keyof typeof statusPriority] || 999;
+      return priorityA - priorityB;
+    });
+  };
+
+  // Apply custom sorting when showing all statuses
+  const displayCampaigns = (!params.filter?.status || params.filter.status.length === 0)
+    ? sortCampaignsByStatus(campaigns)
+    : campaigns;
 
   useLayoutEffect(() => {
     if (!cardsRef.current) return;
@@ -67,7 +79,7 @@ export default function CampaignSearchPage() {
       );
     }, cardsRef);
     return () => ctx.revert();
-  }, [campaigns]);
+  }, [displayCampaigns]);
 
   return (
     <div className="lg:container mx-auto px-4 py-32">
@@ -93,10 +105,22 @@ export default function CampaignSearchPage() {
                 <SelectValue placeholder="Danh mục" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tất cả danh mục</SelectItem>
-                {categories.map((cat) => (
+                <SelectItem value="ALL">
+                  <div className="flex items-center justify-between w-full">
+                    <span>Tất cả danh mục</span>
+                    <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                      {totalCampaigns}
+                    </span>
+                  </div>
+                </SelectItem>
+                {categoriesStats.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
-                    {cat.title}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{cat.title}</span>
+                      <span className="ml-2 px-2 py-0.5 text-xs bg-brown-color text-white rounded-full">
+                        {cat.campaignCount}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -118,12 +142,10 @@ export default function CampaignSearchPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
-                <SelectItem value="APPROVED">Đã duyệt</SelectItem>
                 <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
-                <SelectItem value="REJECTED">Từ chối</SelectItem>
-                <SelectItem value="CANCELLED">Đã hủy</SelectItem>
                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
+                <SelectItem value="APPROVED">Đã duyệt</SelectItem>
+                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
               </SelectContent>
             </Select>
 
@@ -158,7 +180,7 @@ export default function CampaignSearchPage() {
       </div>
 
       <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {campaigns.length === 0 && !loading ? (
+        {displayCampaigns.length === 0 && !loading ? (
           <div className="col-span-full text-center py-16 text-gray-500">
             <p className="text-lg font-medium">Không tìm thấy chiến dịch nào</p>
             <p className="text-sm text-gray-400 mt-2">
@@ -166,7 +188,7 @@ export default function CampaignSearchPage() {
             </p>
           </div>
         ) : (
-          campaigns.map((c) => (
+          displayCampaigns.map((c) => (
             <div key={c.id} className="campaign-card">
               <CampaignCard {...c} coverImage={c.coverImage || ""} />
             </div>

@@ -27,8 +27,6 @@ import { ProgressBar } from "@/components/campaign/progress-bar";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
 import { Timeline } from "@/components/campaign/timeline";
 import { ActionPanel } from "@/components/campaign/action-panel";
-import { OrganizerCard } from "@/components/campaign/organization-card";
-import { QRCard } from "@/components/campaign/qr-card";
 import {
   calcDaysLeft,
   calcProgress,
@@ -137,14 +135,25 @@ export default function CampaignDetailPage() {
     return t <= now ? ("completed" as const) : ("upcoming" as const);
   };
 
-  const fundraisingStartStatus =
-    start && start <= now ? "completed" : "upcoming";
-  const fundraisingEndStatus =
-    end && end <= now
-      ? "completed"
-      : start && end && start <= now && now < end
-      ? "current"
-      : "upcoming";
+  // Calculate fundraising period status
+  const isBeforeStart = start && now < start;
+  const isAfterEnd = end && now >= end;
+  const isDuringFundraising = start && end && now >= start && now < end;
+
+  const fundraisingStartStatus = (() => {
+    if (!start) return "upcoming";
+    if (isBeforeStart) return "upcoming";
+    if (isDuringFundraising) return "current"; // Show "Đang diễn ra" during fundraising
+    return "completed"; // Only completed after fundraising ends
+  })();
+
+  const fundraisingEndStatus = (() => {
+    if (!start || !end) return "upcoming";
+    if (isBeforeStart) return "upcoming";
+    if (isDuringFundraising) return "upcoming"; // Don't show badge during fundraising
+    if (isAfterEnd) return "completed";
+    return "upcoming";
+  })();
 
   return (
     <motion.div
@@ -309,57 +318,11 @@ export default function CampaignDetailPage() {
               </TabsContent>
             </Tabs>
 
-            {/* TIMELINE */}
-            <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">
-                  Mốc thời gian
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Lộ trình thực hiện chiến dịch từ đầu đến cuối
-                </p>
-              </div>
-              <Timeline
-                items={[
-                  {
-                    label: "Tạo chiến dịch",
-                    date: formatDateTime(campaign.created_at),
-                    status: "completed",
-                  },
-                  {
-                    label: "Bắt đầu gây quỹ",
-                    date: formatDateTime(campaign.fundraisingStartDate),
-                    status: fundraisingStartStatus,
-                  },
-                  {
-                    label: "Kết thúc gây quỹ",
-                    date: formatDateTime(campaign.fundraisingEndDate),
-                    status: fundraisingEndStatus, // completed | current | upcoming
-                  },
-                  {
-                    label: "Mua nguyên liệu",
-                    date: formatDateTime(campaign.ingredientPurchaseDate),
-                    status: statusFor(campaign.ingredientPurchaseDate),
-                  },
-                  {
-                    label: "Nấu ăn",
-                    date: formatDateTime(campaign.cookingDate),
-                    status: statusFor(campaign.cookingDate),
-                  },
-                  {
-                    label: "Giao/Phân phát",
-                    date: formatDateTime(campaign.deliveryDate),
-                    status: statusFor(campaign.deliveryDate),
-                  },
-                ]}
-              />
-            </div>
-
             {/* BUDGET */}
             {hasBudget && (
               <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  <h3 className="text-xl font-bold text-color mb-1">
                     Phân bổ ngân sách
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -397,18 +360,66 @@ export default function CampaignDetailPage() {
               onEdit={() =>
                 router.push(`/profile/my-campaign/${campaign.id}/edit`)
               }
-              onDonate={() => {}}
+              onDonate={() => { }}
               goal={formatCurrency(goal)}
               onDirection={handleDirection}
             />
 
-            <QRCard />
+            {/* <QRCard />
 
             <OrganizerCard
               name={campaign.creator?.full_name}
               email={campaign.creator?.email}
               phone={campaign.creator?.phone_number}
-            />
+            /> */}
+            {/* TIMELINE */}
+            <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-color mb-1">
+                  Mốc thời gian
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Lộ trình thực hiện chiến dịch từ đầu đến cuối
+                </p>
+              </div>
+              <Timeline
+                items={[
+                  {
+                    label: "Tạo chiến dịch",
+                    date: formatDateTime(campaign.created_at),
+                    status: "completed",
+                  },
+                  {
+                    label: "Bắt đầu gây quỹ",
+                    date: formatDateTime(campaign.fundraisingStartDate),
+                    status: fundraisingStartStatus,
+                  },
+                  {
+                    label: "Kết thúc gây quỹ",
+                    date: formatDateTime(campaign.fundraisingEndDate),
+                    status: fundraisingEndStatus, // completed | current | upcoming
+                    startDate: campaign.fundraisingStartDate,
+                    endDate: campaign.fundraisingEndDate,
+                  },
+                  {
+                    label: "Mua nguyên liệu",
+                    date: formatDateTime(campaign.ingredientPurchaseDate),
+                    status: statusFor(campaign.ingredientPurchaseDate),
+                  },
+                  {
+                    label: "Nấu ăn",
+                    date: formatDateTime(campaign.cookingDate),
+                    status: statusFor(campaign.cookingDate),
+                  },
+                  {
+                    label: "Giao/Phân phát",
+                    date: formatDateTime(campaign.deliveryDate),
+                    status: statusFor(campaign.deliveryDate),
+                  },
+                ]}
+              />
+            </div>
+
           </aside>
         </div>
       </div>

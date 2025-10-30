@@ -5,6 +5,8 @@ import { GET_CATEGORIES } from "@/graphql/query/category/get-category";
 import client from "@/lib/apollo-client";
 import {
     Category,
+    CategoryStats,
+    CampaignCategoriesStatsResponse,
     CreateCategoryInput,
     CreateCategoryResponse,
     UpdateCategoryInput,
@@ -12,6 +14,7 @@ import {
     DeleteCategoryResponse,
 } from "@/types/api/category";
 import { GET_CATEGORY_BY_ID } from "@/graphql/query/category/get-category-by-id";
+import { GET_CAMPAIGN_CATEGORIES_STATS } from "@/graphql/query/category/get-campaign-categories-stats";
 
 export const categoryService = {
     async getCategories(): Promise<Category[]> {
@@ -77,6 +80,19 @@ export const categoryService = {
         } catch (err) {
             console.error("Error deleting category:", err);
             throw err;
+        }
+    },
+
+    async getCampaignCategoriesStats(): Promise<CategoryStats[]> {
+        try {
+            const { data } = await client.query<CampaignCategoriesStatsResponse>({
+                query: GET_CAMPAIGN_CATEGORIES_STATS,
+                fetchPolicy: "no-cache",
+            });
+            return data?.campaignCategoriesStats || [];
+        } catch (err) {
+            console.error("Error fetching campaign categories stats:", err);
+            return [];
         }
     },
 };

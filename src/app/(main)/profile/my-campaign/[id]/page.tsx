@@ -25,7 +25,6 @@ import {
 
 import { ProgressBar } from "@/components/campaign/progress-bar";
 import { Stat } from "@/components/campaign/stat";
-import { DateRow } from "@/components/campaign/date-row";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
 import { Timeline } from "@/components/campaign/timeline";
 import { ActionPanel } from "@/components/campaign/action-panel";
@@ -342,22 +341,22 @@ export default function MyCampaignDetailPage() {
                     date: formatDateTime(campaign.fundraisingStartDate),
                     status:
                       campaign.fundraisingEndDate &&
-                      new Date(campaign.fundraisingEndDate) <= new Date()
+                        new Date(campaign.fundraisingEndDate) <= new Date()
                         ? "completed"
                         : campaign.fundraisingStartDate &&
                           campaign.fundraisingEndDate &&
                           new Date(campaign.fundraisingStartDate) <=
-                            new Date() &&
+                          new Date() &&
                           new Date() < new Date(campaign.fundraisingEndDate)
-                        ? "current"
-                        : "upcoming",
+                          ? "current"
+                          : "upcoming",
                   },
                   {
                     label: "Kết thúc gây quỹ",
                     date: formatDateTime(campaign.fundraisingEndDate),
                     status:
                       campaign.fundraisingEndDate &&
-                      new Date(campaign.fundraisingEndDate) <= new Date()
+                        new Date(campaign.fundraisingEndDate) <= new Date()
                         ? "current"
                         : "upcoming",
                   },

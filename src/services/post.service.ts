@@ -9,7 +9,7 @@ import { CREATE_COMMENT } from "@/graphql/mutations/post/create-comment";
 import { UPDATE_COMMENT } from "@/graphql/mutations/post/update-comment";
 import { DELETE_COMMENT } from "@/graphql/mutations/post/delete-comment";
 import { REPLY_COMMENT } from "@/graphql/mutations/post/reply-comment";
-import { GetPostResponse, Post } from "@/types/api/post";
+import { GetPostResponse, Post, PostSortOrder } from "@/types/api/post";
 import {
   GeneratePostMediaUploadUrlsResponse,
   CreatePostInput,
@@ -45,15 +45,25 @@ export const postService = {
   /**
    * Get all posts for a specific campaign
    */
-  async getPostsByCampaignId(campaignId: string): Promise<Post[]> {
+  async getPostsByCampaignId(
+    campaignId: string,
+    sortBy?: PostSortOrder,
+    limit?: number,
+    offset?: number
+  ): Promise<Post[]> {
     try {
       const { data } = await client.query<GetPostResponse>({
         query: GET_CAMPAIGN_POSTS,
-        variables: { campaignId },
+        variables: {
+          campaignId,
+          sortBy,
+          limit,
+          offset
+        },
         fetchPolicy: "network-only",
       });
 
-      return data?.post || [];
+      return data?.postsByCampaign || [];
     } catch (error) {
       console.error("Error fetching campaign posts:", error);
       throw error;
@@ -172,7 +182,7 @@ export const postService = {
         likeCount: post.likeCount,
         commentCount: post.commentCount,
         isLikedByMe: false,
-        createdAt: post.created_at,
+        created_at: post.created_at,
       };
     } catch (error) {
       console.error("Error creating post:", error);
@@ -253,22 +263,17 @@ export const postService = {
   },
 
   /**
-   * Get comments for a post
+   * Get comments for a post (tree structure)
    */
-  async getComments(
-    postId: string,
-    parentCommentId?: string | null,
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<Comment[]> {
+  async getComments(postId: string): Promise<Comment[]> {
     try {
       const { data } = await client.query<GetCommentsResponse>({
         query: GET_COMMENTS,
-        variables: { postId, parentCommentId, limit, offset },
+        variables: { postId },
         fetchPolicy: "network-only",
       });
 
-      return data?.postComments || [];
+      return data?.postCommentsTree || [];
     } catch (error) {
       console.error("Error fetching comments:", error);
       throw error;

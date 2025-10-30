@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client/react";
 import { GET_CAMPAIGN_POSTS } from "@/graphql/query/post/get-all-posts";
-import { Post, GetPostResponse } from "@/types/api/post";
+import { Post, GetPostResponse, PostSortOrder } from "@/types/api/post";
 import { PostCard } from "./post-card";
 
 interface CampaignPostsProps {
@@ -10,7 +10,12 @@ interface CampaignPostsProps {
 
 export function CampaignPosts({ campaignId, currentUserId }: CampaignPostsProps) {
   const { data, loading, error, refetch } = useQuery<GetPostResponse>(GET_CAMPAIGN_POSTS, {
-    variables: { campaignId },
+    variables: { 
+      campaignId,
+      sortBy: PostSortOrder.NEWEST_FIRST,
+      limit: 20,
+      offset: 0
+    },
     fetchPolicy: "network-only",
   });
 
@@ -32,8 +37,8 @@ export function CampaignPosts({ campaignId, currentUserId }: CampaignPostsProps)
     );
   }
 
-  // Convert single post or array to array format
-  const posts = data?.post ? (Array.isArray(data.post) ? data.post : [data.post]) : [];
+  // Get posts from the updated field name
+  const posts = data?.postsByCampaign || [];
 
   if (posts.length === 0) {
     return (

@@ -1,20 +1,35 @@
 import { gql } from "@apollo/client";
 
 export const GET_COMMENTS = gql`
-  query GetComments($postId: String!, $parentCommentId: String, $limit: Int, $offset: Int) {
-    postComments(postId: $postId, parentCommentId: $parentCommentId, limit: $limit, offset: $offset) {
+  query GetPostCommentsTree($postId: String!) {
+    postCommentsTree(postId: $postId, limit: 20, offset: 0) {
       id
-      postId
+      content
+      depth
+      userId
       user { 
         full_name
       }
-      content
-      parentCommentId
-      depth
+      created_at
       replies {
         id
         content
+        depth
         userId
+        user { 
+          full_name
+        }
+        created_at
+        replies {
+          id
+          content
+          depth
+          userId
+          user { 
+            full_name
+          }
+          created_at
+        }
       }
     }
   }

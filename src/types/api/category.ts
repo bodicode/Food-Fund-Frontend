@@ -3,6 +3,19 @@ export interface Category {
   title: string;
   description?: string;
 }
+
+export interface CategoryStats {
+  id: string;
+  title: string;
+  description?: string;
+  campaignCount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CampaignCategoriesStatsResponse {
+  campaignCategoriesStats: CategoryStats[];
+}
 export interface CreateCategoryInput {
   title: string;
   description: string;

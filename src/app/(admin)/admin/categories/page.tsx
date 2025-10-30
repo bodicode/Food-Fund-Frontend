@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil } from "lucide-react";
 import { useCategories } from "@/hooks/use-category";
+import { CategoryStats } from "@/types/api/category";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import {
     Dialog,
@@ -23,6 +24,7 @@ import { X } from "@/components/animate-ui/icons/x";
 
 export default function CategoryPage() {
     const { categories, loading, error, fetchCategories } = useCategories();
+    const [categoriesStats, setCategoriesStats] = useState<CategoryStats[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,6 +33,26 @@ export default function CategoryPage() {
 
     const [formData, setFormData] = useState({ title: "", description: "" });
     const [formError, setFormError] = useState("");
+
+    // Fetch categories stats
+    const fetchCategoriesStats = async () => {
+        try {
+            const stats = await categoryService.getCampaignCategoriesStats();
+            setCategoriesStats(stats);
+        } catch (err) {
+            console.error("Error fetching categories stats:", err);
+        }
+    };
+
+    // Fetch both categories and stats
+    const refreshData = async () => {
+        await Promise.all([fetchCategories(), fetchCategoriesStats()]);
+    };
+
+    // Initial load of stats
+    useEffect(() => {
+        fetchCategoriesStats();
+    }, []);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -79,7 +101,7 @@ export default function CategoryPage() {
                 setFormData({ title: "", description: "" });
                 setIsDialogOpen(false);
                 setEditingCategoryId(null);
-                await fetchCategories();
+                await refreshData();
             }
         } catch (err) {
             const errorMessage =
@@ -103,7 +125,7 @@ export default function CategoryPage() {
             const success = await categoryService.deleteCategory(deletingCategoryId);
             if (success) {
                 toast.success("Xóa danh mục thành công!");
-                await fetchCategories();
+                await refreshData();
             } else {
                 toast.error("Xóa thất bại!", {
                     description: "Không thể xóa danh mục, vui lòng thử lại.",
@@ -138,6 +160,12 @@ export default function CategoryPage() {
             setFormError("");
             setEditingCategoryId(null);
         }
+    };
+
+    // Helper function to get campaign count for a category
+    const getCampaignCount = (categoryId: string): number => {
+        const stats = categoriesStats.find(stat => stat.id === categoryId);
+        return stats?.campaignCount || 0;
     };
 
     return (
@@ -188,6 +216,7 @@ export default function CategoryPage() {
                                             <th className="px-4 py-3">ID</th>
                                             <th className="px-4 py-3">Tên danh mục</th>
                                             <th className="px-4 py-3">Mô tả</th>
+                                            <th className="px-4 py-3 text-center text-nowrap">Số chiến dịch</th>
                                             <th className="px-4 py-3"></th>
                                         </tr>
                                     </thead>
@@ -201,6 +230,11 @@ export default function CategoryPage() {
                                                 <td className="px-4 py-3 font-medium">{c.title}</td>
                                                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                                                     {c.description}
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                        {getCampaignCount(c.id)}
+                                                    </span>
                                                 </td>
                                                 <td className="px-4 py-3 text-right flex justify-end gap-2">
                                                     <Button

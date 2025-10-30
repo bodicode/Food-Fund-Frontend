@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Heart, MessageCircle, MoreVertical, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Post } from "@/types/api/post";
@@ -39,7 +39,7 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
   if (post.media) {
     try {
       mediaUrls = typeof post.media === "string" ? JSON.parse(post.media) : [post.media];
-    } catch (e) {
+    } catch {
       mediaUrls = [post.media];
     }
   }
@@ -65,7 +65,7 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
         setIsLiked(result.isLiked);
         setLikeCount(result.likeCount);
       }
-    } catch (error) {
+    } catch {
       // Revert on error
       setIsLiked(previousLiked);
       setLikeCount(previousCount);
@@ -90,13 +90,13 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
     setLightboxOpen(true);
   };
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev + 1) % mediaUrls.length);
-  };
+  }, [mediaUrls.length]);
 
-  const prevImage = () => {
+  const prevImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev - 1 + mediaUrls.length) % mediaUrls.length);
-  };
+  }, [mediaUrls.length]);
 
   const isVideo = (url: string) => /\.(mp4|webm|ogg)$/i.test(url);
 
@@ -116,7 +116,7 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, currentImageIndex]);
+  }, [lightboxOpen, nextImage, prevImage]);
 
   return (
     <div className="bg-white rounded-2xl border p-6 shadow-sm">
@@ -128,9 +128,9 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
           </div>
           <div>
             <div className="font-medium text-gray-800">{post.creator.full_name}</div>
-            {post.createdAt && (
+            {post.created_at && (
               <div className="text-xs text-gray-500">
-                {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                {new Date(post.created_at).toLocaleDateString("vi-VN")}
               </div>
             )}
           </div>
@@ -151,12 +151,10 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
         )}
       </div>
 
-      {/* Title */}
       {post.title && (
         <h3 className="font-semibold text-lg mb-2 text-gray-800">{post.title}</h3>
       )}
 
-      {/* Content */}
       {post.content && (
         <div
           className="prose prose-sm md:prose-base max-w-none text-gray-700 mb-3"
@@ -164,11 +162,9 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
         />
       )}
 
-      {/* Media */}
       {mediaUrls.length > 0 && (
         <div className="mt-4 mb-4">
           {(() => {
-            // Single media: large aspect with subtle hover
             if (mediaUrls.length === 1) {
               const url = mediaUrls[0];
               return (
@@ -196,7 +192,6 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
               );
             }
 
-            // Two media: two columns
             if (mediaUrls.length === 2) {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -221,7 +216,6 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
               );
             }
 
-            // Three media: 1 large left, 2 stacked right
             if (mediaUrls.length === 3) {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -303,11 +297,10 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
         <button
           onClick={handleLikeToggle}
           disabled={isLiking}
-          className={`flex items-center gap-2 transition-colors ${
-            isLiked
-              ? "text-red-600 hover:text-red-700"
-              : "text-gray-600 hover:text-red-600"
-          }`}
+          className={`flex items-center gap-2 transition-colors ${isLiked
+            ? "text-red-600 hover:text-red-700"
+            : "text-gray-600 hover:text-red-600"
+            }`}
         >
           <Heart
             className={`w-5 h-5 ${isLiked ? "fill-red-600" : ""}`}
