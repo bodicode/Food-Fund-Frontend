@@ -1,8 +1,18 @@
 import { gql } from "@apollo/client";
 
 export const GET_CAMPAIGN_POSTS = gql`
-  query GetPost($campaignId: String!) {
-    post(campaignId: $campaignId) {
+  query GetPostsByCampaign(
+    $campaignId: String!
+    $sortBy: PostSortOrder
+    $limit: Int
+    $offset: Int
+  ) {
+    postsByCampaign(
+      campaignId: $campaignId
+      sortBy: $sortBy
+      limit: $limit
+      offset: $offset
+    ) {
       id
       campaignId
       title
@@ -15,6 +25,7 @@ export const GET_CAMPAIGN_POSTS = gql`
       likeCount
       commentCount
       isLikedByMe
+      created_at
     }
   }
 `;

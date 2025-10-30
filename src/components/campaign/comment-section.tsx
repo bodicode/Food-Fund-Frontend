@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { postService } from "@/services/post.service";
 import { Comment, CommentReply } from "@/types/api/post-interaction";
 import { toast } from "sonner";
@@ -28,25 +28,23 @@ export function CommentSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(3);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    loadComments();
-  }, [postId]);
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await postService.getComments(postId, null, 50, 0);
+      const data = await postService.getComments(postId);
       setComments(data);
-      setHasMore(data.length > 3);
     } catch (error) {
       console.error("Error loading comments:", error);
       toast.error("Không thể tải bình luận");
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
 
   const handleShowMore = () => {
     setLoadingMore(true);
@@ -72,7 +70,6 @@ export function CommentSection({
 
       const updatedComments = [comment, ...comments];
       setComments(updatedComments);
-      setHasMore(updatedComments.length > 3);
       setNewComment("");
       onCommentAdded?.();
       toast.success("Đã thêm bình luận");
@@ -87,9 +84,31 @@ export function CommentSection({
   const handleDeleteComment = async (commentId: string) => {
     try {
       await postService.deleteComment(commentId);
-      const updatedComments = comments.filter((c) => c.id !== commentId);
+
+      const removeCommentFromTree = (comment: Comment): Comment | null => {
+        if (comment.id === commentId) {
+          return null; // Mark for removal
+        }
+
+        if (comment.replies && comment.replies.length > 0) {
+          const filteredReplies = comment.replies
+            .map((r) => removeCommentFromTree(r as Comment))
+            .filter((r): r is Comment => r !== null) as CommentReply[];
+
+          return {
+            ...comment,
+            replies: filteredReplies,
+          };
+        }
+
+        return comment;
+      };
+
+      const updatedComments = comments
+        .map(removeCommentFromTree)
+        .filter((c): c is Comment => c !== null);
+
       setComments(updatedComments);
-      setHasMore(updatedComments.length > 3);
       onCommentDeleted?.();
       toast.success("Đã xóa bình luận");
     } catch (error) {
@@ -101,11 +120,23 @@ export function CommentSection({
   const handleUpdateComment = async (commentId: string, content: string) => {
     try {
       await postService.updateComment(commentId, { content });
-      setComments(
-        comments.map((c) =>
-          c.id === commentId ? { ...c, content } : c
-        )
-      );
+
+      const updateCommentInTree = (comment: Comment): Comment => {
+        if (comment.id === commentId) {
+          return { ...comment, content };
+        }
+
+        if (comment.replies && comment.replies.length > 0) {
+          return {
+            ...comment,
+            replies: comment.replies.map((r) => updateCommentInTree(r as Comment)) as CommentReply[],
+          };
+        }
+
+        return comment;
+      };
+
+      setComments(comments.map(updateCommentInTree));
       toast.success("Đã cập nhật bình luận");
     } catch (error) {
       console.error("Error updating comment:", error);
@@ -114,17 +145,25 @@ export function CommentSection({
   };
 
   const handleReplyAdded = (parentId: string, reply: Comment) => {
-    setComments(
-      comments.map((c) => {
-        if (c.id === parentId) {
-          return {
-            ...c,
-            replies: [...(c.replies || []), reply as CommentReply],
-          };
-        }
-        return c;
-      })
-    );
+    const addReplyToComment = (comment: Comment): Comment => {
+      if (comment.id === parentId) {
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), reply as CommentReply],
+        };
+      }
+
+      if (comment.replies && comment.replies.length > 0) {
+        return {
+          ...comment,
+          replies: comment.replies.map((r) => addReplyToComment(r as Comment)) as CommentReply[],
+        };
+      }
+
+      return comment;
+    };
+
+    setComments(comments.map(addReplyToComment));
     onCommentAdded?.();
   };
 
@@ -177,7 +216,7 @@ export function CommentSection({
                 onReplyAdded={handleReplyAdded}
               />
             ))}
-            
+
             {displayLimit < comments.length && (
               <div className="flex justify-center pt-2">
                 <Button

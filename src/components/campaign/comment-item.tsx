@@ -83,8 +83,13 @@ export function CommentItem({
     }
   };
 
+  const handleNestedReplyAdded = (parentId: string, reply: Comment) => {
+    // Pass the nested reply up to the parent component
+    onReplyAdded(parentId, reply);
+  };
+
   return (
-    <div className={isReply ? "ml-8 mt-3" : ""}>
+    <div className={isReply ? "ml-6 mt-3 pl-4 border-l-2 border-gray-100" : ""}>
       <div className="flex gap-3">
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
           U
@@ -94,7 +99,7 @@ export function CommentItem({
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
               <div className="font-medium text-sm text-gray-900">
-                {comment.user?.full_name || `User ${comment.userId?.slice(0, 8) || 'Unknown'}`}
+                {comment.user?.full_name || "User"}
               </div>
               {comment.created_at && (
                 <div className="text-xs text-gray-500">
@@ -154,14 +159,14 @@ export function CommentItem({
             </div>
           )}
 
-          {!isEditing && !isReply && (
+          {!isEditing && (
             <div className="mt-2 flex items-center gap-4 text-xs">
               <button
                 onClick={() => setIsReplying(!isReplying)}
                 className="text-gray-600 hover:text-blue-600 flex items-center gap-1"
               >
                 <Reply className="w-3 h-3" />
-                Trả lời
+                {isReply ? "Phản hồi" : "Trả lời"}
               </button>
 
               {comment.replies && comment.replies.length > 0 && (
@@ -221,7 +226,7 @@ export function CommentItem({
                   currentUserId={currentUserId}
                   onDelete={onDelete}
                   onUpdate={onUpdate}
-                  onReplyAdded={onReplyAdded}
+                  onReplyAdded={handleNestedReplyAdded}
                   isReply={true}
                 />
               ))}
