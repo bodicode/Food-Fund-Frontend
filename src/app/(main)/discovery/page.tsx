@@ -1,11 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useCategories } from "@/hooks/use-category";
 import { Loader } from "@/components/animate-ui/icons/loader";
 
 export default function CampaignCategoriesPage() {
+  const router = useRouter();
   const { categories, loading, error } = useCategories();
+
+  const handleCategoryClick = (categoryId: string) => {
+    // Redirect to /s page with category filter
+    router.push(`/s?category=${categoryId}`);
+  };
 
   return (
     <div className="container mx-auto px-4 py-32">
@@ -38,6 +45,7 @@ export default function CampaignCategoriesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: idx * 0.08 }}
               whileHover={{ scale: 1.03 }}
+              onClick={() => handleCategoryClick(cat.id)}
             >
               <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors h-12 flex items-center">
                 {cat.title}

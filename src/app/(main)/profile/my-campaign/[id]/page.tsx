@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store";
+import { restoreSession } from "@/store/slices/auth-slice";
 import Image from "next/image";
 
 import { campaignService } from "@/services/campaign.service";
@@ -46,6 +49,7 @@ import { Info, Plus } from "lucide-react";
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const dispatch = useDispatch();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -54,7 +58,14 @@ export default function MyCampaignDetailPage() {
   const [isCreatePostDialogOpen, setIsCreatePostDialogOpen] = useState(false);
   const [refreshPosts, setRefreshPosts] = useState(0);
 
+  // Get current user from Redux store
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const currentUserId = currentUser?.id;
+
   useEffect(() => {
+    // Try to restore session from localStorage/cookies
+    dispatch(restoreSession());
+    
     if (!id) return;
     (async () => {
       try {
@@ -66,7 +77,7 @@ export default function MyCampaignDetailPage() {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, dispatch]);
 
   if (loading) {
     return (
@@ -313,7 +324,11 @@ export default function MyCampaignDetailPage() {
                     Tạo bài viết mới
                   </Button>
                 </div>
-                <CampaignPosts campaignId={campaign.id} key={refreshPosts} />
+                <CampaignPosts 
+                  campaignId={campaign.id} 
+                  currentUserId={currentUserId}
+                  key={refreshPosts} 
+                />
               </TabsContent>
 
               <TabsContent value="donations">

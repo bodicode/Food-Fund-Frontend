@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -26,6 +27,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function CampaignSearchPage() {
   const cardsRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
 
   const [categoriesStats, setCategoriesStats] = useState<CategoryStats[]>([]);
   const [totalCampaigns, setTotalCampaigns] = useState<number>(0);
@@ -41,6 +43,19 @@ export default function CampaignSearchPage() {
 
   const { campaigns, loading, hasMore, params, setParams, fetchCampaigns } =
     useCampaigns({ limit: 9, offset: 0 });
+
+  // Handle category filter from URL params
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl && categoryFromUrl !== params.filter?.categoryId) {
+      const newFilter = {
+        ...params.filter,
+        categoryId: categoryFromUrl,
+      };
+      setParams((prev) => ({ ...prev, filter: newFilter }));
+      fetchCampaigns({ filter: newFilter, offset: 0 });
+    }
+  }, [searchParams]);
 
   // Custom sorting function for campaigns when showing all statuses
   const sortCampaignsByStatus = (campaigns: Campaign[]) => {

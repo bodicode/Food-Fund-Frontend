@@ -19,6 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CommentSection } from "./comment-section";
+import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 
 interface PostCardProps {
   post: Post;
@@ -34,6 +36,9 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Auth guard for login required actions
+  const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+
   // Parse media JSON string to array
   let mediaUrls: string[] = [];
   if (post.media) {
@@ -47,6 +52,15 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
   const handleLikeToggle = async () => {
     if (isLiking) return;
 
+    // Check if user is authenticated before allowing like/unlike
+    const canProceed = requireAuth(() => {
+      performLikeToggle();
+    });
+
+    if (!canProceed) return;
+  };
+
+  const performLikeToggle = async () => {
     setIsLiking(true);
     const previousLiked = isLiked;
     const previousCount = likeCount;
@@ -390,6 +404,15 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Login Required Dialog */}
+      <LoginRequiredDialog
+        isOpen={isLoginDialogOpen}
+        onClose={closeLoginDialog}
+        title="Đăng nhập để thích bài viết"
+        description="Bạn cần đăng nhập để có thể thích bài viết. Vui lòng đăng nhập để tiếp tục."
+        actionText="Đăng nhập ngay"
+      />
     </div>
   );
 }

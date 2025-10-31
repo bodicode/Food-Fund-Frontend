@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store";
+import { restoreSession } from "@/store/slices/auth-slice";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
@@ -41,19 +44,28 @@ import { CampaignPosts } from "@/components/campaign/campaign-posts";
 export default function CampaignDetailPage() {
   const router = useRouter();
   const { id } = useParams();
+  const dispatch = useDispatch();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("story");
 
+  // Get current user from Redux store
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  console.log(currentUser)
+  const currentUserId = currentUser?.id;
+
   useEffect(() => {
+    // Try to restore session from localStorage/cookies
+    dispatch(restoreSession());
+
     if (!id) return;
     (async () => {
       const data = await campaignService.getCampaignById(id as string);
       setCampaign(data);
       setLoading(false);
     })();
-  }, [id]);
+  }, [id, dispatch]);
 
   if (loading) {
     return (
@@ -304,7 +316,10 @@ export default function CampaignDetailPage() {
               </TabsContent>
 
               <TabsContent value="posts">
-                <CampaignPosts campaignId={campaign.id} />
+                <CampaignPosts
+                  campaignId={campaign.id}
+                  currentUserId={currentUserId}
+                />
               </TabsContent>
 
               <TabsContent value="donations">

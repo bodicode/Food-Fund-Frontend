@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { organizationService } from "@/services/organization.service";
 import { Organization, OrganizationRole } from "@/types/api/organization";
 import { Loader } from "@/components/animate-ui/icons/loader";
@@ -52,6 +54,9 @@ export default function OrganizationsPage() {
   const [selectedRole, setSelectedRole] = useState<OrganizationRole>("DELIVERY_STAFF");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Auth guard for login required actions
+  const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+
   useEffect(() => {
     (async () => {
       try {
@@ -90,9 +95,12 @@ export default function OrganizationsPage() {
   }, [searchQuery, organizations]);
 
   const handleJoinRequest = (org: Organization) => {
-    setSelectedOrg(org);
-    setSelectedRole("DELIVERY_STAFF");
-    setJoinDialogOpen(true);
+    // Check if user is authenticated before allowing join request
+    requireAuth(() => {
+      setSelectedOrg(org);
+      setSelectedRole("DELIVERY_STAFF");
+      setJoinDialogOpen(true);
+    });
   };
 
   const handleSubmitJoinRequest = async () => {
@@ -106,7 +114,7 @@ export default function OrganizationsPage() {
       });
 
       if (result.success) {
-        toast.success("Gửi yêu cầu thành công! 🎉", {
+        toast.success("Gửi yêu cầu thành công!", {
           description: result.message || "Vui lòng chờ tổ chức phê duyệt.",
         });
         setJoinDialogOpen(false);
@@ -442,6 +450,15 @@ export default function OrganizationsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Login Required Dialog */}
+      <LoginRequiredDialog
+        isOpen={isLoginDialogOpen}
+        onClose={closeLoginDialog}
+        title="Đăng nhập để tham gia tổ chức"
+        description="Bạn cần đăng nhập để có thể gửi yêu cầu tham gia tổ chức. Vui lòng đăng nhập để tiếp tục."
+        actionText="Đăng nhập ngay"
+      />
     </div>
   );
 }

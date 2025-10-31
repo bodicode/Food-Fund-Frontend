@@ -6,12 +6,7 @@ import gsap from "gsap";
 import LoginForm from "@/components/auth/login-form";
 import RegisterForm from "@/components/auth/register-form";
 import { Button } from "@/components/ui/button";
-import { graphQLAuthService } from "@/services/auth.service";
 
-/**
- * Trang Login / Register với GSAP transition
- * Giữ nguyên UI — chỉ refactor logic xử lý
- */
 export default function Login() {
   const [activeForm, setActiveForm] = useState<"login" | "register">("login");
 
@@ -68,7 +63,6 @@ export default function Login() {
     );
   }, [activeForm]);
 
-  /** Xử lý chuyển form */
   const switchToLogin = useCallback(() => setActiveForm("login"), []);
   const switchToRegister = useCallback(() => setActiveForm("register"), []);
 
@@ -132,7 +126,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* ==================== LOGIN PANEL ==================== */}
         <div
           ref={loginRef}
           className="absolute inset-y-0 right-0 w-full md:w-1/2 p-6 flex items-center justify-center
@@ -143,7 +136,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* ==================== REGISTER PANEL ==================== */}
         <div
           ref={registerRef}
           className="absolute inset-y-0 left-0 w-full md:w-1/2 p-6 flex items-center justify-center

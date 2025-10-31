@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Reply, Loader2 } from "lucide-react";
+import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 
 interface CommentItemProps {
   comment: Comment;
@@ -40,7 +42,11 @@ export function CommentItem({
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
 
-  const isOwner = currentUserId === (comment.userId || comment.user?.full_name);
+  // Auth guard for login required actions
+  const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+
+  // Check if current user owns this comment
+  const isOwner = currentUserId && (currentUserId === comment.userId);
 
   const handleSaveEdit = async () => {
     if (!editContent.trim()) {
@@ -162,7 +168,7 @@ export function CommentItem({
           {!isEditing && (
             <div className="mt-2 flex items-center gap-4 text-xs">
               <button
-                onClick={() => setIsReplying(!isReplying)}
+                onClick={() => requireAuth(() => setIsReplying(!isReplying))}
                 className="text-gray-600 hover:text-blue-600 flex items-center gap-1"
               >
                 <Reply className="w-3 h-3" />
@@ -234,6 +240,15 @@ export function CommentItem({
           )}
         </div>
       </div>
+
+      {/* Login Required Dialog */}
+      <LoginRequiredDialog
+        isOpen={isLoginDialogOpen}
+        onClose={closeLoginDialog}
+        title="Đăng nhập để trả lời"
+        description="Bạn cần đăng nhập để có thể trả lời bình luận. Vui lòng đăng nhập để tiếp tục."
+        actionText="Đăng nhập ngay"
+      />
     </div>
   );
 }
