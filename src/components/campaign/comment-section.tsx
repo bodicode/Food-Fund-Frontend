@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send } from "lucide-react";
 import { CommentItem } from "./comment-item";
+import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 
 interface CommentSectionProps {
   postId: string;
@@ -28,6 +30,9 @@ export function CommentSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(3);
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Auth guard for login required actions
+  const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
 
   const loadComments = useCallback(async () => {
     try {
@@ -55,11 +60,19 @@ export function CommentSection({
   };
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim()) {
-      toast.error("Vui lòng nhập nội dung bình luận");
-      return;
-    }
+    // Check if user is authenticated before allowing comment submission
+    const canProceed = requireAuth(() => {
+      if (!newComment.trim()) {
+        toast.error("Vui lòng nhập nội dung bình luận");
+        return;
+      }
+      submitComment();
+    });
 
+    if (!canProceed) return;
+  };
+
+  const submitComment = async () => {
     setIsSubmitting(true);
     try {
       const comment = await postService.createComment({
@@ -239,6 +252,15 @@ export function CommentSection({
           </>
         )}
       </div>
+
+      {/* Login Required Dialog */}
+      <LoginRequiredDialog
+        isOpen={isLoginDialogOpen}
+        onClose={closeLoginDialog}
+        title="Đăng nhập để bình luận"
+        description="Bạn cần đăng nhập để có thể bình luận. Vui lòng đăng nhập để tiếp tục."
+        actionText="Đăng nhập ngay"
+      />
     </div>
   );
 }
