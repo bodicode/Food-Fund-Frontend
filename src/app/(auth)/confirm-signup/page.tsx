@@ -21,7 +21,7 @@ export default function ConfirmSignupPage() {
 
     (async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/confirm-signup`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_GRAPHQL_URL}/confirm-signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code, email }),
