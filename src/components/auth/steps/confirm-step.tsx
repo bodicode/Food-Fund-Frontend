@@ -1,117 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { CheckCircle2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { translateError, translateMessage } from "@/lib/translator";
-import { AuthService } from "@/services/auth.service";
 
-type Props = {
+type ConfirmStepProps = {
   email: string;
-  authService: AuthService & {
-    resendConfirmCode: (input: {
-      email: string;
-    }) => Promise<{ emailSent: boolean; message: string }>;
-  };
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
-export function ConfirmStep({ email, authService, onSuccess }: Props) {
-  const [confirmationCode, setConfirmationCode] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
-
-  const handleConfirm = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!confirmationCode.trim()) {
-      toast.error("Vui lòng nhập mã xác nhận");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await authService.confirmSignup({
-        email,
-        confirmationCode,
-      });
-
-      if (res.confirmed) {
-        toast.success("Xác nhận thành công", {
-          description: translateMessage(res.message),
-        });
-        onSuccess();
-      } else {
-        toast.error("Xác nhận thất bại", {
-          description: translateMessage(res.message),
-        });
-      }
-    } catch (err) {
-      toast.error("Đăng ký thất bại", { description: translateError(err) });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    try {
-      const res = await authService.resendConfirmCode({ email });
-
-      if (res.emailSent) {
-        toast.success("Mã xác nhận đã được gửi lại", {
-          description: translateMessage(res.message),
-        });
-      } else {
-        toast.error("Không gửi được mã xác nhận", {
-          description: translateMessage(res.message),
-        });
-      }
-    } catch (err) {
-      toast.error("Gửi lại thất bại", { description: translateError(err) });
-    } finally {
-      setResending(false);
-    }
-  };
-
+export function ConfirmStep({ email, onSuccess }: ConfirmStepProps) {
   return (
-    <form onSubmit={handleConfirm} className="flex flex-col space-y-4">
-      <p className="text-gray-600 text-sm">
-        Vui lòng nhập mã xác nhận được gửi tới email{" "}
-        <span className="font-semibold">{email}</span>
-      </p>
+    <div className="text-center space-y-6 py-4">
+      <div className="flex flex-col items-center space-y-3">
+        <Mail className="w-12 h-12 text-[#ad4e28]" />
+        <h3 className="text-lg font-semibold text-[#ad4e28]">
+          Xác thực tài khoản của bạn
+        </h3>
+        <p className="text-gray-600 text-sm max-w-sm">
+          Chúng tôi đã gửi email kích hoạt tới{" "}
+          <span className="font-semibold text-[#ad4e28]">{email}</span>.
+          <br />
+          Vui lòng mở email và nhấp vào liên kết “Kích hoạt tài khoản” để hoàn tất đăng ký.
+        </p>
+      </div>
 
-      <Input
-        type="text"
-        placeholder="Mã xác nhận"
-        value={confirmationCode}
-        onChange={(e) => setConfirmationCode(e.target.value)}
-        className="w-full bg-white border border-[#ad4e28]/30 text-black"
-      />
-
-      <Button
-        type="submit"
-        disabled={loading}
-        className="font-semibold rounded-lg py-2 btn-color"
-      >
-        {loading ? <Loader animate loop className="h-5 w-5" /> : "Xác nhận"}
-      </Button>
-
-      <Button
-        type="button"
-        variant="outline"
-        disabled={resending}
-        onClick={handleResend}
-        className="font-semibold rounded-lg py-2 border-[#ad4e28] text-[#ad4e28] hover:bg-[#ad4e28] hover:text-white"
-      >
-        {resending ? (
-          <Loader animate loop className="h-5 w-5" />
-        ) : (
-          "Gửi lại mã xác nhận"
-        )}
-      </Button>
-    </form>
+      <div className="flex flex-col items-center space-y-3">
+        <CheckCircle2 className="w-10 h-10 text-green-600" />
+        <p className="text-sm text-gray-500">
+          Sau khi xác thực, bạn có thể đăng nhập vào tài khoản của mình.
+        </p>
+        <Button
+          variant="outline"
+          onClick={onSuccess}
+          className="text-[#ad4e28] border-[#ad4e28] hover:bg-[#ad4e28] hover:text-white"
+        >
+          Quay lại đăng nhập
+        </Button>
+      </div>
+    </div>
   );
 }
