@@ -24,3 +24,30 @@ export interface Post {
 export interface GetPostResponse {
   postsByCampaign: Post[];
 }
+
+export interface UpdatePostInput {
+  title?: string;
+  content?: string;
+  media?: string;
+}
+
+export interface UpdatePostResponse {
+  updatePost: {
+    success: boolean;
+    message: string;
+    post: {
+      id: string;
+      title: string;
+      content: string;
+      media?: string;
+      updated_at: string;
+    };
+  };
+}
+
+export interface DeletePostResponse {
+  deletePost: {
+    success: boolean;
+    message: string;
+  };
+}

@@ -3,13 +3,22 @@ import { GET_POST_LIKES } from "@/graphql/query/post/get-post-likes";
 import { GET_COMMENTS } from "@/graphql/query/post/get-comments";
 import { GENERATE_POST_MEDIA_UPLOAD_URLS } from "@/graphql/mutations/post/generate-post-media-upload-urls";
 import { CREATE_POST } from "@/graphql/mutations/post/create-post";
+import { UPDATE_POST } from "@/graphql/mutations/post/update-post";
+import { DELETE_POST } from "@/graphql/mutations/post/delete-post";
 import { LIKE_POST } from "@/graphql/mutations/post/like-post";
 import { UNLIKE_POST } from "@/graphql/mutations/post/unlike-post";
 import { CREATE_COMMENT } from "@/graphql/mutations/post/create-comment";
 import { UPDATE_COMMENT } from "@/graphql/mutations/post/update-comment";
 import { DELETE_COMMENT } from "@/graphql/mutations/post/delete-comment";
 import { REPLY_COMMENT } from "@/graphql/mutations/post/reply-comment";
-import { GetPostResponse, Post, PostSortOrder } from "@/types/api/post";
+import { 
+  GetPostResponse, 
+  Post, 
+  PostSortOrder, 
+  UpdatePostInput, 
+  UpdatePostResponse, 
+  DeletePostResponse 
+} from "@/types/api/post";
 import {
   GeneratePostMediaUploadUrlsResponse,
   CreatePostInput,
@@ -373,6 +382,69 @@ export const postService = {
       return true;
     } catch (error) {
       console.error("Error deleting comment:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update a post
+   */
+  async updatePost(id: string, input: UpdatePostInput): Promise<Post> {
+    try {
+      const { data } = await client.mutate<UpdatePostResponse>({
+        mutation: UPDATE_POST,
+        variables: { id, input },
+        fetchPolicy: "no-cache",
+      });
+
+      if (!data?.updatePost?.success) {
+        throw new Error(
+          data?.updatePost?.message || "Không thể cập nhật bài viết"
+        );
+      }
+
+      const updatedPost = data.updatePost.post;
+      return {
+        id: updatedPost.id,
+        campaignId: "", // Will be filled by the calling component
+        title: updatedPost.title,
+        content: updatedPost.content,
+        media: updatedPost.media,
+        creator: {
+          id: "",
+          full_name: "",
+        },
+        likeCount: 0,
+        commentCount: 0,
+        isLikedByMe: false,
+        created_at: updatedPost.updated_at,
+      };
+    } catch (error) {
+      console.error("Error updating post:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a post
+   */
+  async deletePost(id: string): Promise<boolean> {
+    try {
+      const { data } = await client.mutate<DeletePostResponse>({
+        mutation: DELETE_POST,
+        variables: { id },
+        fetchPolicy: "no-cache",
+      });
+
+      if (!data?.deletePost?.success) {
+        throw new Error(
+          data?.deletePost?.message || "Không thể xóa bài viết"
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting post:", error);
       throw error;
     }
   },
