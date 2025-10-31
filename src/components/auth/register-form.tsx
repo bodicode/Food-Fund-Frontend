@@ -18,14 +18,13 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import type { DecodedIdToken } from "@/lib/jwt-utils";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "@/store/slices/auth-slice";
-import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { motion, AnimatePresence } from "framer-motion";
 
 type RegisterFormProps = {
   onSwitchToLogin?: () => void;
-  authService: typeof graphQLAuthService;
 };
 
 export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
@@ -36,9 +35,8 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
 
-  const handleGoogleRegister = async (
-    credentialResponse: CredentialResponse
-  ) => {
+  // --- Xử lý Google Register ---
+  const handleGoogleRegister = async (credentialResponse: CredentialResponse) => {
     try {
       if (user) {
         toast.info("Bạn đã đăng nhập");
@@ -49,57 +47,18 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       const token = credentialResponse.credential;
       if (!token) return;
 
-      console.log("Google idToken:", token);
-
-      const res = await graphQLAuthService.googleAuthentication({
-        idToken: token,
-      });
-
+      const res = await graphQLAuthService.googleAuthentication({ idToken: token });
       const decoded = jwtDecode<DecodedIdToken>(res.idToken);
 
       if (!res.isNewUser) {
         toast.info("Tài khoản đã tồn tại, bạn đã được đăng nhập");
-
-        if (decoded?.sub) {
-          dispatch(
-            setCredentials({
-              user: {
-                id: decoded.sub,
-                name: decoded.name || "",
-                email: decoded.email || "",
-                role: decoded["custom:role"],
-              },
-              accessToken: res.accessToken,
-              refreshToken: res.refreshToken,
-            })
-          );
-        }
-
-        Cookies.set("idToken", res.idToken, {
-          secure: true,
-          sameSite: "strict",
+      } else {
+        toast.success("Đăng ký Google thành công", {
+          description: `Chào ${decoded?.name || "bạn"}!`,
         });
-        Cookies.set("accessToken", res.accessToken, {
-          secure: true,
-          sameSite: "strict",
-        });
-        Cookies.set("refreshToken", res.refreshToken, {
-          secure: true,
-          sameSite: "strict",
-        });
-        Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", {
-          secure: true,
-          sameSite: "strict",
-        });
-
-        const role = decoded["custom:role"]?.toUpperCase();
-        if (role === "ADMIN") router.push("/admin/users");
-        else if (role === "KITCHEN") router.push("/kitchen");
-        else if (role === "DELIVERY") router.push("/delivery");
-        else router.push("/");
-        return;
       }
 
+      // Lưu token & dispatch
       if (decoded?.sub) {
         dispatch(
           setCredentials({
@@ -116,23 +75,14 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       }
 
       Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set("accessToken", res.accessToken, {
-        secure: true,
-        sameSite: "strict",
-      });
-      Cookies.set("refreshToken", res.refreshToken, {
-        secure: true,
-        sameSite: "strict",
-      });
+      Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
+      Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
       Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", {
         secure: true,
         sameSite: "strict",
       });
 
-      toast.success("Đăng ký Google thành công", {
-        description: `Chào ${decoded?.name || "bạn"}!`,
-      });
-
+      // Điều hướng theo role
       const role = decoded["custom:role"]?.toUpperCase();
       if (role === "ADMIN") router.push("/admin/users");
       else if (role === "KITCHEN") router.push("/kitchen");
@@ -152,44 +102,57 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {step === "register" ? (
-          <RegisterStep
-            authService={graphQLAuthService}
-            onSuccess={(email) => {
-              setEmailForConfirm(email);
-              setStep("confirm");
-            }}
-          />
-        ) : (
-          <ConfirmStep
-            authService={graphQLAuthService}
-            email={emailForConfirm}
-            onSuccess={() => onSwitchToLogin?.()}
-          />
-        )}
-
-        {step === "register" && (
-          <>
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm" />
-            </div>
-
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleRegister}
-                onError={() => toast.error("Đăng ký Google thất bại!")}
-                shape="pill"
-                text="signup_with"
-                size="large"
-                theme="outline"
+      <CardContent className="space-y-4 min-h-[340px]">
+        <AnimatePresence mode="wait">
+          {step === "register" ? (
+            <motion.div
+              key="register"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.3 }}
+            >
+              <RegisterStep
+                authService={graphQLAuthService}
+                onSuccess={(email) => {
+                  setEmailForConfirm(email);
+                  setStep("confirm");
+                }}
               />
-            </div>
-          </>
-        )}
+
+              {/* Divider + Google button */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-300" />
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleRegister}
+                  onError={() => toast.error("Đăng ký Google thất bại!")}
+                  shape="pill"
+                  text="signup_with"
+                  size="large"
+                  theme="outline"
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="confirm"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ConfirmStep
+                email={emailForConfirm}
+                onSuccess={() => onSwitchToLogin?.()}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardContent>
 
       <CardFooter className="flex justify-between text-sm text-black">
