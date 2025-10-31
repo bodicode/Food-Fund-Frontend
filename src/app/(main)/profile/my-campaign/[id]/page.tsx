@@ -65,7 +65,7 @@ export default function MyCampaignDetailPage() {
   useEffect(() => {
     // Try to restore session from localStorage/cookies
     dispatch(restoreSession());
-    
+
     if (!id) return;
     (async () => {
       try {
@@ -165,7 +165,7 @@ export default function MyCampaignDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="mx-auto px-4 md:px-6">
         <div className="relative rounded-3xl overflow-hidden ring-1 ring-gray-200 shadow-sm mb-8">
           <Image
             src={coverSrc(campaign.coverImage)}
@@ -271,7 +271,7 @@ export default function MyCampaignDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10 items-start">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-color mb-4 drop-shadow">
               {campaign.title}
@@ -318,16 +318,16 @@ export default function MyCampaignDetailPage() {
                 <div className="mb-4 flex justify-end">
                   <Button
                     onClick={() => setIsCreatePostDialogOpen(true)}
-                    className="gap-2"
+                    className="gap-2 btn-color"
                   >
                     <Plus className="w-4 h-4" />
                     Tạo bài viết mới
                   </Button>
                 </div>
-                <CampaignPosts 
-                  campaignId={campaign.id} 
+                <CampaignPosts
+                  campaignId={campaign.id}
                   currentUserId={currentUserId}
-                  key={refreshPosts} 
+                  key={refreshPosts}
                 />
               </TabsContent>
 
@@ -340,10 +340,65 @@ export default function MyCampaignDetailPage() {
               </TabsContent>
             </Tabs>
 
-            <div className="bg-white rounded-2xl border p-6 mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">
-                Mốc thời gian
-              </h3>
+            {hasBudget && (
+              <div className="bg-white rounded-2xl border p-6 mb-8">
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                    Phân bổ ngân sách
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Chi tiết phân bổ và sử dụng ngân sách cho chiến dịch
+                  </p>
+                </div>
+                <BudgetBreakdown
+                  items={[
+                    {
+                      title: "Nguyên liệu",
+                      amount: ingredientAmt,
+                      percent: ingredientPct,
+                    },
+                    {
+                      title: "Nấu ăn",
+                      amount: cookingAmt,
+                      percent: cookingPct,
+                    },
+                    {
+                      title: "Vận chuyển",
+                      amount: deliveryAmt,
+                      percent: deliveryPct,
+                    },
+                  ]}
+                />
+              </div>
+            )}
+          </div>
+
+          <aside className="space-y-6 sticky top-28 h-fit self-start">
+            <ActionPanel
+              organizationName={campaign.creator.full_name}
+              canEdit={campaign.status === "PENDING"}
+              onEdit={() =>
+                router.push(`/profile/my-campaign/${campaign.id}/edit`)
+              }
+              goal={formatCurrency(goal)}
+            />
+
+            <OrganizerCard
+              name={campaign.creator?.full_name}
+              email={campaign.creator?.email}
+              phone={campaign.creator?.phone_number}
+            />
+
+            {/* Timeline */}
+            <div className="bg-white rounded-2xl border p-6 shadow-sm">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  Mốc thời gian
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Lộ trình thực hiện chiến dịch từ đầu đến cuối
+                </p>
+              </div>
               <Timeline
                 items={[
                   {
@@ -393,50 +448,6 @@ export default function MyCampaignDetailPage() {
                 ]}
               />
             </div>
-
-            {hasBudget && (
-              <div className="bg-white rounded-2xl border p-6 mb-8">
-                <h3 className="font-semibold text-gray-800 mb-4">
-                  Phân bổ ngân sách
-                </h3>
-                <BudgetBreakdown
-                  items={[
-                    {
-                      title: "Nguyên liệu",
-                      amount: ingredientAmt,
-                      percent: ingredientPct,
-                    },
-                    {
-                      title: "Nấu ăn",
-                      amount: cookingAmt,
-                      percent: cookingPct,
-                    },
-                    {
-                      title: "Vận chuyển",
-                      amount: deliveryAmt,
-                      percent: deliveryPct,
-                    },
-                  ]}
-                />
-              </div>
-            )}
-          </div>
-
-          <aside className="space-y-6 xl:sticky xl:top-28 h-fit">
-            <ActionPanel
-              organizationName={campaign.creator.full_name}
-              canEdit={campaign.status === "PENDING"}
-              onEdit={() =>
-                router.push(`/profile/my-campaign/${campaign.id}/edit`)
-              }
-              goal={formatCurrency(goal)}
-            />
-
-            <OrganizerCard
-              name={campaign.creator?.full_name}
-              email={campaign.creator?.email}
-              phone={campaign.creator?.phone_number}
-            />
           </aside>
         </div>
       </div>
