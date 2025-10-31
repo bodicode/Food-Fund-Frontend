@@ -25,6 +25,7 @@ export const GET_CAMPAIGN_POSTS = gql`
       likeCount
       commentCount
       isLikedByMe
+      isActive
       created_at
     }
   }

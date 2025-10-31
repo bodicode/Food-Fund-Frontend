@@ -56,6 +56,7 @@ export function CampaignPosts({ campaignId, currentUserId }: CampaignPostsProps)
           post={post}
           currentUserId={currentUserId}
           onPostUpdate={() => refetch()}
+          onPostDelete={() => refetch()}
         />
       ))}
     </div>

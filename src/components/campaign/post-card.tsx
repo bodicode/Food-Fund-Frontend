@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Heart, MessageCircle, MoreVertical, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, MessageCircle, MoreVertical, X, ChevronLeft, ChevronRight, Edit, Trash2 } from "lucide-react";
 import { Post } from "@/types/api/post";
 import { postService } from "@/services/post.service";
 import { toast } from "sonner";
@@ -13,6 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import RichTextEditor from "@/components/shared/rich-text-editor";
 import {
   Dialog,
   DialogContent,
@@ -20,24 +23,35 @@ import {
 } from "@/components/ui/dialog";
 import { CommentSection } from "./comment-section";
 import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
+import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 
 interface PostCardProps {
   post: Post;
   currentUserId?: string;
   onPostUpdate?: () => void;
+  onPostDelete?: () => void;
 }
 
-export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
+export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [commentCount, setCommentCount] = useState(post.commentCount);
   const [isLiking, setIsLiking] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(post.title || "");
+  const [editContent, setEditContent] = useState(post.content || "");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Auth guard for login required actions
   const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+
+  // Check if current user owns this post
+  const isOwner = currentUserId === post.creator.id;
 
   // Parse media JSON string to array
   let mediaUrls: string[] = [];
@@ -99,6 +113,55 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
     onPostUpdate?.();
   };
 
+  const handleUpdatePost = async () => {
+    if (!editTitle.trim() && !editContent.trim()) {
+      toast.error("Vui lòng nhập tiêu đề hoặc nội dung");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await postService.updatePost(post.id, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+      });
+      
+      toast.success("Đã cập nhật bài viết");
+      setIsEditing(false);
+      onPostUpdate?.();
+    } catch (error) {
+      console.error("Error updating post:", error);
+      toast.error("Không thể cập nhật bài viết");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    setIsDeleting(true);
+    try {
+      await postService.deletePost(post.id);
+      toast.success("Đã xóa bài viết");
+      setIsDeleteDialogOpen(false);
+      onPostDelete?.();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Không thể xóa bài viết");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditTitle(post.title || "");
+    setEditContent(post.content || "");
+  };
+
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);
     setLightboxOpen(true);
@@ -150,7 +213,7 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
           </div>
         </div>
 
-        {currentUserId === post.creator.id && (
+        {isOwner && !isEditing && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -158,22 +221,74 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Chỉnh sửa</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">Xóa</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Chỉnh sửa
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDeleteClick} className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Xóa
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
       </div>
 
-      {post.title && (
-        <h3 className="font-semibold text-lg mb-2 text-gray-800">{post.title}</h3>
-      )}
+      {/* Title and Content - Edit Mode or Display Mode */}
+      {isEditing ? (
+        <div className="space-y-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tiêu đề bài viết
+            </label>
+            <Input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder="Nhập tiêu đề bài viết..."
+              className="font-semibold text-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nội dung bài viết
+            </label>
+            <RichTextEditor
+              value={editContent}
+              onChange={setEditContent}
+            />
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button 
+              onClick={handleUpdatePost} 
+              disabled={isUpdating}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
+            </Button>
+            <Button 
+              onClick={handleCancelEdit} 
+              variant="outline" 
+              size="sm"
+              disabled={isUpdating}
+            >
+              Hủy bỏ
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {post.title && (
+            <h3 className="font-semibold text-lg mb-2 text-gray-800">{post.title}</h3>
+          )}
 
-      {post.content && (
-        <div
-          className="prose prose-sm md:prose-base max-w-none text-gray-700 mb-3"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+          {post.content && (
+            <div
+              className="prose prose-sm md:prose-base max-w-none text-gray-700 mb-3"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          )}
+        </>
       )}
 
       {mediaUrls.length > 0 && (
@@ -412,6 +527,17 @@ export function PostCard({ post, currentUserId, onPostUpdate }: PostCardProps) {
         title="Đăng nhập để thích bài viết"
         description="Bạn cần đăng nhập để có thể thích bài viết. Vui lòng đăng nhập để tiếp tục."
         actionText="Đăng nhập ngay"
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeletePost}
+        title="Xóa bài viết"
+        description="Bạn có chắc chắn muốn xóa bài viết này? Tất cả bình luận và lượt thích sẽ bị mất vĩnh viễn."
+        itemName="bài viết này"
+        isDeleting={isDeleting}
       />
     </div>
   );
