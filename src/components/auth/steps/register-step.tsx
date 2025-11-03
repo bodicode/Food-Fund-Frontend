@@ -46,15 +46,13 @@ export function RegisterStep({ authService, onSuccess }: Props) {
     try {
       const res = await authService.signup(form);
 
-      // ✅ Nếu backend trả về success = true → hiển thị hướng dẫn kiểm tra email
       toast.success("Đăng ký thành công!", {
         description:
           translateMessage(res.message) ||
           `Vui lòng kiểm tra email ${form.email} để kích hoạt tài khoản.`,
-        icon: <Mail className="text-[#ad4e28]" />,
+        icon: <Mail className="text-green-500 mr-1" />,
       });
 
-      // Gọi callback để parent chuyển sang bước xác thực
       onSuccess(form.email);
     } catch (err) {
       console.error("Signup error:", err);
