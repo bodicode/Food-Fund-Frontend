@@ -55,7 +55,7 @@ export default function ConfirmSignupPage() {
         toast.error("Liên kết không hợp lệ hoặc đã hết hạn.");
       }
     })();
-  }, [searchParams, confirmSignup]);
+  }, [searchParams, confirmSignup, router]);
 
   return (
     <div className="flex items-center justify-center h-screen">

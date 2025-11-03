@@ -15,7 +15,6 @@ import {
   Sparkles,
   Camera,
   X,
-  Lock,
   Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +34,7 @@ import { organizationService } from "@/services/organization.service";
 import type { CreateOrganizationInput } from "@/types/api/organization";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import Image from "next/image";
 
 type FormKeys =
   | "name"
@@ -503,9 +503,11 @@ export default function OrgRegisterPage() {
                         <div className="border-2 border-orange-200 rounded-xl p-4 bg-orange-50">
                           <div className="flex items-start gap-4">
                             <div className="relative">
-                              <img
+                              <Image
                                 src={imagePreview}
                                 alt="ID Card Preview"
+                                width={128}
+                                height={80}
                                 className="w-32 h-20 object-cover rounded-lg border"
                               />
                               {isProcessingImage && (
