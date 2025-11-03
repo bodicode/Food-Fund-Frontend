@@ -13,6 +13,9 @@ import {
   FileText,
   CheckCircle2,
   Sparkles,
+  Upload,
+  Camera,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +50,11 @@ export default function OrgRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [fieldsDisabled, setFieldsDisabled] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<Record<FormKeys, string>>({
     name: "",
@@ -238,6 +246,96 @@ export default function OrgRegisterPage() {
       <p className="mt-1 text-sm text-red-600">{errors[keyName]}</p>
     ) : null;
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh hợp lệ');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Kích thước file không được vượt quá 5MB');
+      return;
+    }
+
+    setUploadedImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Process the image
+    processIdCard(file);
+  };
+
+  const processIdCard = async (file: File) => {
+    setIsProcessingImage(true);
+    setFieldsDisabled(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('https://api.fpt.ai/vision/idr/vnm/', {
+        method: 'POST',
+        headers: {
+          'api-key': process.env.NEXT_PUBLIC_FPT_API_KEY || '', // You'll need to add this to your .env
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.errorCode === 0 && result.data && result.data.length > 0) {
+        const idData = result.data[0];
+        
+        // Auto-fill form fields
+        setForm(prev => ({
+          ...prev,
+          representative_name: idData.name || prev.representative_name,
+          representative_identity_number: idData.id || prev.representative_identity_number,
+          address: idData.address || prev.address,
+        }));
+
+        toast.success('Đã tự động điền thông tin từ CCCD/CMND');
+      } else if (result.errorCode === 3) {
+        toast.error('Không tìm thấy CCCD/CMND trong hình ảnh. Vui lòng tải lên ảnh khác.');
+        clearImage();
+      } else {
+        toast.error(result.errorMessage || 'Có lỗi xảy ra khi xử lý hình ảnh');
+        clearImage();
+      }
+    } catch (error) {
+      console.error('Error processing ID card:', error);
+      toast.error('Có lỗi xảy ra khi xử lý hình ảnh. Vui lòng thử lại.');
+      clearImage();
+    } finally {
+      setIsProcessingImage(false);
+      setFieldsDisabled(false);
+    }
+  };
+
+  const clearImage = () => {
+    setUploadedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    clearImage();
+    setFieldsDisabled(false);
+    toast.info('Đã xóa ảnh CCCD/CMND');
+  };
+
   return (
     <div className="min-h-screen pt-30 bg-gradient-to-br from-orange-50 via-white to-pink-50 py-16 px-4 relative overflow-hidden">
       <div className="fixed top-20 left-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
@@ -340,7 +438,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="VD: Quỹ Thiện Nguyện Ánh Dương"
                           className={fieldClass("name")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="name" />
@@ -368,7 +466,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="VD: Từ thiện, Giáo dục, Y tế"
                           className={fieldClass("activity_field")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="activity_field" />
@@ -395,7 +493,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="+84 123 456 789"
                           className={fieldClass("phone_number")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="phone_number" />
@@ -422,7 +520,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="30 Nguyễn Trãi, Quận 5, TP.HCM"
                           className={fieldClass("address")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="address" />
@@ -450,7 +548,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="contact@organization.com"
                           className={fieldClass("email")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="email" />
@@ -478,7 +576,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="Nguyễn Văn A"
                           className={fieldClass("representative_name")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="representative_name" />
@@ -508,10 +606,90 @@ export default function OrgRegisterPage() {
                           className={fieldClass(
                             "representative_identity_number"
                           )}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="representative_identity_number" />
+                    </div>
+
+                    {/* ID Card Upload */}
+                    <div className="md:col-span-2 space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700">
+                        Tải ảnh CCCD/CMND để tự động điền thông tin
+                        <span className="text-gray-500 font-normal ml-2">(Tùy chọn)</span>
+                      </Label>
+                      
+                      {!imagePreview ? (
+                        <div className="relative">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            disabled={loading || isProcessingImage}
+                          />
+                          <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="border-2 border-dashed border-gray-300 hover:border-orange-400 rounded-xl p-8 text-center cursor-pointer transition-colors group"
+                          >
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="p-3 bg-orange-50 rounded-full group-hover:bg-orange-100 transition-colors">
+                                <Camera className="w-8 h-8 text-orange-500" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">
+                                  Chụp ảnh hoặc tải lên CCCD/CMND
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  PNG, JPG tối đa 5MB
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <div className="border-2 border-orange-200 rounded-xl p-4 bg-orange-50">
+                            <div className="flex items-start gap-4">
+                              <div className="relative">
+                                <img
+                                  src={imagePreview}
+                                  alt="ID Card Preview"
+                                  className="w-32 h-20 object-cover rounded-lg border"
+                                />
+                                {isProcessingImage && (
+                                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700">
+                                      {uploadedImage?.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {isProcessingImage ? 'Đang xử lý...' : 'Đã tải lên thành công'}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleRemoveImage}
+                                    disabled={isProcessingImage}
+                                    className="text-gray-500 hover:text-red-500"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Website */}
@@ -535,7 +713,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="https://yoursite.com"
                           className={fieldClass("website")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="website" />
@@ -562,7 +740,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="Chia sẻ về sứ mệnh, tầm nhìn và các hoạt động chính của tổ chức..."
                           className={textAreaClass("description")}
-                          disabled={loading}
+                          disabled={loading || fieldsDisabled}
                         />
                       </div>
                       <ErrorLine keyName="description" />
