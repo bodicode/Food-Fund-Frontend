@@ -13,9 +13,9 @@ import {
   FileText,
   CheckCircle2,
   Sparkles,
-  Upload,
   Camera,
   X,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ import { organizationService } from "@/services/organization.service";
 import type { CreateOrganizationInput } from "@/types/api/organization";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import Image from "next/image";
 
 type FormKeys =
   | "name"
@@ -53,7 +54,8 @@ export default function OrgRegisterPage() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
-  const [fieldsDisabled, setFieldsDisabled] = useState(false);
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<FormKeys>>(new Set());
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<Record<FormKeys, string>>({
@@ -227,12 +229,14 @@ export default function OrgRegisterPage() {
     }
   };
 
-  const fieldClass = (key: FormKeys) =>
-    `pl-11 h-12 border-2 focus-visible:ring-orange-200 ${
-      errors[key]
-        ? "border-red-400 focus:border-red-500"
-        : "focus:border-orange-500"
-    }`;
+  const fieldClass = (key: FormKeys) => {
+    const baseClass = "h-12 border-2 focus-visible:ring-orange-200";
+    const paddingClass = autoFilledFields.has(key) ? "pl-11 pr-11" : "pl-11";
+    const errorClass = errors[key] ? "border-red-400 focus:border-red-500" : "focus:border-orange-500";
+    const readOnlyClass = autoFilledFields.has(key) ? "bg-green-50 border-green-300 text-green-800 cursor-not-allowed" : "";
+    
+    return `${baseClass} ${paddingClass} ${errorClass} ${readOnlyClass}`;
+  };
 
   const textAreaClass = (key: FormKeys) =>
     `pl-11 min-h-32 border-2 resize-none focus-visible:ring-orange-200 ${
@@ -277,38 +281,70 @@ export default function OrgRegisterPage() {
 
   const processIdCard = async (file: File) => {
     setIsProcessingImage(true);
-    setFieldsDisabled(true);
     
     try {
+      const apiKey = process.env.NEXT_PUBLIC_FPT_API_KEY;
+      if (!apiKey) {
+        toast.error('API key chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
+        clearImage();
+        return;
+      }
+
       const formData = new FormData();
       formData.append('image', file);
 
+      console.log('Processing ID card with FPT AI...');
       const response = await fetch('https://api.fpt.ai/vision/idr/vnm/', {
         method: 'POST',
         headers: {
-          'api-key': process.env.NEXT_PUBLIC_FPT_API_KEY || '', // You'll need to add this to your .env
+          'api-key': apiKey,
         },
         body: formData,
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
+      console.log('FPT AI response:', result);
 
       if (result.errorCode === 0 && result.data && result.data.length > 0) {
         const idData = result.data[0];
+        console.log('Extracted ID data:', idData);
         
-        // Auto-fill form fields
+        // Track which fields will be auto-filled
+        const filledFields = new Set<FormKeys>();
+        const updatedForm: Partial<Record<FormKeys, string>> = {};
+
+        if (idData.name) {
+          updatedForm.representative_name = idData.name;
+          filledFields.add('representative_name');
+        }
+        if (idData.id) {
+          updatedForm.representative_identity_number = idData.id;
+          filledFields.add('representative_identity_number');
+        }
+        if (idData.address) {
+          updatedForm.address = idData.address;
+          filledFields.add('address');
+        }
+
+        // Auto-fill form fields from OCR response
         setForm(prev => ({
           ...prev,
-          representative_name: idData.name || prev.representative_name,
-          representative_identity_number: idData.id || prev.representative_identity_number,
-          address: idData.address || prev.address,
+          ...updatedForm,
         }));
 
-        toast.success('Đã tự động điền thông tin từ CCCD/CMND');
+        // Mark these fields as auto-filled (read-only)
+        setAutoFilledFields(filledFields);
+
+        toast.success('Đã tự động điền thông tin từ CCCD/CMND. Các thông tin này đã được khóa để đảm bảo tính chính xác.');
       } else if (result.errorCode === 3) {
         toast.error('Không tìm thấy CCCD/CMND trong hình ảnh. Vui lòng tải lên ảnh khác.');
         clearImage();
       } else {
+        console.error('FPT AI error:', result);
         toast.error(result.errorMessage || 'Có lỗi xảy ra khi xử lý hình ảnh');
         clearImage();
       }
@@ -318,7 +354,6 @@ export default function OrgRegisterPage() {
       clearImage();
     } finally {
       setIsProcessingImage(false);
-      setFieldsDisabled(false);
     }
   };
 
@@ -332,8 +367,16 @@ export default function OrgRegisterPage() {
 
   const handleRemoveImage = () => {
     clearImage();
-    setFieldsDisabled(false);
-    toast.info('Đã xóa ảnh CCCD/CMND');
+    // Clear the auto-filled fields when removing image
+    setForm(prev => ({
+      ...prev,
+      representative_name: '',
+      representative_identity_number: '',
+      address: '',
+    }));
+    // Clear auto-filled fields tracking
+    setAutoFilledFields(new Set());
+    toast.info('Đã xóa ảnh CCCD/CMND và mở khóa các trường thông tin');
   };
 
   return (
@@ -416,6 +459,120 @@ export default function OrgRegisterPage() {
                     </div>
                   )}
 
+                  {/* ID Card Upload - Moved to top */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700">
+                      Tải ảnh CCCD/CMND để tự động điền thông tin
+                      <span className="text-orange-600 font-normal ml-2">(Khuyến nghị)</span>
+                    </Label>
+                    
+                    {!imagePreview ? (
+                      <div className="relative">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={loading || isProcessingImage}
+                        />
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="border-2 border-dashed border-orange-300 hover:border-orange-400 rounded-xl p-8 text-center cursor-pointer transition-colors group bg-orange-50/50"
+                        >
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="p-4 bg-orange-100 rounded-full group-hover:bg-orange-200 transition-colors">
+                              <Camera className="w-10 h-10 text-orange-600" />
+                            </div>
+                            <div>
+                              <p className="text-base font-semibold text-gray-800">
+                                Chụp ảnh hoặc tải lên CCCD/CMND
+                              </p>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Hệ thống sẽ tự động điền thông tin cho bạn
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                PNG, JPG tối đa 5MB
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="border-2 border-orange-200 rounded-xl p-4 bg-orange-50">
+                          <div className="flex items-start gap-4">
+                            <div className="relative">
+                              <Image
+                                src={imagePreview}
+                                alt="ID Card Preview"
+                                width={128}
+                                height={80}
+                                className="w-32 h-20 object-cover rounded-lg border"
+                              />
+                              {isProcessingImage && (
+                                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">
+                                    {uploadedImage?.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {isProcessingImage ? 'Đang xử lý và điền thông tin...' : 'Đã xử lý thành công'}
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleRemoveImage}
+                                  disabled={isProcessingImage}
+                                  className="text-gray-500 hover:text-red-500"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Helper message when no image uploaded */}
+                  {!imagePreview && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                      <p className="text-blue-700 text-sm font-medium">
+                        📸 Vui lòng tải lên ảnh CCCD/CMND để bắt đầu điền thông tin
+                      </p>
+                      <p className="text-blue-600 text-xs mt-1">
+                        Hệ thống sẽ tự động điền thông tin cơ bản từ CCCD/CMND của bạn
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Helper message when fields are auto-filled */}
+                  {autoFilledFields.size > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Shield className="w-4 h-4 text-green-600" />
+                        <p className="text-green-700 text-sm font-medium">
+                          Thông tin đã được tự động điền từ CCCD/CMND
+                        </p>
+                      </div>
+                      <p className="text-green-600 text-xs">
+                        Các trường có biểu tượng <Shield className="w-3 h-3 inline mx-1" /> đã được khóa để đảm bảo tính chính xác. 
+                        Nếu cần chỉnh sửa, vui lòng xóa ảnh và tải lên lại.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Form fields - disabled until image processing is complete */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Tên tổ chức */}
                     <div className="md:col-span-2 space-y-2">
@@ -438,7 +595,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="VD: Quỹ Thiện Nguyện Ánh Dương"
                           className={fieldClass("name")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
                         />
                       </div>
                       <ErrorLine keyName="name" />
@@ -466,7 +623,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="VD: Từ thiện, Giáo dục, Y tế"
                           className={fieldClass("activity_field")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
                         />
                       </div>
                       <ErrorLine keyName="activity_field" />
@@ -493,7 +650,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="+84 123 456 789"
                           className={fieldClass("phone_number")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
                         />
                       </div>
                       <ErrorLine keyName="phone_number" />
@@ -503,12 +660,21 @@ export default function OrgRegisterPage() {
                     <div className="md:col-span-2 space-y-2">
                       <Label
                         htmlFor="address"
-                        className="text-sm font-semibold text-gray-700"
+                        className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         Địa chỉ <span className="text-red-500">*</span>
+                        {autoFilledFields.has('address') && (
+                          <div className="flex items-center gap-1 text-green-600">
+                            <Shield className="w-3 h-3" />
+                            <span className="text-xs font-normal">Tự động điền</span>
+                          </div>
+                        )}
                       </Label>
                       <div className="relative group">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        {autoFilledFields.has('address') && (
+                          <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                        )}
                         <Input
                           id="address"
                           name="address"
@@ -520,7 +686,8 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="30 Nguyễn Trãi, Quận 5, TP.HCM"
                           className={fieldClass("address")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
+                          readOnly={autoFilledFields.has('address')}
                         />
                       </div>
                       <ErrorLine keyName="address" />
@@ -548,7 +715,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="contact@organization.com"
                           className={fieldClass("email")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
                         />
                       </div>
                       <ErrorLine keyName="email" />
@@ -558,13 +725,22 @@ export default function OrgRegisterPage() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="representative_name"
-                        className="text-sm font-semibold text-gray-700"
+                        className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         Tên người đại diện{" "}
                         <span className="text-red-500">*</span>
+                        {autoFilledFields.has('representative_name') && (
+                          <div className="flex items-center gap-1 text-green-600">
+                            <Shield className="w-3 h-3" />
+                            <span className="text-xs font-normal">Tự động điền</span>
+                          </div>
+                        )}
                       </Label>
                       <div className="relative group">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        {autoFilledFields.has('representative_name') && (
+                          <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                        )}
                         <Input
                           id="representative_name"
                           name="representative_name"
@@ -576,7 +752,8 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="Nguyễn Văn A"
                           className={fieldClass("representative_name")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
+                          readOnly={autoFilledFields.has('representative_name')}
                         />
                       </div>
                       <ErrorLine keyName="representative_name" />
@@ -586,13 +763,22 @@ export default function OrgRegisterPage() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="representative_identity_number"
-                        className="text-sm font-semibold text-gray-700"
+                        className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         CMND/CCCD người đại diện{" "}
                         <span className="text-red-500">*</span>
+                        {autoFilledFields.has('representative_identity_number') && (
+                          <div className="flex items-center gap-1 text-green-600">
+                            <Shield className="w-3 h-3" />
+                            <span className="text-xs font-normal">Tự động điền</span>
+                          </div>
+                        )}
                       </Label>
                       <div className="relative group">
                         <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        {autoFilledFields.has('representative_identity_number') && (
+                          <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                        )}
                         <Input
                           id="representative_identity_number"
                           name="representative_identity_number"
@@ -606,90 +792,11 @@ export default function OrgRegisterPage() {
                           className={fieldClass(
                             "representative_identity_number"
                           )}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
+                          readOnly={autoFilledFields.has('representative_identity_number')}
                         />
                       </div>
                       <ErrorLine keyName="representative_identity_number" />
-                    </div>
-
-                    {/* ID Card Upload */}
-                    <div className="md:col-span-2 space-y-2">
-                      <Label className="text-sm font-semibold text-gray-700">
-                        Tải ảnh CCCD/CMND để tự động điền thông tin
-                        <span className="text-gray-500 font-normal ml-2">(Tùy chọn)</span>
-                      </Label>
-                      
-                      {!imagePreview ? (
-                        <div className="relative">
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            disabled={loading || isProcessingImage}
-                          />
-                          <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-gray-300 hover:border-orange-400 rounded-xl p-8 text-center cursor-pointer transition-colors group"
-                          >
-                            <div className="flex flex-col items-center gap-3">
-                              <div className="p-3 bg-orange-50 rounded-full group-hover:bg-orange-100 transition-colors">
-                                <Camera className="w-8 h-8 text-orange-500" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">
-                                  Chụp ảnh hoặc tải lên CCCD/CMND
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  PNG, JPG tối đa 5MB
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <div className="border-2 border-orange-200 rounded-xl p-4 bg-orange-50">
-                            <div className="flex items-start gap-4">
-                              <div className="relative">
-                                <img
-                                  src={imagePreview}
-                                  alt="ID Card Preview"
-                                  className="w-32 h-20 object-cover rounded-lg border"
-                                />
-                                {isProcessingImage && (
-                                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <p className="text-sm font-medium text-gray-700">
-                                      {uploadedImage?.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      {isProcessingImage ? 'Đang xử lý...' : 'Đã tải lên thành công'}
-                                    </p>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleRemoveImage}
-                                    disabled={isProcessingImage}
-                                    className="text-gray-500 hover:text-red-500"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     {/* Website */}
@@ -713,7 +820,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="https://yoursite.com"
                           className={fieldClass("website")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
                         />
                       </div>
                       <ErrorLine keyName="website" />
@@ -740,7 +847,7 @@ export default function OrgRegisterPage() {
                           onBlur={handleBlur}
                           placeholder="Chia sẻ về sứ mệnh, tầm nhìn và các hoạt động chính của tổ chức..."
                           className={textAreaClass("description")}
-                          disabled={loading || fieldsDisabled}
+                          disabled={loading || !imagePreview}
                         />
                       </div>
                       <ErrorLine keyName="description" />
@@ -750,8 +857,8 @@ export default function OrgRegisterPage() {
                   <div className="pt-4">
                     <Button
                       type="submit"
-                      disabled={loading}
-                      className="w-full h-14 text-lg font-bold bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all"
+                      disabled={loading || !imagePreview}
+                      className="w-full h-14 text-lg font-bold bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {loading ? (
                         <span className="flex items-center gap-2">

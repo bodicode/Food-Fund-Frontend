@@ -32,7 +32,6 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  // const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -93,8 +92,6 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     try {
       const token = credentialResponse.credential;
       if (!token) return;
-
-      console.log("Google idToken:", token);
 
       const res = await graphQLAuthService.googleAuthentication({
         idToken: token,

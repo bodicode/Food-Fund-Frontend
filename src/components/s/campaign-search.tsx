@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useEffect, useState } from "react";
+import { useLayoutEffect, useRef, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -55,7 +55,7 @@ export default function CampaignSearchPage() {
       setParams((prev) => ({ ...prev, filter: newFilter }));
       fetchCampaigns({ filter: newFilter, offset: 0 });
     }
-  }, [searchParams]);
+  }, [searchParams, params.filter, setParams, fetchCampaigns]);
 
   // Custom sorting function for campaigns when showing all statuses
   const sortCampaignsByStatus = (campaigns: Campaign[]) => {
