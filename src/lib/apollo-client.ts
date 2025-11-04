@@ -11,10 +11,11 @@ import { normalizeApolloError } from "@/lib/apollo-error";
 import { logout } from "@/store/slices/auth-slice";
 import { store } from "@/store";
 import Cookies from "js-cookie";
+import { API_URLS, COOKIE_NAMES, ERROR_MESSAGES, ROUTES } from "@/constants";
 
 const authLink = new ApolloLink((operation, forward) => {
   if (typeof window !== "undefined") {
-    const token = Cookies.get("accessToken");
+    const token = Cookies.get(COOKIE_NAMES.ACCESS_TOKEN);
 
     operation.setContext(({ headers = {} }) => ({
       headers: {
@@ -35,9 +36,9 @@ const errorLink = onError((error) => {
       err.message.includes("Invalid Cognito token") ||
       err.code === "UNAUTHENTICATED"
     ) {
-      toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại");
+      toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
       store.dispatch(logout());
-      window.location.replace("/login");
+      window.location.replace(ROUTES.LOGIN);
     } else {
       console.error(err.message || "Có lỗi xảy ra khi gọi API");
     }
@@ -45,7 +46,7 @@ const errorLink = onError((error) => {
 });
 
 const httpLink = new HttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL ?? "http://localhost:8000/graphql",
+  uri: API_URLS.GRAPHQL,
 });
 
 export const client = new ApolloClient({

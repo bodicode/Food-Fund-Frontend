@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtDecode } from "jwt-decode";
+import { USER_ROLES, ROUTES, COOKIE_NAMES, isRoleInList } from "@/constants";
 
 interface Decoded {
   sub: string;
@@ -12,14 +13,14 @@ interface Decoded {
 export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
 
-  const idToken = req.cookies.get("idToken")?.value;
-  const accessToken = req.cookies.get("accessToken")?.value;
-  const role = req.cookies.get("role")?.value;
+  const idToken = req.cookies.get(COOKIE_NAMES.ID_TOKEN)?.value;
+  const accessToken = req.cookies.get(COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  const role = req.cookies.get(COOKIE_NAMES.ROLE)?.value;
   const path = url.pathname;
 
   if (path.startsWith("/admin")) {
     if (!idToken && !accessToken) {
-      url.pathname = "/login";
+      url.pathname = ROUTES.LOGIN;
       url.searchParams.set("redirect", path);
       return NextResponse.redirect(url);
     }
@@ -34,14 +35,14 @@ export function middleware(req: NextRequest) {
       }
 
       // Chỉ cho phép ADMIN truy cập /admin
-      if (userRole !== "ADMIN") {
+      if (userRole !== USER_ROLES.ADMIN) {
         if (userRole) {
           // User đã đăng nhập nhưng không phải ADMIN
-          url.pathname = "/";
+          url.pathname = ROUTES.HOME;
           return NextResponse.redirect(url);
         } else {
           // Không có role, redirect về login
-          url.pathname = "/login";
+          url.pathname = ROUTES.LOGIN;
           url.searchParams.set("redirect", path);
           return NextResponse.redirect(url);
         }
@@ -49,7 +50,7 @@ export function middleware(req: NextRequest) {
     } catch (e) {
       console.error("Decode token error for admin route:", e);
       // Token không hợp lệ, redirect về login
-      url.pathname = "/login";
+      url.pathname = ROUTES.LOGIN;
       url.searchParams.set("redirect", path);
       return NextResponse.redirect(url);
     }
@@ -72,42 +73,42 @@ export function middleware(req: NextRequest) {
 
     // Donor/Fundraiser: không được vào /admin, /kitchen, /delivery
     if (
-      ["DONOR", "FUNDRAISER"].includes(userRole) &&
-      (path.startsWith("/admin") ||
-        path.startsWith("/kitchen") ||
-        path.startsWith("/delivery"))
+      isRoleInList(userRole, [USER_ROLES.DONOR, USER_ROLES.FUNDRAISER]) &&
+      (path.startsWith(ROUTES.ADMIN) ||
+        path.startsWith(ROUTES.KITCHEN) ||
+        path.startsWith(ROUTES.DELIVERY))
     ) {
-      url.pathname = "/";
+      url.pathname = ROUTES.HOME;
       return NextResponse.redirect(url);
     }
 
     // Kitchen: chỉ cho /kitchen + public
-    if (userRole === "KITCHEN" && path.startsWith("/admin")) {
-      url.pathname = "/kitchen";
+    if (userRole === USER_ROLES.KITCHEN && path.startsWith(ROUTES.ADMIN)) {
+      url.pathname = ROUTES.KITCHEN;
       return NextResponse.redirect(url);
     }
-    if (userRole === "KITCHEN" && path.startsWith("/delivery")) {
-      url.pathname = "/kitchen";
+    if (userRole === USER_ROLES.KITCHEN && path.startsWith(ROUTES.DELIVERY)) {
+      url.pathname = ROUTES.KITCHEN;
       return NextResponse.redirect(url);
     }
 
     // Delivery: chỉ cho /delivery + public
-    if (userRole === "DELIVERY" && path.startsWith("/admin")) {
-      url.pathname = "/delivery";
+    if (userRole === USER_ROLES.DELIVERY && path.startsWith(ROUTES.ADMIN)) {
+      url.pathname = ROUTES.DELIVERY;
       return NextResponse.redirect(url);
     }
-    if (userRole === "DELIVERY" && path.startsWith("/kitchen")) {
-      url.pathname = "/delivery";
+    if (userRole === USER_ROLES.DELIVERY && path.startsWith(ROUTES.KITCHEN)) {
+      url.pathname = ROUTES.DELIVERY;
       return NextResponse.redirect(url);
     }
 
     // Admin: chỉ cho /admin + public
-    if (userRole === "ADMIN" && path.startsWith("/kitchen")) {
-      url.pathname = "/admin";
+    if (userRole === USER_ROLES.ADMIN && path.startsWith(ROUTES.KITCHEN)) {
+      url.pathname = ROUTES.ADMIN;
       return NextResponse.redirect(url);
     }
-    if (userRole === "ADMIN" && path.startsWith("/delivery")) {
-      url.pathname = "/admin";
+    if (userRole === USER_ROLES.ADMIN && path.startsWith(ROUTES.DELIVERY)) {
+      url.pathname = ROUTES.ADMIN;
       return NextResponse.redirect(url);
     }
   } catch (e) {

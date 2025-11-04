@@ -6,6 +6,7 @@ import { userService } from "@/services/user.service";
 import { UserProfile } from "@/types/api/user";
 import EditUserModal from "@/components/admin/EditUserModal";
 import { Edit } from "lucide-react";
+import { USER_ROLES } from "@/constants";
 
 export default function TeamPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -108,13 +109,13 @@ export default function TeamPage() {
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium
                         ${
-                          u.role === "ADMIN"
+                          u.role === USER_ROLES.ADMIN
                             ? "bg-green-500 text-white dark:bg-green-700"
-                            : u.role === "DONOR"
+                            : u.role === USER_ROLES.DONOR
                             ? "bg-blue-500 text-white dark:bg-blue-700"
-                            : u.role === "KITCHEN"
+                            : u.role === USER_ROLES.KITCHEN
                             ? "bg-orange-500 text-white dark:bg-orange-700"
-                            : u.role === "DELIVERY"
+                            : u.role === USER_ROLES.DELIVERY
                             ? "bg-purple-500 text-white dark:bg-purple-700"
                             : "bg-yellow-500 text-white dark:bg-yellow-700"
                         }`}

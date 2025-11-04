@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { logout } from "@/store/slices/auth-slice";
+import { USER_ROLES } from "@/constants";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -311,7 +312,7 @@ export function Navigation() {
                   </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-52">
-                  {user.role === "ADMIN" && (
+                  {user.role === USER_ROLES.ADMIN && (
                     <DropdownMenuItem
                       onClick={() => router.push("/admin/users")}
                       className="cursor-pointer text-sm py-3"
@@ -517,7 +518,7 @@ export function Navigation() {
                       <p className="px-2 text-sm font-semibold text-gray-700">
                         Xin chào, {user.name}
                       </p>
-                      {user.role == "ADMIN" ? (
+                      {user.role == USER_ROLES.ADMIN ? (
                         <Link href="/admin/users">Dashboard</Link>
                       ) : (
                         ""

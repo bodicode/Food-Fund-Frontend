@@ -81,7 +81,9 @@ export interface RejectOrganizationRequestResponse {
 }
 
 export type OrganizationStatus = "PENDING" | "APPROVED" | "REJECTED" | "ALL";
-export type OrganizationRole = "DELIVERY_STAFF" | "KITCHEN_STAFF";
+import { USER_ROLES } from "@/constants";
+
+export type OrganizationRole = typeof USER_ROLES.DELIVERY_STAFF | typeof USER_ROLES.KITCHEN_STAFF;
 
 export interface GetMyOrganizationRequestsResponse {
   myOrganizationRequest: Organization[];

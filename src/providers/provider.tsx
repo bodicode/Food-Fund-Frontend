@@ -6,8 +6,9 @@ import { PersistGate } from "redux-persist/integration/react";
 import { Toaster } from "sonner";
 import { ApolloWrapper } from "./apollo-provider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AUTH_CONFIG } from "@/constants";
 
-const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+const clientId = AUTH_CONFIG.GOOGLE_CLIENT_ID;
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

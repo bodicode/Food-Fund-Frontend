@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { statusConfig, translateRole } from "@/lib/translator";
+import { USER_ROLES } from "@/constants";
 
 export default function OrganizationDetailPage() {
   const router = useRouter();
@@ -82,7 +83,7 @@ export default function OrganizationDetailPage() {
       setLoadingRequests(true);
       const data = await organizationService.getOrganizationJoinRequests();
       const filtered = data.joinRequests.filter(
-        (r) => r.member_role !== "FUNDRAISER"
+        (r) => r.member_role !== USER_ROLES.FUNDRAISER
       );
       setJoinRequests(filtered);
     } catch (err) {

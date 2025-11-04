@@ -1,58 +1,45 @@
 import {
-  CheckCircle,
-  CheckCircle2,
-  Clock,
-  PlayCircle,
-  StopCircle,
-  ThumbsDown,
-  ThumbsUp,
-  XCircle,
-} from "lucide-react";
+  MESSAGE_PATTERNS,
+  SUCCESS_MESSAGES,
+  STATUS_CONFIG,
+  STATUS_ACTIONS,
+  ROLE_TRANSLATIONS,
+  ERROR_MESSAGES,
+  VALIDATION_MESSAGES
+} from "@/constants";
 
 export const translateMessage = (msg: string) => {
   // Register
-  if (msg.includes("User registered successfully")) {
-    return "Đăng ký thành công. Vui lòng kiểm tra email để lấy mã xác thực.";
+  if (msg.includes(MESSAGE_PATTERNS.USER_REGISTERED)) {
+    return SUCCESS_MESSAGES.USER_REGISTERED;
   }
-  if (msg.includes("Email confirmed successfully")) {
-    return "Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ.";
+  if (msg.includes(MESSAGE_PATTERNS.EMAIL_CONFIRMED)) {
+    return SUCCESS_MESSAGES.EMAIL_CONFIRMED;
   }
-  if (msg.includes("Confirmation code sent to your email")) {
-    return "Kiểm tra email của bạn để lấy mã xác nhận.";
+  if (msg.includes(MESSAGE_PATTERNS.CONFIRMATION_CODE_SENT)) {
+    return SUCCESS_MESSAGES.CONFIRMATION_CODE_SENT;
   }
-  if (msg.includes("Password reset code sent to your email")) {
-    return "Mã đặt lại mật khẩu đã được gửi đến email của bạn.";
+  if (msg.includes(MESSAGE_PATTERNS.PASSWORD_RESET_CODE_SENT)) {
+    return SUCCESS_MESSAGES.PASSWORD_RESET_CODE_SENT;
   }
   // Forgot password
-  if (msg.includes("Password reset code sent to your email")) {
-    return "Mã đặt lại mật khẩu đã được gửi đến email của bạn.";
+  if (msg.includes(MESSAGE_PATTERNS.PASSWORD_RESET_CODE_SENT)) {
+    return SUCCESS_MESSAGES.PASSWORD_RESET_CODE_SENT;
   }
-  if (
-    msg.includes(
-      "Password reset successful. You can now sign in with your new password."
-    )
-  ) {
-    return "Thay đổi mật khẩu thành công, bạn có thể đăng nhập ngay bây giờ.";
+  if (msg.includes(MESSAGE_PATTERNS.PASSWORD_RESET_SUCCESS)) {
+    return SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS;
   }
   // Signout
-  if (msg.includes("User signed out successfully")) {
-    return "Đăng xuất thành công.";
+  if (msg.includes(MESSAGE_PATTERNS.USER_SIGNED_OUT)) {
+    return SUCCESS_MESSAGES.USER_SIGNED_OUT;
   }
   // Request Create Organization
-  if (
-    msg.includes(
-      "Organization request has been submitted successfully. Waiting for admin approval."
-    )
-  ) {
-    return "Gửi yêu cầu thành công. Vui lòng chờ quản trị viên duyệt";
+  if (msg.includes(MESSAGE_PATTERNS.ORGANIZATION_REQUEST)) {
+    return SUCCESS_MESSAGES.ORGANIZATION_REQUEST_SUBMITTED;
   }
 
-  if (
-    msg.includes(
-      "Join request to as Delivery Staff (food distribution) has been submitted successfully. Waiting for approval."
-    )
-  ) {
-    return "Yêu cầu tham gia tổ chức đã được gửi thành công. Vui lòng chờ quản trị viên duyệt";
+  if (msg.includes(MESSAGE_PATTERNS.JOIN_REQUEST)) {
+    return SUCCESS_MESSAGES.JOIN_REQUEST_SUBMITTED;
   }
 
   return msg;
@@ -96,29 +83,29 @@ export const translateError = (err: unknown): string => {
 
     // Login
     if (cognitoError.includes("Incorrect username or password")) {
-      return "Sai email hoặc mật khẩu. Vui lòng thử lại.";
+      return ERROR_MESSAGES.INCORRECT_CREDENTIALS;
     }
     if (cognitoError.includes("User is not confirmed"))
-      return "Tài khoản chưa được xác thực email.";
+      return ERROR_MESSAGES.USER_NOT_CONFIRMED;
     if (cognitoError.includes("Password attempts exceeded"))
-      return "Bạn đã nhập sai mật khẩu quá nhiều lần. Tài khoản tạm bị khoá.";
+      return ERROR_MESSAGES.PASSWORD_ATTEMPTS_EXCEEDED;
     if (cognitoError.includes("Subgraph auth circuit is open"))
-      return "Bạn nhập sai quá nhiều, vui lòng thử lại sau.";
+      return ERROR_MESSAGES.AUTH_CIRCUIT_OPEN;
     // Signup
     if (cognitoError.includes("User already exists"))
-      return "Người dùng đã tồn tại (email này đã được sử dụng).";
+      return ERROR_MESSAGES.USER_ALREADY_EXISTS;
     if (cognitoError.includes("phone number"))
-      return "Số điện thoại không hợp lệ.";
+      return ERROR_MESSAGES.INVALID_PHONE_NUMBER;
     if (cognitoError.includes("InvalidPasswordException"))
-      return "Mật khẩu không hợp lệ. Vui lòng đặt mật khẩu mạnh hơn.";
+      return ERROR_MESSAGES.INVALID_PASSWORD;
 
     // Confirm register
     if (cognitoError.includes("Invalid verification code provided"))
-      return "Mã xác nhận không đúng. Vui lòng thử lại.";
+      return ERROR_MESSAGES.INVALID_VERIFICATION_CODE;
     if (cognitoError.includes("ExpiredCodeException"))
-      return "Mã xác nhận đã hết hạn. Vui lòng yêu cầu gửi lại.";
+      return ERROR_MESSAGES.EXPIRED_CODE;
     if (cognitoError.includes("Confirmation code must be 6 digits"))
-      return "Mã xác nhận phải có 6 chữ số.";
+      return ERROR_MESSAGES.CONFIRMATION_CODE_FORMAT;
 
     // Confirm forgot password
     if (
@@ -126,136 +113,35 @@ export const translateError = (err: unknown): string => {
         "Invalid code provided, please request a code again"
       )
     )
-      return "Mã xác nhận không đúng. Vui lòng thử lại.";
+      return ERROR_MESSAGES.INVALID_CODE_REQUEST_AGAIN;
 
     // Validation error
     if (gqlError?.extensions?.code === "VALIDATION_ERROR") {
       const details = gqlError?.extensions?.details;
       if (Array.isArray(details) && details.length > 0) {
-        return details[0]?.message || "Thông tin nhập vào không hợp lệ.";
+        return details[0]?.message || VALIDATION_MESSAGES.INVALID_INPUT;
       }
-      return "Thông tin nhập vào không hợp lệ.";
+      return VALIDATION_MESSAGES.INVALID_INPUT;
     }
 
     return (
       cognitoError ||
       gqlError?.message ||
-      "Có lỗi xảy ra. Vui lòng thử lại sau."
+      VALIDATION_MESSAGES.GENERAL_ERROR
     );
   } catch (e) {
     console.error("translateError failed:", e, err);
-    return "Có lỗi xảy ra. Vui lòng thử lại sau.";
+    return VALIDATION_MESSAGES.GENERAL_ERROR;
   }
 };
 
 export const translateRole = (role?: string): string => {
   if (!role) return "Người dùng";
 
-  switch (role.toUpperCase()) {
-    case "DONOR":
-      return "Người ủng hộ";
-    case "ADMIN":
-      return "Quản trị viên";
-    case "KITCHEN_STAFF":
-      return "Nhân viên bếp";
-    case "DELIVERY_STAFF":
-      return "Giao hàng";
-    case "FUNDRAISER":
-      return "Nhà vận động";
-    default:
-      return role;
-  }
+  const upperRole = role.toUpperCase() as keyof typeof ROLE_TRANSLATIONS;
+  return ROLE_TRANSLATIONS[upperRole] || role;
 };
 
-export const statusConfig = {
-  PENDING: {
-    label: "Chờ duyệt",
-    variant: "secondary" as const,
-    icon: Clock,
-    color: "bg-yellow-100 text-yellow-800",
-  },
-  APPROVED: {
-    label: "Đã duyệt",
-    variant: "default" as const,
-    icon: CheckCircle,
-    color: "bg-blue-100 text-blue-800",
-  },
-  VERIFIED: {
-    label: "Đã duyệt",
-    variant: "default" as const,
-    icon: CheckCircle,
-    color: "bg-blue-100 text-blue-800",
-  },
-  ACTIVE: {
-    label: "Đang hoạt động",
-    variant: "default" as const,
-    icon: CheckCircle,
-    color: "bg-green-100 text-green-800",
-  },
-  REJECTED: {
-    label: "Từ chối",
-    variant: "destructive" as const,
-    icon: XCircle,
-    color: "bg-red-100 text-red-800",
-  },
-  COMPLETED: {
-    label: "Hoàn thành",
-    variant: "outline" as const,
-    icon: CheckCircle,
-    color: "bg-gray-100 text-gray-800",
-  },
-  CANCELLED: {
-    label: "Đã hủy",
-    variant: "destructive" as const,
-    icon: XCircle,
-    color: "bg-red-100 text-red-800",
-  },
-};
-
-export const statusActions = {
-  PENDING: [
-    {
-      status: "APPROVED" as const,
-      label: "Phê duyệt",
-      icon: ThumbsUp,
-      variant: "default" as const,
-    },
-    {
-      status: "REJECTED" as const,
-      label: "Từ chối",
-      icon: ThumbsDown,
-      variant: "destructive" as const,
-    },
-  ],
-  APPROVED: [
-    {
-      status: "ACTIVE" as const,
-      label: "Kích hoạt",
-      icon: PlayCircle,
-      variant: "default" as const,
-    },
-    {
-      status: "REJECTED" as const,
-      label: "Từ chối",
-      icon: ThumbsDown,
-      variant: "destructive" as const,
-    },
-  ],
-  ACTIVE: [
-    {
-      status: "COMPLETED" as const,
-      label: "Hoàn thành",
-      icon: CheckCircle2,
-      variant: "outline" as const,
-    },
-    {
-      status: "CANCELLED" as const,
-      label: "Hủy bỏ",
-      icon: StopCircle,
-      variant: "destructive" as const,
-    },
-  ],
-  REJECTED: [],
-  COMPLETED: [],
-  CANCELLED: [],
-};
+// Re-export constants for backward compatibility
+export const statusConfig = STATUS_CONFIG;
+export const statusActions = STATUS_ACTIONS;
