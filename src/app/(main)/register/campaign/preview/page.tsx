@@ -84,26 +84,68 @@ export default function CreateCampaignStepPreview() {
     try {
       setLoading(true);
 
-      const required: Record<keyof CreateCampaignInput, unknown> = {
-        title: form.title,
-        description: form.description,
-        coverImageFileKey: form.coverImageFileKey,
-        location: form.location,
-        targetAmount: form.targetAmount,
-        fundraisingStartDate: form.fundraisingStartDate,
-        fundraisingEndDate: form.fundraisingEndDate,
-        categoryId: form.categoryId,
-        ingredientBudgetPercentage: form.ingredientBudgetPercentage,
-        cookingBudgetPercentage: form.cookingBudgetPercentage,
-        deliveryBudgetPercentage: form.deliveryBudgetPercentage,
-        ingredientPurchaseDate: form.ingredientPurchaseDate,
-        cookingDate: form.cookingDate,
-        deliveryDate: form.deliveryDate,
-      };
+      // Validation
+      if (!form.title?.trim()) {
+        toast.error("Thiếu tiêu đề chiến dịch");
+        setLoading(false);
+        return;
+      }
+      
+      if (!form.description?.trim()) {
+        toast.error("Thiếu mô tả chiến dịch");
+        setLoading(false);
+        return;
+      }
+      
+      if (!form.coverImageFileKey?.trim()) {
+        toast.error("Thiếu ảnh bìa");
+        setLoading(false);
+        return;
+      }
+      
+      if (!form.targetAmount) {
+        toast.error("Thiếu mục tiêu quyên góp");
+        setLoading(false);
+        return;
+      }
+      
+      if (!form.categoryId?.trim()) {
+        toast.error("Thiếu danh mục");
+        setLoading(false);
+        return;
+      }
+      
+      if (!form.phases || form.phases.length === 0) {
+        toast.error("Thiếu thông tin giai đoạn thực hiện");
+        setLoading(false);
+        return;
+      }
 
-      for (const [k, v] of Object.entries(required)) {
-        if (!String(v ?? "").trim()) {
-          toast.error(`Thiếu trường: ${k}`);
+      // Validate phases
+      for (let i = 0; i < form.phases.length; i++) {
+        const phase = form.phases[i];
+        if (!phase.phaseName?.trim()) {
+          toast.error(`Giai đoạn ${i + 1}: Thiếu tên giai đoạn`);
+          setLoading(false);
+          return;
+        }
+        if (!phase.location?.trim()) {
+          toast.error(`Giai đoạn ${i + 1}: Thiếu địa điểm`);
+          setLoading(false);
+          return;
+        }
+        if (!phase.ingredientPurchaseDate) {
+          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày mua nguyên liệu`);
+          setLoading(false);
+          return;
+        }
+        if (!phase.cookingDate) {
+          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày nấu ăn`);
+          setLoading(false);
+          return;
+        }
+        if (!phase.deliveryDate) {
+          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày giao hàng`);
           setLoading(false);
           return;
         }
@@ -121,28 +163,52 @@ export default function CreateCampaignStepPreview() {
         title: form.title!,
         description: form.description!,
         coverImageFileKey: form.coverImageFileKey!,
-        location: form.location!,
         targetAmount: String(form.targetAmount!),
-        fundraisingStartDate: startISO,
-        fundraisingEndDate: endISO,
         categoryId: form.categoryId!,
         ingredientBudgetPercentage: form.ingredientBudgetPercentage!,
         cookingBudgetPercentage: form.cookingBudgetPercentage!,
         deliveryBudgetPercentage: form.deliveryBudgetPercentage!,
-        ingredientPurchaseDate: new Date(
-          form.ingredientPurchaseDate!
-        ).toISOString(),
-        cookingDate: new Date(form.cookingDate!).toISOString(),
-        deliveryDate: new Date(form.deliveryDate!).toISOString(),
+        fundraisingStartDate: startISO,
+        fundraisingEndDate: endISO,
+        phases: form.phases!,
       };
 
-      await campaignService.createCampaign(input);
-      toast.success("Chiến dịch đã được tạo thành công!");
-      dispatch(resetForm());
-      router.push("/profile?tab=campaigns");
+      console.log("Creating campaign with input:", input);
+      
+      const result = await campaignService.createCampaign(input);
+      
+      console.log("Create campaign result:", result);
+      
+      if (result) {
+        toast.success("Chiến dịch đã được tạo thành công!");
+        dispatch(resetForm());
+        router.push("/profile?tab=campaigns");
+      } else {
+        console.error("Create campaign returned null");
+        toast.error("Tạo chiến dịch thất bại. Server không trả về dữ liệu.");
+      }
     } catch (err) {
-      console.error(err);
-      toast.error("Tạo chiến dịch thất bại. Vui lòng thử lại!");
+      console.error("Create campaign error:", err);
+      
+      // Extract error message from GraphQL error or use default
+      let errorMessage = "Tạo chiến dịch thất bại. Vui lòng thử lại!";
+      
+      if (err && typeof err === 'object') {
+        // Handle GraphQL errors
+        if ('graphQLErrors' in err && Array.isArray((err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors) && (err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors.length > 0) {
+          errorMessage = (err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors[0].message || errorMessage;
+        }
+        // Handle network errors
+        else if ('networkError' in err && (err as { networkError: unknown }).networkError) {
+          errorMessage = "Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.";
+        }
+        // Handle other error formats
+        else if ('message' in err) {
+          errorMessage = (err as { message?: string }).message || errorMessage;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -155,25 +221,27 @@ export default function CreateCampaignStepPreview() {
       datetime: fmtDateTime(form.fundraisingStartDate),
     },
     {
-      key: "fundraisingEndDate",
+      key: "fundraisingEndDate", 
       label: "Kết thúc gây quỹ",
       datetime: fmtDateTime(form.fundraisingEndDate),
     },
-    {
-      key: "ingredientPurchaseDate",
-      label: "Mua nguyên liệu",
-      datetime: fmtDateTime(form.ingredientPurchaseDate),
-    },
-    {
-      key: "cookingDate",
-      label: "Nấu ăn",
-      datetime: fmtDateTime(form.cookingDate),
-    },
-    {
-      key: "deliveryDate",
-      label: "Giao suất ăn",
-      datetime: fmtDateTime(form.deliveryDate),
-    },
+    ...(form.phases || []).flatMap((phase, index) => [
+      {
+        key: `phase-${index}-ingredient`,
+        label: `${phase.phaseName} - Mua nguyên liệu`,
+        datetime: fmtDateTime(phase.ingredientPurchaseDate),
+      },
+      {
+        key: `phase-${index}-cooking`,
+        label: `${phase.phaseName} - Nấu ăn`,
+        datetime: fmtDateTime(phase.cookingDate),
+      },
+      {
+        key: `phase-${index}-delivery`,
+        label: `${phase.phaseName} - Giao hàng`,
+        datetime: fmtDateTime(phase.deliveryDate),
+      },
+    ]),
   ].filter((m) => m.datetime);
 
   return (
@@ -213,9 +281,9 @@ export default function CreateCampaignStepPreview() {
             <div>
               <p className="text-sm text-gray-500 mb-1">
                 <MapPin className="inline w-4 h-4 mr-1" />
-                Địa điểm
+                Số giai đoạn
               </p>
-              <p className="font-medium break-words">{form.location || "—"}</p>
+              <p className="font-medium">{form.phases?.length || 0} giai đoạn</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">
@@ -329,6 +397,40 @@ export default function CreateCampaignStepPreview() {
             </div>
           </div>
         </div>
+
+        {/* Phases Section */}
+        {form.phases && form.phases.length > 0 && (
+          <div className="mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">
+              Giai đoạn thực hiện
+            </h2>
+            <div className="space-y-4">
+              {form.phases.map((phase, index) => (
+                <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                  <h3 className="font-semibold text-gray-900 mb-2">{phase.phaseName}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Địa điểm:</span>
+                      <p className="font-medium">{phase.location || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Mua nguyên liệu:</span>
+                      <p className="font-medium">{fmtDateTime(phase.ingredientPurchaseDate) || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Nấu ăn:</span>
+                      <p className="font-medium">{fmtDateTime(phase.cookingDate) || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Giao hàng:</span>
+                      <p className="font-medium">{fmtDateTime(phase.deliveryDate) || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {milestones.length > 0 && (
           <div className="mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm">

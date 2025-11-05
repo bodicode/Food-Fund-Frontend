@@ -41,7 +41,7 @@ export default function EmergencyPage() {
           const emergencyCampaigns = filterEmergencyCampaigns(data);
 
           emergencyCampaigns.sort((a, b) => {
-            const daysA = getDaysRemaining(a.fundraisingStartDate || "");
+            const daysA = getDaysRemaining(a.fundraisingEndDate || "");
             const daysB = getDaysRemaining(b.fundraisingEndDate || "");
             return daysA - daysB;
           });
@@ -155,7 +155,7 @@ export default function EmergencyPage() {
                         coverImage={
                           campaign.coverImage || "/images/default-campaign.jpg"
                         }
-                        location={campaign.location}
+                        phases={campaign.phases}
                         status={campaign.status}
                         donationCount={campaign.donationCount || 0}
                         receivedAmount={campaign.receivedAmount}

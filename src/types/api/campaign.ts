@@ -1,3 +1,7 @@
+import { CampaignPhase, CreatePhaseInput } from "./phase";
+
+
+
 // ==============================
 // CAMPAIGN TYPES
 // ==============================
@@ -6,7 +10,6 @@ export interface Campaign {
   title: string;
   description?: string;
   coverImage?: string;
-  location?: string;
 
   status:
     | "PENDING"
@@ -24,19 +27,18 @@ export interface Campaign {
   fundraisingStartDate?: string;
   fundraisingEndDate?: string;
 
-  // Các mốc vận hành
-  cookingDate?: string;
-  deliveryDate?: string;
-  ingredientPurchaseDate?: string;
-
-  // (tuỳ backend có trả các khoản phân bổ hay không)
-  cookingFundsAmount?: string;
-  deliveryFundsAmount?: string;
-  ingredientFundsAmount?: string;
-
+  // Budget percentages
   cookingBudgetPercentage?: string;
   ingredientBudgetPercentage?: string;
   deliveryBudgetPercentage?: string;
+
+  // Phases - new structure
+  phases?: CampaignPhase[];
+
+  // Legacy fields - for backward compatibility
+  cookingFundsAmount?: string;
+  deliveryFundsAmount?: string;
+  ingredientFundsAmount?: string;
 
   category: {
     id: string;
@@ -107,25 +109,26 @@ export interface ChangeCampaignStatusResponse {
   };
 }
 
+
+
 export interface CreateCampaignInput {
   title: string;
   description: string;
   coverImageFileKey: string;
-  location: string;
   targetAmount: string;
+  categoryId: string;
 
+  // Budget percentages
   ingredientBudgetPercentage: string; // "60.00"
   cookingBudgetPercentage: string; // "25.00"
   deliveryBudgetPercentage: string; // "15.00"
 
+  // Fundraising dates
   fundraisingStartDate: string; // ISO
   fundraisingEndDate: string; // ISO
 
-  ingredientPurchaseDate: string; // ISO
-  cookingDate: string; // ISO
-  deliveryDate: string; // ISO
-
-  categoryId: string;
+  // Phases - new structure
+  phases: CreatePhaseInput[];
 }
 
 export interface CreateCampaignResponse {
@@ -138,14 +141,9 @@ export interface UpdateCampaignInput {
   targetAmount?: string;
   categoryId?: string;
   coverImageFileKey?: string;
-  location?: string;
 
   fundraisingStartDate?: string;
   fundraisingEndDate?: string;
-
-  ingredientPurchaseDate?: string;
-  cookingDate?: string;
-  deliveryDate?: string;
 
   ingredientBudgetPercentage?: string;
   cookingBudgetPercentage?: string;

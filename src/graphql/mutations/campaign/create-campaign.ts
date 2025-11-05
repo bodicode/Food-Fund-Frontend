@@ -7,13 +7,24 @@ export const CREATE_CAMPAIGN = gql`
       title
       description
       coverImage
-      location
       status
       targetAmount
       donationCount
       receivedAmount
-      created_at
-      createdBy
+      fundraisingStartDate
+      fundraisingEndDate
+      ingredientBudgetPercentage
+      cookingBudgetPercentage
+      deliveryBudgetPercentage
+      phases {
+        id
+        phaseName
+        location
+        ingredientPurchaseDate
+        cookingDate
+        deliveryDate
+        status
+      }
       category {
         id
         title
@@ -23,6 +34,8 @@ export const CREATE_CAMPAIGN = gql`
         id
         full_name
       }
+      created_at
+      createdBy
     }
   }
 `;

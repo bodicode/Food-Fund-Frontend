@@ -16,7 +16,15 @@ type CampaignCardProps = {
   title: string;
   description?: string;
   coverImage: string;
-  location?: string;
+  phases?: Array<{
+    id?: string;
+    phaseName: string;
+    location: string;
+    ingredientPurchaseDate: string;
+    cookingDate: string;
+    deliveryDate: string;
+    status?: string;
+  }>;
   status?:
     | "PENDING"
     | "APPROVED"
@@ -49,7 +57,7 @@ export function CampaignCard({
   title,
   // description,
   coverImage,
-  location,
+  phases,
   status,
   donationCount,
   receivedAmount,
@@ -225,7 +233,7 @@ export function CampaignCard({
           </div>
         )}
 
-        {location && (
+        {phases && phases.length > 0 && (
           <div className="mt-3 text-xs h-12 xl:h-8 text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
             <MapPin
               animate
@@ -233,7 +241,11 @@ export function CampaignCard({
               loop
               className="w-4 h-4 text-gray-400 flex-shrink-0"
             />
-            <span>{location}</span>
+            <span>
+              {phases.length === 1 
+                ? phases[0].location 
+                : `${phases.length} địa điểm`}
+            </span>
           </div>
         )}
 

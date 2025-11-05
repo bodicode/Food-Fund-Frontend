@@ -7,7 +7,6 @@ export const UPDATE_CAMPAIGN = gql`
       title
       description
       coverImage
-      location
       status
 
       targetAmount
@@ -16,10 +15,13 @@ export const UPDATE_CAMPAIGN = gql`
 
       fundraisingStartDate
       fundraisingEndDate
-      ingredientPurchaseDate
-      cookingDate
-      deliveryDate
 
+      # Budget percentages
+      cookingBudgetPercentage
+      ingredientBudgetPercentage
+      deliveryBudgetPercentage
+
+      # Legacy funds amounts
       ingredientFundsAmount
       cookingFundsAmount
       deliveryFundsAmount

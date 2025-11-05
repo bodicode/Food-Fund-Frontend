@@ -309,7 +309,11 @@ export default function AdminCampaignsPage() {
                 </CardTitle>
                 <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-2">
                   <MapPin className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="line-clamp-1">{campaign.location}</span>
+                  <span className="line-clamp-1">
+                    {campaign.phases && campaign.phases.length > 0 
+                      ? `${campaign.phases.length} địa điểm` 
+                      : "Chưa có địa điểm"}
+                  </span>
                 </div>
               </CardHeader>
 

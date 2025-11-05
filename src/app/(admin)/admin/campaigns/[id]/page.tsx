@@ -283,10 +283,10 @@ export default function AdminCampaignDetailPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">
-                        Địa điểm
+                        Số giai đoạn
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100 break-words">
-                        {campaign.location || "Chưa cập nhật"}
+                        {campaign.phases?.length || 0} giai đoạn thực hiện
                       </p>
                     </div>
                   </div>
@@ -336,15 +336,71 @@ export default function AdminCampaignDetailPage() {
               </CardContent>
             </Card>
 
-            {/* ==== Mốc thời gian chiến dịch ==== */}
+            {/* ==== Giai đoạn thực hiện ==== */}
+            {campaign.phases && campaign.phases.length > 0 && (
+              <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                <CardContent className="p-6 space-y-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-[#38bdf8]" />
+                    Giai đoạn thực hiện
+                  </h3>
+
+                  <div className="space-y-6">
+                    {campaign.phases.map((phase, index) => (
+                      <div key={phase.id || index} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                          {phase.phaseName}
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">Địa điểm:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {phase.location || "—"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">Mua nguyên liệu:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {formatDate(phase.ingredientPurchaseDate)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">Nấu ăn:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {formatDate(phase.cookingDate)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">Giao hàng:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {formatDate(phase.deliveryDate)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ==== Mốc thời gian gây quỹ ==== */}
             <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
               <CardContent className="p-6 space-y-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-[#38bdf8]" />
-                  Mốc thời gian chiến dịch
+                  <CalendarDays className="w-5 h-5 text-[#38bdf8]" />
+                  Thời gian gây quỹ
                 </h3>
 
                 <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Ngày tạo chiến dịch
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {formatDate(campaign.created_at)}
+                    </span>
+                  </div>
                   <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
                     <span className="text-gray-600 dark:text-gray-400">
                       Bắt đầu gây quỹ
@@ -353,44 +409,12 @@ export default function AdminCampaignDetailPage() {
                       {formatDate(campaign.fundraisingStartDate)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">
                       Kết thúc gây quỹ
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
                       {formatDate(campaign.fundraisingEndDate)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Mua nguyên liệu
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.ingredientPurchaseDate)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Ngày nấu ăn
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.cookingDate)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Ngày giao / phát
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.deliveryDate)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Ngày tạo chiến dịch
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.created_at)}
                     </span>
                   </div>
                 </div>

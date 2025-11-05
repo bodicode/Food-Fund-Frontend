@@ -277,9 +277,12 @@ export default function MyCampaignDetailPage() {
               {campaign.title}
             </h1>
             <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
-              {campaign.location && (
+              {campaign.phases && campaign.phases.length > 0 && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
-                  <MapPin className="w-4 h-4" /> {campaign.location}
+                  <MapPin className="w-4 h-4" /> 
+                  {campaign.phases.length === 1 
+                    ? campaign.phases[0].location 
+                    : `${campaign.phases.length} địa điểm`}
                 </span>
               )}
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800">
@@ -430,21 +433,23 @@ export default function MyCampaignDetailPage() {
                         ? "current"
                         : "upcoming",
                   },
-                  {
-                    label: "Mua nguyên liệu",
-                    date: formatDateTime(campaign.ingredientPurchaseDate),
-                    status: campaign.ingredientPurchaseDate && new Date(campaign.ingredientPurchaseDate) <= new Date() ? "completed" : "upcoming",
-                  },
-                  {
-                    label: "Nấu ăn",
-                    date: formatDateTime(campaign.cookingDate),
-                    status: campaign.cookingDate && new Date(campaign.cookingDate) <= new Date() ? "completed" : "upcoming",
-                  },
-                  {
-                    label: "Giao/Phân phát",
-                    date: formatDateTime(campaign.deliveryDate),
-                    status: campaign.deliveryDate && new Date(campaign.deliveryDate) <= new Date() ? "completed" : "upcoming",
-                  },
+                  ...(campaign.phases || []).flatMap((phase) => [
+                    {
+                      label: `${phase.phaseName} - Mua nguyên liệu`,
+                      date: formatDateTime(phase.ingredientPurchaseDate),
+                      status: (phase.ingredientPurchaseDate && new Date(phase.ingredientPurchaseDate) <= new Date() ? "completed" : "upcoming") as "completed" | "upcoming",
+                    },
+                    {
+                      label: `${phase.phaseName} - Nấu ăn`,
+                      date: formatDateTime(phase.cookingDate),
+                      status: (phase.cookingDate && new Date(phase.cookingDate) <= new Date() ? "completed" : "upcoming") as "completed" | "upcoming",
+                    },
+                    {
+                      label: `${phase.phaseName} - Giao hàng`,
+                      date: formatDateTime(phase.deliveryDate),
+                      status: (phase.deliveryDate && new Date(phase.deliveryDate) <= new Date() ? "completed" : "upcoming") as "completed" | "upcoming",
+                    },
+                  ]),
                 ]}
               />
             </div>

@@ -274,9 +274,12 @@ export default function CampaignDetailPage() {
               {campaign.title}
             </h1>
             <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
-              {campaign.location && (
+              {campaign.phases && campaign.phases.length > 0 && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
-                  <MapPin className="w-4 h-4" /> {campaign.location}
+                  <MapPin className="w-4 h-4" /> 
+                  {campaign.phases.length === 1 
+                    ? campaign.phases[0].location 
+                    : `${campaign.phases.length} địa điểm`}
                 </span>
               )}
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800">
@@ -412,25 +415,27 @@ export default function CampaignDetailPage() {
                   {
                     label: "Kết thúc gây quỹ",
                     date: formatDateTime(campaign.fundraisingEndDate),
-                    status: fundraisingEndStatus, // completed | current | upcoming
+                    status: fundraisingEndStatus,
                     startDate: campaign.fundraisingStartDate,
                     endDate: campaign.fundraisingEndDate,
                   },
-                  {
-                    label: "Mua nguyên liệu",
-                    date: formatDateTime(campaign.ingredientPurchaseDate),
-                    status: statusFor(campaign.ingredientPurchaseDate),
-                  },
-                  {
-                    label: "Nấu ăn",
-                    date: formatDateTime(campaign.cookingDate),
-                    status: statusFor(campaign.cookingDate),
-                  },
-                  {
-                    label: "Giao/Phân phát",
-                    date: formatDateTime(campaign.deliveryDate),
-                    status: statusFor(campaign.deliveryDate),
-                  },
+                  ...(campaign.phases || []).flatMap((phase) => [
+                    {
+                      label: `${phase.phaseName} - Mua nguyên liệu`,
+                      date: formatDateTime(phase.ingredientPurchaseDate),
+                      status: statusFor(phase.ingredientPurchaseDate),
+                    },
+                    {
+                      label: `${phase.phaseName} - Nấu ăn`,
+                      date: formatDateTime(phase.cookingDate),
+                      status: statusFor(phase.cookingDate),
+                    },
+                    {
+                      label: `${phase.phaseName} - Giao hàng`,
+                      date: formatDateTime(phase.deliveryDate),
+                      status: statusFor(phase.deliveryDate),
+                    },
+                  ]),
                 ]}
               />
             </div>
