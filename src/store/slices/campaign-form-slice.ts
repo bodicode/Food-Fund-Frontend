@@ -7,21 +7,22 @@ const initialState: CampaignFormState = {
   title: "",
   description: "",
   coverImageFileKey: "",
-  location: "",
   targetAmount: "",
-
-  ingredientBudgetPercentage: "",
-  cookingBudgetPercentage: "",
-  deliveryBudgetPercentage: "",
-
+  categoryId: "",
+  ingredientBudgetPercentage: "60.00",
+  cookingBudgetPercentage: "25.00", 
+  deliveryBudgetPercentage: "15.00",
   fundraisingStartDate: "",
   fundraisingEndDate: "",
-
-  ingredientPurchaseDate: "",
-  cookingDate: "",
-  deliveryDate: "",
-
-  categoryId: "",
+  phases: [
+    {
+      phaseName: "Giai đoạn 1",
+      location: "",
+      ingredientPurchaseDate: "",
+      cookingDate: "",
+      deliveryDate: "",
+    },
+  ],
 };
 
 const campaignFormSlice = createSlice({

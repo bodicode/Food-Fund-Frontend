@@ -43,11 +43,25 @@ const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), {
 
 type LatLng = [number, number];
 
+interface PhaseLocation {
+  phase: {
+    id?: string;
+    phaseName: string;
+    location: string;
+    ingredientPurchaseDate: string;
+    cookingDate: string;
+    deliveryDate: string;
+    status?: string;
+  };
+  coordinates: LatLng;
+}
+
 export default function CampaignMapPage() {
   const { id } = useParams();
   const router = useRouter();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [pos, setPos] = useState<LatLng | null>(null);
+  const [phaseLocations, setPhaseLocations] = useState<PhaseLocation[]>([]);
+  const [mapCenter, setMapCenter] = useState<LatLng>([10.762622, 106.660172]); // Default to Ho Chi Minh City
   const [loading, setLoading] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
 
@@ -59,21 +73,42 @@ export default function CampaignMapPage() {
         const data = await campaignService.getCampaignById(id as string);
         setCampaign(data);
 
-        if (data?.location) {
-          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            data.location
-          )}&countrycodes=VN&limit=1`;
+        if (data?.phases && data.phases.length > 0) {
+          const locations: PhaseLocation[] = [];
+          
+          // Geocode each phase location
+          for (const phase of data.phases) {
+            if (phase.location) {
+              try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+                  phase.location
+                )}&countrycodes=VN&limit=1`;
 
-          const res = await fetch(url, {
-            headers: {
-              "Accept-Language": "vi",
-              "User-Agent": "FoodFund/1.0 (foodfund.vn)",
-            },
-          });
+                const res = await fetch(url, {
+                  headers: {
+                    "Accept-Language": "vi",
+                    "User-Agent": "FoodFund/1.0 (foodfund.vn)",
+                  },
+                });
 
-          const geo = await res.json();
-          if (geo?.length > 0) {
-            setPos([parseFloat(geo[0].lat), parseFloat(geo[0].lon)]);
+                const geo = await res.json();
+                if (geo?.length > 0) {
+                  locations.push({
+                    phase,
+                    coordinates: [parseFloat(geo[0].lat), parseFloat(geo[0].lon)]
+                  });
+                }
+              } catch (err) {
+                console.error(`Lỗi geocoding cho phase ${phase.phaseName}:`, err);
+              }
+            }
+          }
+
+          setPhaseLocations(locations);
+          
+          // Set map center to first location or default
+          if (locations.length > 0) {
+            setMapCenter(locations[0].coordinates);
           }
         }
       } catch (err) {
@@ -162,29 +197,51 @@ export default function CampaignMapPage() {
           {campaign.title}
         </h1>
 
-        {campaign.location && (
-          <div className="mt-3 text-sm text-gray-600 flex items-start gap-2 bg-gray-50 p-3 rounded-lg">
-            <span className="text-lg">
-              <MapPin className="mr-1 w-4 h-4 inline" />
-            </span>
-            <span className="flex-1">{campaign.location}</span>
+        {phaseLocations.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Địa điểm thực hiện ({phaseLocations.length} giai đoạn)
+            </h3>
+            {phaseLocations.map((phaseLocation, index) => (
+              <div key={index} className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                <div className="font-medium text-gray-800 mb-1">
+                  {phaseLocation.phase.phaseName}
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-gray-400">📍</span>
+                  <span className="flex-1">{phaseLocation.phase.location}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() => {
-              const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                campaign.location || ""
-              )}`;
-              window.open(mapUrl, "_blank");
-            }}
-            className="flex-1 border-2 border-[#ad4e28] text-[#ad4e28] py-3 rounded-xl font-semibold hover:bg-[#ad4e28]/10 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-          >
-            <span>
-              <Map className="inline mr-1 w-4 h-4" /> Chỉ đường
-            </span>
-          </button>
+          {phaseLocations.length > 0 && (
+            <button
+              onClick={() => {
+                if (phaseLocations.length === 1) {
+                  // Single location - direct to Google Maps
+                  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    phaseLocations[0].phase.location
+                  )}`;
+                  window.open(mapUrl, "_blank");
+                } else {
+                  // Multiple locations - create directions with waypoints
+                  const locations = phaseLocations.map(pl => encodeURIComponent(pl.phase.location));
+                  const mapUrl = `https://www.google.com/maps/dir/${locations.join('/')}`;
+                  window.open(mapUrl, "_blank");
+                }
+              }}
+              className="flex-1 border-2 border-[#ad4e28] text-[#ad4e28] py-3 rounded-xl font-semibold hover:bg-[#ad4e28]/10 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>
+                <Map className="inline mr-1 w-4 h-4" /> 
+                {phaseLocations.length === 1 ? 'Chỉ đường' : `Chỉ đường ${phaseLocations.length} điểm`}
+              </span>
+            </button>
+          )}
           <button
             onClick={() => router.push(`/campaign/${campaign.id}`)}
             className="flex-1 bg-gradient-to-r from-[#ad4e28] to-[#8b3e20] text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
@@ -202,36 +259,53 @@ export default function CampaignMapPage() {
       )}
 
       <div className="flex-1 lg:ml-[100px] h-[100vh] relative z-0 pt-16">
-        {pos ? (
-          <MapContainer center={pos} zoom={14} className="h-full w-full">
+        {phaseLocations.length > 0 ? (
+          <MapContainer center={mapCenter} zoom={13} className="h-full w-full">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={pos}>
-              <Popup>
-                <div className="space-y-2 p-2">
-                  <div className="font-bold text-base text-gray-900">
-                    {campaign.title}
+            {phaseLocations.map((phaseLocation, index) => (
+              <Marker key={index} position={phaseLocation.coordinates}>
+                <Popup>
+                  <div className="space-y-2 p-2 min-w-[200px]">
+                    <div className="font-bold text-base text-gray-900">
+                      {phaseLocation.phase.phaseName}
+                    </div>
+                    <div className="text-sm text-gray-600 mb-2">
+                      {campaign?.title}
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-start gap-1 mb-3">
+                      <span>📍</span>
+                      <span>{phaseLocation.phase.location}</span>
+                    </div>
+                    
+                    {/* Phase timeline */}
+                    <div className="text-xs text-gray-500 space-y-1 border-t pt-2">
+                      <div>🛒 Mua NL: {new Date(phaseLocation.phase.ingredientPurchaseDate).toLocaleDateString('vi-VN')}</div>
+                      <div>👨‍🍳 Nấu ăn: {new Date(phaseLocation.phase.cookingDate).toLocaleDateString('vi-VN')}</div>
+                      <div>🚚 Giao hàng: {new Date(phaseLocation.phase.deliveryDate).toLocaleDateString('vi-VN')}</div>
+                    </div>
+                    
+                    <button
+                      onClick={() => router.push(`/campaign/${campaign?.id}`)}
+                      className="w-full mt-2 bg-[#ad4e28] text-white py-2 px-4 rounded-lg text-sm font-semibold hover:opacity-90 transition"
+                    >
+                      Xem chi tiết chiến dịch
+                    </button>
                   </div>
-                  <div className="text-sm text-gray-600 flex items-start gap-1">
-                    <span>📍</span>
-                    <span>{campaign.location}</span>
-                  </div>
-                  <button
-                    onClick={() => router.push(`/campaign/${campaign.id}`)}
-                    className="w-full mt-2 bg-[#ad4e28] text-white py-2 px-4 rounded-lg text-sm font-semibold hover:opacity-90 transition"
-                  >
-                    Xem chi tiết
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
+                </Popup>
+              </Marker>
+            ))}
           </MapContainer>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4 bg-gradient-to-br from-gray-50 to-white">
             <div className="text-6xl">🗺️</div>
-            <p className="font-medium">Không tìm thấy vị trí</p>
+            <p className="font-medium">
+              {campaign?.phases?.length === 0 
+                ? "Chiến dịch chưa có giai đoạn thực hiện" 
+                : "Không tìm thấy vị trí cho các giai đoạn"}
+            </p>
           </div>
         )}
       </div>
