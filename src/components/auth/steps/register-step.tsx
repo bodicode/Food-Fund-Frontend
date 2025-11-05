@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { SignUpInput } from "@/types/api/sign-up";
@@ -23,8 +23,7 @@ export function RegisterStep({ authService, onSuccess }: Props) {
     password: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   /** Handle change cho các field input */
@@ -90,46 +89,24 @@ export function RegisterStep({ authService, onSuccess }: Props) {
       />
 
       {/* Mật khẩu */}
-      <div className="relative">
-        <Input
-          type={showPassword ? "text" : "password"}
-          placeholder="Mật khẩu"
-          value={form.password}
-          onChange={(e) => handleChange("password", e.target.value)}
-          className="bg-white border border-[#ad4e28]/30 text-black pr-10"
-          required
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-600"
-        >
-          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-        </Button>
-      </div>
+      <Input
+        type="password"
+        placeholder="Mật khẩu"
+        value={form.password}
+        onChange={(e) => handleChange("password", e.target.value)}
+        className="bg-white border border-[#ad4e28]/30 text-black"
+        required
+      />
 
       {/* Xác nhận mật khẩu */}
-      <div className="relative">
-        <Input
-          type={showConfirmPassword ? "text" : "password"}
-          placeholder="Xác nhận mật khẩu"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full bg-white border border-[#ad4e28]/30 text-black pr-10"
-          required
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowConfirmPassword((prev) => !prev)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-600"
-        >
-          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-        </Button>
-      </div>
+      <Input
+        type="password"
+        placeholder="Xác nhận mật khẩu"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        className="w-full bg-white border border-[#ad4e28]/30 text-black"
+        required
+      />
 
       {/* Nút submit */}
       <Button

@@ -126,9 +126,10 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-300" />
                 </div>
+                <div className="relative flex justify-center text-sm" />
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-4">
                 <GoogleLogin
                   onSuccess={handleGoogleRegister}
                   onError={() => toast.error("Đăng ký Google thất bại!")}

@@ -7,10 +7,11 @@ const passwordSchema = z
   .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
   .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số");
 
-const phoneSchema = z
-  .string()
-  .regex(/^(\+84|0)[3-9]\d{8}$/, "Số điện thoại không hợp lệ")
-  .optional();
+// Phone schema for future use
+// const phoneSchema = z
+//   .string()
+//   .regex(/^(\+84|0)[3-9]\d{8}$/, "Số điện thoại không hợp lệ")
+//   .optional();
 
 // Sign In Schema
 export const signInSchema = z.object({

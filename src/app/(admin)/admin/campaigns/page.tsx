@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { categoryService } from "@/services/category.service";
 import { campaignService } from "@/services/campaign.service";
 import { Category } from "@/types/api/category";
-import { Campaign } from "@/types/api/campaign";
+import { Campaign, CampaignParams } from "@/types/api/campaign";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,8 @@ import {
   DollarSign,
   Users,
   MapPin,
+  ArrowUpDown,
+  RefreshCw,
 } from "lucide-react";
 import Image from "next/image";
 import { useCampaigns } from "@/hooks/use-campaign";
@@ -126,7 +128,7 @@ export default function AdminCampaignsPage() {
 
   return (
     <div className="lg:container mx-auto p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Quản lý Chiến dịch
@@ -140,6 +142,16 @@ export default function AdminCampaignsPage() {
             <Filter className="w-3 h-3 mr-1" />
             {campaigns.length} chiến dịch
           </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchCampaigns()}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
         </div>
       </div>
 
@@ -221,6 +233,34 @@ export default function AdminCampaignsPage() {
                     {cat.title}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={params.sortBy || "NEWEST_FIRST"}
+              onValueChange={(val) => {
+                const sortBy = val as CampaignParams["sortBy"];
+                setParams((prev) => ({
+                  ...prev,
+                  sortBy,
+                }));
+                fetchCampaigns({
+                  sortBy,
+                });
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-48">
+                <ArrowUpDown className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                <SelectItem value="ACTIVE_FIRST">Đang hoạt động trước</SelectItem>
+                <SelectItem value="TARGET_AMOUNT_DESC">Mục tiêu cao nhất</SelectItem>
+                <SelectItem value="TARGET_AMOUNT_ASC">Mục tiêu thấp nhất</SelectItem>
+                <SelectItem value="MOST_DONATED">Nhiều đóng góp nhất</SelectItem>
+                <SelectItem value="LEAST_DONATED">Ít đóng góp nhất</SelectItem>
               </SelectContent>
             </Select>
           </div>

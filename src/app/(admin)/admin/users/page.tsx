@@ -5,8 +5,10 @@ import { translateRole } from "@/lib/translator";
 import { userService } from "@/services/user.service";
 import { UserProfile } from "@/types/api/user";
 import EditUserModal from "@/components/admin/EditUserModal";
-import { Edit } from "lucide-react";
+import { Edit, RefreshCw, Users } from "lucide-react";
 import { USER_ROLES } from "@/constants";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function TeamPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -14,27 +16,48 @@ export default function TeamPage() {
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const data = await userService.getAllUsers(10, 0);
+      setUsers(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await userService.getAllUsers(10, 0);
-        if (mounted) setUsers(data);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+    fetchUsers();
   }, []);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-        Danh sách người dùng
-      </h1>
-
+    <div className="lg:container mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Quản lý người dùng
+          </h1>
+          <p className="text-gray-600 mt-1 dark:text-gray-300">
+            Danh sách và quản lý thông tin người dùng hệ thống
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant="outline" className="px-3 py-1">
+            <Users className="w-3 h-3 mr-1" />
+            {users.length} người dùng
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchUsers}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
+        </div>
+      </div>
       <div
         className="
       w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900"
@@ -83,10 +106,9 @@ export default function TeamPage() {
                     border-t border-gray-200 dark:border-gray-700 
                     text-gray-800 dark:text-gray-100 
                     hover:bg-gray-50 dark:hover:bg-slate-800
-                    ${
-                      idx % 2 === 0
-                        ? "bg-white dark:bg-slate-900"
-                        : "bg-gray-50/70 dark:bg-slate-800/40"
+                    ${idx % 2 === 0
+                      ? "bg-white dark:bg-slate-900"
+                      : "bg-gray-50/70 dark:bg-slate-800/40"
                     }
                   `}
                 >
@@ -108,16 +130,15 @@ export default function TeamPage() {
                   <td className="px-4 py-3 text-sm whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium
-                        ${
-                          u.role === USER_ROLES.ADMIN
-                            ? "bg-green-500 text-white dark:bg-green-700"
-                            : u.role === USER_ROLES.DONOR
+                        ${u.role === USER_ROLES.ADMIN
+                          ? "bg-green-500 text-white dark:bg-green-700"
+                          : u.role === USER_ROLES.DONOR
                             ? "bg-blue-500 text-white dark:bg-blue-700"
                             : u.role === USER_ROLES.KITCHEN
-                            ? "bg-orange-500 text-white dark:bg-orange-700"
-                            : u.role === USER_ROLES.DELIVERY
-                            ? "bg-purple-500 text-white dark:bg-purple-700"
-                            : "bg-yellow-500 text-white dark:bg-yellow-700"
+                              ? "bg-orange-500 text-white dark:bg-orange-700"
+                              : u.role === USER_ROLES.DELIVERY
+                                ? "bg-purple-500 text-white dark:bg-purple-700"
+                                : "bg-yellow-500 text-white dark:bg-yellow-700"
                         }`}
                     >
                       {translateRole(u.role)}
@@ -163,6 +184,7 @@ export default function TeamPage() {
             setUsers((prev) =>
               prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
             );
+            fetchUsers(); // Refresh data after update
           }}
         />
       )}
