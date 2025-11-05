@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { fromPercentInput } from "../utils/percent-utils";
 import { Campaign } from "@/types/api/campaign";
+import { VALIDATION_MESSAGES, VALIDATION_RULES } from "@/constants";
 
 export function validateCampaignBeforeSave(
   campaign: Partial<Campaign> | null | undefined,
@@ -11,7 +12,7 @@ export function validateCampaignBeforeSave(
   }
 ): boolean {
   if (!campaign) {
-    toast.error("Chiến dịch không hợp lệ.");
+    toast.error(VALIDATION_MESSAGES.INVALID_CAMPAIGN);
     return false;
   }
 
@@ -23,7 +24,7 @@ export function validateCampaignBeforeSave(
     : null;
 
   if (s && e && s > e) {
-    toast.error("Ngày kết thúc phải sau (hoặc bằng) ngày bắt đầu.");
+    toast.error(VALIDATION_MESSAGES.INVALID_DATE_RANGE);
     return false;
   }
 
@@ -32,8 +33,8 @@ export function validateCampaignBeforeSave(
   const p3 = fromPercentInput(pcts.delivery);
   const total = p1 + p2 + p3;
 
-  if (Math.abs(total - 100) > 0.01) {
-    toast.error("Tổng phần trăm phân bổ phải bằng 100%.");
+  if (Math.abs(total - 100) > VALIDATION_RULES.PERCENTAGE_TOLERANCE) {
+    toast.error(VALIDATION_MESSAGES.INVALID_PERCENTAGE_TOTAL);
     return false;
   }
 

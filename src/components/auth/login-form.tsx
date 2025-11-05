@@ -21,6 +21,7 @@ import { translateError, translateMessage } from "@/lib/translator";
 import { SignInInput } from "@/types/api/sign-in";
 import { decodeIdToken } from "@/lib/jwt-utils";
 import Cookies from "js-cookie";
+import { USER_ROLES, ROUTES, COOKIE_NAMES } from "@/constants";
 
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
@@ -63,20 +64,20 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         })
       );
 
-      Cookies.set("idToken", signInRes.idToken, {
+      Cookies.set(COOKIE_NAMES.ID_TOKEN, signInRes.idToken, {
         secure: true,
         sameSite: "strict",
       });
-      Cookies.set("role", decoded["custom:role"] || "DONOR", {
+      Cookies.set(COOKIE_NAMES.ROLE, decoded["custom:role"] || USER_ROLES.DONOR, {
         secure: true,
         sameSite: "strict",
       });
 
       const role = decoded["custom:role"]?.toUpperCase();
-      if (role === "ADMIN") router.push("/admin/users");
-      else if (role === "KITCHEN") router.push("/kitchen");
-      else if (role === "DELIVERY") router.push("/delivery");
-      else router.push("/");
+      if (role === USER_ROLES.ADMIN) router.push("/admin/users");
+      else if (role === USER_ROLES.KITCHEN) router.push(ROUTES.KITCHEN);
+      else if (role === USER_ROLES.DELIVERY) router.push(ROUTES.DELIVERY);
+      else router.push(ROUTES.HOME);
 
       toast.success("Đăng nhập thành công", {
         description: translateMessage(`Chào mừng ${decoded?.name || email}`),
@@ -114,25 +115,25 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         })
       );
 
-      Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set("accessToken", res.accessToken, {
+      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, { secure: true, sameSite: "strict" });
+      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, res.accessToken, {
         secure: true,
         sameSite: "strict",
       });
-      Cookies.set("refreshToken", res.refreshToken, {
+      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, res.refreshToken, {
         secure: true,
         sameSite: "strict",
       });
-      Cookies.set("role", decoded["custom:role"] || "DONOR", {
+      Cookies.set(COOKIE_NAMES.ROLE, decoded["custom:role"] || USER_ROLES.DONOR, {
         secure: true,
         sameSite: "strict",
       });
 
       const role = decoded["custom:role"]?.toUpperCase();
-      if (role === "ADMIN") router.push("/admin/users");
-      else if (role === "KITCHEN") router.push("/kitchen");
-      else if (role === "DELIVERY") router.push("/delivery");
-      else router.push("/");
+      if (role === USER_ROLES.ADMIN) router.push("/admin/users");
+      else if (role === USER_ROLES.KITCHEN) router.push(ROUTES.KITCHEN);
+      else if (role === USER_ROLES.DELIVERY) router.push(ROUTES.DELIVERY);
+      else router.push(ROUTES.HOME);
 
       toast.success("Đăng nhập Google thành công", {
         description: `Chào ${decoded?.name || "bạn"}`,

@@ -73,7 +73,14 @@ export interface CampaignFilterInput {
 export interface CampaignParams {
   filter?: CampaignFilterInput;
   search?: string;
-  sortBy?: "NEWEST_FIRST" | "OLDEST_FIRST";
+  sortBy?: 
+    | "NEWEST_FIRST" 
+    | "OLDEST_FIRST" 
+    | "ACTIVE_FIRST"
+    | "TARGET_AMOUNT_ASC" 
+    | "TARGET_AMOUNT_DESC"
+    | "MOST_DONATED"
+    | "LEAST_DONATED";
   limit?: number;
   offset?: number;
 }

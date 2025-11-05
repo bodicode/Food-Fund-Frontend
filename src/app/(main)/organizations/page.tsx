@@ -11,6 +11,7 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date-utils";
 import { translateRole } from "@/lib/translator";
+import { USER_ROLES } from "@/constants";
 import {
   Building2,
   Globe,
@@ -51,7 +52,7 @@ export default function OrganizationsPage() {
   const [total, setTotal] = useState(0);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [selectedRole, setSelectedRole] = useState<OrganizationRole>("DELIVERY_STAFF");
+  const [selectedRole, setSelectedRole] = useState<OrganizationRole>(USER_ROLES.DELIVERY_STAFF);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auth guard for login required actions
@@ -98,7 +99,7 @@ export default function OrganizationsPage() {
     // Check if user is authenticated before allowing join request
     requireAuth(() => {
       setSelectedOrg(org);
-      setSelectedRole("DELIVERY_STAFF");
+      setSelectedRole(USER_ROLES.DELIVERY_STAFF);
       setJoinDialogOpen(true);
     });
   };
@@ -379,20 +380,20 @@ export default function OrganizationsPage() {
                   <SelectValue placeholder="Chọn vai trò" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DELIVERY_STAFF">
+                  <SelectItem value={USER_ROLES.DELIVERY_STAFF}>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
-                        {translateRole("DELIVERY_STAFF")}
+                        {translateRole(USER_ROLES.DELIVERY_STAFF)}
                       </span>
                       <span className="text-xs text-gray-500">
                         - Giao hàng, vận chuyển
                       </span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="KITCHEN_STAFF">
+                  <SelectItem value={USER_ROLES.KITCHEN_STAFF}>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
-                        {translateRole("KITCHEN_STAFF")}
+                        {translateRole(USER_ROLES.KITCHEN_STAFF)}
                       </span>
                       <span className="text-xs text-gray-500">
                         - Nhân viên bếp

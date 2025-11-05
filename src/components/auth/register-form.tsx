@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "@/store/slices/auth-slice";
 import { RootState } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
+import { USER_ROLES, ROUTES, COOKIE_NAMES } from "@/constants";
 
 type RegisterFormProps = {
   onSwitchToLogin?: () => void;
@@ -74,20 +75,20 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         );
       }
 
-      Cookies.set("idToken", res.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set("accessToken", res.accessToken, { secure: true, sameSite: "strict" });
-      Cookies.set("refreshToken", res.refreshToken, { secure: true, sameSite: "strict" });
-      Cookies.set("role", (decoded["custom:role"] as string) || "DONOR", {
+      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, { secure: true, sameSite: "strict" });
+      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, res.accessToken, { secure: true, sameSite: "strict" });
+      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, res.refreshToken, { secure: true, sameSite: "strict" });
+      Cookies.set(COOKIE_NAMES.ROLE, (decoded["custom:role"] as string) || USER_ROLES.DONOR, {
         secure: true,
         sameSite: "strict",
       });
 
       // Điều hướng theo role
       const role = decoded["custom:role"]?.toUpperCase();
-      if (role === "ADMIN") router.push("/admin/users");
-      else if (role === "KITCHEN") router.push("/kitchen");
-      else if (role === "DELIVERY") router.push("/delivery");
-      else router.push("/");
+      if (role === USER_ROLES.ADMIN) router.push("/admin/users");
+      else if (role === USER_ROLES.KITCHEN) router.push(ROUTES.KITCHEN);
+      else if (role === USER_ROLES.DELIVERY) router.push(ROUTES.DELIVERY);
+      else router.push(ROUTES.HOME);
     } catch (error) {
       console.error("Google register error:", error);
       toast.error("Đăng ký Google thất bại!");
@@ -125,9 +126,10 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-300" />
                 </div>
+                <div className="relative flex justify-center text-sm" />
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-4">
                 <GoogleLogin
                   onSuccess={handleGoogleRegister}
                   onError={() => toast.error("Đăng ký Google thất bại!")}

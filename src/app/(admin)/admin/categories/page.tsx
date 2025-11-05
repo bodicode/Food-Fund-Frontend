@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Pencil } from "lucide-react";
+import { Pencil, RefreshCw } from "lucide-react";
 import { useCategories } from "@/hooks/use-category";
 import { CategoryStats } from "@/types/api/category";
 import { Loader } from "@/components/animate-ui/icons/loader";
@@ -170,7 +170,7 @@ export default function CategoryPage() {
 
     return (
         <div className="lg:container mx-auto p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                         Quản lý Danh mục
@@ -179,13 +179,25 @@ export default function CategoryPage() {
                         Danh sách các danh mục chiến dịch gây quỹ
                     </p>
                 </div>
-                <Button
-                    className="bg-primary hover:bg-primary/90"
-                    onClick={() => setIsDialogOpen(true)}
-                >
-                    <PlusIcon animate animateOnHover animateOnView animateOnTap className="w-4 h-4" />
-                    Thêm Danh mục
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={refreshData}
+                        disabled={loading}
+                        className="flex items-center gap-2"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        Làm mới
+                    </Button>
+                    <Button
+                        className="bg-primary hover:bg-primary/90"
+                        onClick={() => setIsDialogOpen(true)}
+                    >
+                        <PlusIcon animate animateOnHover animateOnView animateOnTap className="w-4 h-4" />
+                        Thêm Danh mục
+                    </Button>
+                </div>
             </div>
 
             {error && (
