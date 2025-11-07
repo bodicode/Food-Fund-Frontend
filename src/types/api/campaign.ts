@@ -105,7 +105,6 @@ export interface ChangeCampaignStatusResponse {
   changeCampaignStatus: {
     id: string;
     status: Campaign["status"];
-    approvedAt?: string;
   };
 }
 

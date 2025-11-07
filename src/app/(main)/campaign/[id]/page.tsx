@@ -373,14 +373,17 @@ export default function CampaignDetailPage() {
           {/* RIGHT (STICKY) */}
           <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
+              campaignId={campaign.id}
               organizationName={campaign.creator?.full_name}
               canEdit={campaign.status === "PENDING"}
               onEdit={() =>
                 router.push(`/profile/my-campaign/${campaign.id}/edit`)
               }
-              onDonate={() => { }}
               goal={formatCurrency(goal)}
               onDirection={handleDirection}
+              targetAmount={goal}
+              raisedAmount={raised}
+              daysLeft={timeLeft}
             />
 
             {/* <QRCard />
