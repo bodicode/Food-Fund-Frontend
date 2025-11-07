@@ -5,7 +5,6 @@ export const CHANGE_CAMPAIGN_STATUS = gql`
     changeCampaignStatus(id: $id, status: $status) {
       id
       status
-      approvedAt
     }
   }
 `;

@@ -14,8 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface ActionPanelProps {
+  campaignId?: string;
   canEdit: boolean;
   onEdit: () => void;
   onDirection?: () => void;
@@ -31,6 +33,7 @@ interface ActionPanelProps {
 }
 
 export function ActionPanel({
+  campaignId,
   canEdit,
   onEdit,
   onDirection,
@@ -44,8 +47,17 @@ export function ActionPanel({
   organizationLogo = "/images/avatar.webp",
   onViewStatement,
 }: ActionPanelProps) {
+  const router = useRouter();
   const progress =
     targetAmount > 0 ? Math.min((raisedAmount / targetAmount) * 100, 100) : 0;
+
+  const handleDonate = () => {
+    if (onDonate) {
+      onDonate();
+    } else if (campaignId) {
+      router.push(`/donation/${campaignId}`);
+    }
+  };
 
   return (
     <motion.div
@@ -141,9 +153,9 @@ export function ActionPanel({
           </Button>
         )}
 
-        {onDonate && (
+        {(onDonate || campaignId) && (
           <Button
-            onClick={onDonate}
+            onClick={handleDonate}
             className="flex-1 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white font-semibold hover:opacity-90 transition-all"
           >
             Ủng hộ
