@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -37,17 +37,31 @@ export function CreatePostDialog({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ✅ Ngăn scroll body khi dialog mở
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "0px";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [isOpen]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
 
-    // Limit to 5 images
     if (files.length + selectedFiles.length > 5) {
       toast.error("Chỉ được tải lên tối đa 5 ảnh");
       return;
     }
 
-    // Validate file types
     const validFiles = selectedFiles.filter((file) => {
       if (!file.type.startsWith("image/")) {
         toast.error(`${file.name} không phải là file ảnh`);
@@ -56,17 +70,13 @@ export function CreatePostDialog({
       return true;
     });
 
-    // Create preview URLs
     const newPreviewUrls = validFiles.map((file) => URL.createObjectURL(file));
-
     setFiles([...files, ...validFiles]);
     setPreviewUrls([...previewUrls, ...newPreviewUrls]);
   };
 
   const handleRemoveFile = (index: number) => {
-    // Revoke the preview URL to free memory
     URL.revokeObjectURL(previewUrls[index]);
-
     setFiles(files.filter((_, i) => i !== index));
     setPreviewUrls(previewUrls.filter((_, i) => i !== index));
   };
@@ -87,13 +97,11 @@ export function CreatePostDialog({
     try {
       let mediaFileKeys: string[] = [];
 
-      // Upload media files if any
       if (files.length > 0) {
         toast.info("Đang tải ảnh lên...");
         mediaFileKeys = await postService.uploadPostMedia(files);
       }
 
-      // Create post
       toast.info("Đang tạo bài viết...");
       await postService.createPost({
         campaignId,
@@ -125,10 +133,7 @@ export function CreatePostDialog({
 
   const handleClose = () => {
     if (isSubmitting) return;
-
-    // Clean up preview URLs
     previewUrls.forEach((url) => URL.revokeObjectURL(url));
-
     setTitle("");
     setContent("");
     setFiles([]);
@@ -137,16 +142,21 @@ export function CreatePostDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+    <Dialog open={isOpen} onOpenChange={handleClose} modal>
+      <DialogContent
+        className="max-w-3xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
+        onWheel={(e) => e.stopPropagation()} // ✅ chặn scroll bubble ra body
+      >
+        {/* Header cố định */}
+        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
           <DialogTitle>Tạo bài viết mới</DialogTitle>
           <DialogDescription>
             Chia sẻ cập nhật về chiến dịch của bạn
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        {/* ✅ Body có scroll nội bộ */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4 overscroll-contain">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">
@@ -169,8 +179,8 @@ export function CreatePostDialog({
             <RichTextEditor value={content} onChange={setContent} />
           </div>
 
-          {/* Media Upload */}
-          <div className="space-y-2">
+          {/* Upload ảnh */}
+          <div className="space-y-2 pb-4">
             <Label>Hình ảnh (Tối đa 5 ảnh)</Label>
             <div className="flex items-center gap-2">
               <Button
@@ -182,9 +192,7 @@ export function CreatePostDialog({
                 <Upload className="w-4 h-4 mr-2" />
                 Chọn ảnh
               </Button>
-              <span className="text-sm text-gray-500">
-                {files.length}/5 ảnh
-              </span>
+              <span className="text-sm text-gray-500">{files.length}/5 ảnh</span>
             </div>
             <input
               id="file-upload"
@@ -196,7 +204,6 @@ export function CreatePostDialog({
               disabled={isSubmitting}
             />
 
-            {/* Image Previews */}
             {previewUrls.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                 {previewUrls.map((url, index) => (
@@ -223,7 +230,8 @@ export function CreatePostDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        {/* Footer cố định */}
+        <DialogFooter className="flex-shrink-0 px-6 pb-6 pt-4 border-t bg-white dark:bg-zinc-900">
           <Button
             variant="outline"
             onClick={handleClose}
@@ -232,7 +240,9 @@ export function CreatePostDialog({
             Hủy
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isSubmitting && (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            )}
             {isSubmitting ? "Đang tạo..." : "Tạo bài viết"}
           </Button>
         </DialogFooter>

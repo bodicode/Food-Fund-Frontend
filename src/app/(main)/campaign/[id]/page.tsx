@@ -374,6 +374,7 @@ export default function CampaignDetailPage() {
           <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
               campaignId={campaign.id}
+              campaignStatus={campaign.status}
               organizationName={campaign.creator?.full_name}
               canEdit={campaign.status === "PENDING"}
               onEdit={() =>

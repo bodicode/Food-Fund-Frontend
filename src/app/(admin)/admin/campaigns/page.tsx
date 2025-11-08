@@ -145,7 +145,7 @@ export default function AdminCampaignsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchCampaigns()}
+            onClick={() => fetchCampaigns({}, false)}
             disabled={loading}
             className="flex items-center gap-2"
           >
