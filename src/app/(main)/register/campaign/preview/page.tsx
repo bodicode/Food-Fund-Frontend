@@ -16,6 +16,7 @@ import { buildCoverUrl } from "@/lib/build-image";
 import { BookOpen, CalendarDays, Goal, MapPin, Tag } from "lucide-react";
 import { CreateCampaignInput } from "@/types/api/campaign";
 import { formatCurrency } from "@/lib/utils/currency-utils";
+import { TermsConditionsDialog } from "@/components/campaign/terms-conditions-dialog";
 
 export default function CreateCampaignStepPreview() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function CreateCampaignStepPreview() {
 
   const [loading, setLoading] = useState(false);
   const [categoryTitle, setCategoryTitle] = useState<string>("");
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const coverUrl = useMemo(
     () => buildCoverUrl(form.coverImageFileKey),
@@ -79,6 +82,19 @@ export default function CreateCampaignStepPreview() {
     (isFinite(cPct) ? cPct : 0) +
     (isFinite(dPct) ? dPct : 0);
   const pctOk = Math.abs(pctSum - 100) <= 0.01;
+
+  const handleCreateCampaign = () => {
+    if (!termsAccepted) {
+      setShowTermsDialog(true);
+      return;
+    }
+    handleSubmit();
+  };
+
+  const handleTermsAccept = () => {
+    setTermsAccepted(true);
+    handleSubmit();
+  };
 
   const handleSubmit = async () => {
     try {
@@ -538,7 +554,7 @@ export default function CreateCampaignStepPreview() {
           </Button>
 
           <Button
-            onClick={handleSubmit}
+            onClick={handleCreateCampaign}
             disabled={loading}
             className={`h-12 px-6 w-full sm:w-auto text-base font-semibold flex items-center justify-center gap-2 ${
               loading ? "bg-gray-300 text-gray-500" : "btn-color text-white"
@@ -548,6 +564,12 @@ export default function CreateCampaignStepPreview() {
             {loading ? "Đang tạo..." : "Tạo chiến dịch"}
           </Button>
         </div>
+
+        <TermsConditionsDialog
+          open={showTermsDialog}
+          onOpenChange={setShowTermsDialog}
+          onAccept={handleTermsAccept}
+        />
       </div>
     </div>
   );
