@@ -44,6 +44,7 @@ import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
 import { CampaignPosts } from "@/components/campaign/campaign-posts";
 import { CreatePostDialog } from "@/components/campaign/create-post-dialog";
+import { DonationList } from "@/components/campaign/donation-list";
 import { Info, Plus } from "lucide-react";
 
 export default function MyCampaignDetailPage() {
@@ -336,9 +337,7 @@ export default function MyCampaignDetailPage() {
 
               <TabsContent value="donations">
                 <div className="bg-white rounded-2xl border p-6">
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">Danh sách ủng hộ sẽ được hiển thị tại đây</p>
-                  </div>
+                  <DonationList campaignId={campaign.id} />
                 </div>
               </TabsContent>
             </Tabs>
