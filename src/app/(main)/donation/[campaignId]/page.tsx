@@ -342,7 +342,7 @@ export default function DonationPage() {
                         {/* Custom Amount */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">
-                                Hoặc nhập số tiền khác (tối thiểu 10,000 VNĐ)
+                                Hoặc nhập số tiền khác (tối thiểu 2,000 VNĐ)
                             </label>
                             <Input
                                 type="text"

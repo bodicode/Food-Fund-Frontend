@@ -455,7 +455,7 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
 
       {/* Lightbox Dialog */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent className="max-w-7xl w-full h-[90vh] p-0 bg-black/95 border-none" showCloseButton={false}>
+        <DialogContent className="!max-w-[98vw] !w-[98vw] !h-[98vh] p-0 bg-black/95 border-none" showCloseButton={false}>
           <DialogTitle className="sr-only">Image Gallery</DialogTitle>
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Close Button */}

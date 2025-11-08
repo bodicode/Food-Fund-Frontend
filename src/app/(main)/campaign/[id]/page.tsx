@@ -40,6 +40,7 @@ import { Stat } from "@/components/campaign/stat";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
 import { CampaignPosts } from "@/components/campaign/campaign-posts";
+import { DonationList } from "@/components/campaign/donation-list";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -52,7 +53,6 @@ export default function CampaignDetailPage() {
 
   // Get current user from Redux store
   const currentUser = useSelector((state: RootState) => state.auth.user);
-  console.log(currentUser)
   const currentUserId = currentUser?.id;
 
   useEffect(() => {
@@ -276,9 +276,9 @@ export default function CampaignDetailPage() {
             <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
               {campaign.phases && campaign.phases.length > 0 && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
-                  <MapPin className="w-4 h-4" /> 
-                  {campaign.phases.length === 1 
-                    ? campaign.phases[0].location 
+                  <MapPin className="w-4 h-4" />
+                  {campaign.phases.length === 1
+                    ? campaign.phases[0].location
                     : `${campaign.phases.length} địa điểm`}
                 </span>
               )}
@@ -327,11 +327,7 @@ export default function CampaignDetailPage() {
 
               <TabsContent value="donations">
                 <div className="bg-white rounded-2xl border p-6">
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">
-                      Danh sách ủng hộ sẽ được hiển thị tại đây
-                    </p>
-                  </div>
+                  <DonationList campaignId={campaign.id} />
                 </div>
               </TabsContent>
             </Tabs>
