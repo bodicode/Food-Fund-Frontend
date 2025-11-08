@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 
 interface ActionPanelProps {
   campaignId?: string;
+  campaignStatus?: "PENDING" | "APPROVED" | "ACTIVE" | "REJECTED" | "CANCELLED" | "COMPLETED";
   canEdit: boolean;
   onEdit: () => void;
   onDirection?: () => void;
@@ -34,6 +35,7 @@ interface ActionPanelProps {
 
 export function ActionPanel({
   campaignId,
+  campaignStatus,
   canEdit,
   onEdit,
   onDirection,
@@ -51,7 +53,11 @@ export function ActionPanel({
   const progress =
     targetAmount > 0 ? Math.min((raisedAmount / targetAmount) * 100, 100) : 0;
 
+  const isDonationEnabled = campaignStatus === "ACTIVE";
+
   const handleDonate = () => {
+    if (!isDonationEnabled) return;
+    
     if (onDonate) {
       onDonate();
     } else if (campaignId) {
@@ -156,9 +162,14 @@ export function ActionPanel({
         {(onDonate || campaignId) && (
           <Button
             onClick={handleDonate}
-            className="flex-1 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white font-semibold hover:opacity-90 transition-all"
+            disabled={!isDonationEnabled}
+            className={`flex-1 font-semibold transition-all ${
+              isDonationEnabled
+                ? "bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white hover:opacity-90"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
-            Ủng hộ
+            {isDonationEnabled ? "Ủng hộ" : "Chiến dịch chưa đến ngày"}
           </Button>
         )}
 

@@ -1,9 +1,44 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Building2, HeartHandshake } from "lucide-react";
+import { Loader } from "@/components/animate-ui/icons/loader";
+import { organizationService } from "@/services/organization.service";
 
 export default function OrgRegisterPage() {
+    const router = useRouter();
+    const [checking, setChecking] = useState(true);
+
+    useEffect(() => {
+        const checkOrganization = async () => {
+            try {
+                const organization = await organizationService.getMyOrganization();
+                
+                // Nếu user đã có organization, redirect sang tạo campaign
+                if (organization) {
+                    router.push("/register/campaign/type");
+                }
+            } catch {
+                // Nếu lỗi hoặc chưa có organization, hiển thị trang đăng ký
+            } finally {
+                setChecking(false);
+            }
+        };
+
+        checkOrganization();
+    }, [router]);
+
+    // Hiển thị loading khi đang check
+    if (checking) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader className="w-8 h-8 animate-spin text-[#ad4e28]" />
+            </div>
+        );
+    }
+
     return (
         <div className="py-30 flex items-center justify-center">
             <div className="w-full text-center space-y-10">

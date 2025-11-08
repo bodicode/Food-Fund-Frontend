@@ -42,7 +42,7 @@ export const campaignService = {
       const { data } = await client.query<ListCampaignsResponse>({
         query: GET_CAMPAIGNS,
         variables: params,
-        fetchPolicy: "cache-first",
+        fetchPolicy: "network-only",
       });
 
       if (!data || !data.campaigns) {

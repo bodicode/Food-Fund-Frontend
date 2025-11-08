@@ -26,12 +26,12 @@ type CampaignCardProps = {
     status?: string;
   }>;
   status?:
-    | "PENDING"
-    | "APPROVED"
-    | "ACTIVE"
-    | "REJECTED"
-    | "COMPLETED"
-    | "CANCELLED";
+  | "PENDING"
+  | "APPROVED"
+  | "ACTIVE"
+  | "REJECTED"
+  | "COMPLETED"
+  | "CANCELLED";
   donationCount: number;
   receivedAmount: string;
   targetAmount: string;
@@ -139,15 +139,13 @@ export function CampaignCard({
       ref={cardRef}
       key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none ${
-        isHero
+      className={`cursor-pointer select-none ${isHero
           ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-md transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
           : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
-      } ${
-        isEmergency
+        } ${isEmergency
           ? "ring-2 ring-red-400 ring-offset-2 bg-white/90 backdrop-blur-xl"
           : ""
-      } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
+        } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
@@ -157,9 +155,8 @@ export function CampaignCard({
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${
-            isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
-          } object-cover transition-transform duration-700 group-hover:scale-110`}
+          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
+            } object-cover transition-transform duration-700 group-hover:scale-110`}
         />
 
         {isEmergency && (
@@ -202,20 +199,18 @@ export function CampaignCard({
       </div>
 
       <span
-        className={`absolute ${
-          isHero ? "top-4 left-4" : "top-3 left-3"
-        } z-20 bg-[#ad4e28] text-white text-[10px] md:text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20`}
+        className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"
+          } z-20 bg-[#ad4e28] text-white text-[10px] md:text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20`}
       >
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
 
-      <div className={`${isHero ? "p-5" : "p-4"}`}>
+      <div className={`${isHero ? "p-5" : "p-4"} flex flex-col`}>
         <h3
-          className={`${
-            isHero
+          className={`${isHero
               ? "font-bold text-xl line-clamp-2 text-gray-900"
               : "font-semibold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-color transition-colors duration-300"
-          }`}
+            }`}
         >
           {title}
         </h3>
@@ -233,27 +228,27 @@ export function CampaignCard({
           </div>
         )}
 
-        {phases && phases.length > 0 && (
-          <div className="mt-3 text-xs h-12 xl:h-8 text-gray-500 font-medium flex items-center gap-x-1.5 line-clamp-1">
-            <MapPin
-              animate
-              animateOnView
-              loop
-              className="w-4 h-4 text-gray-400 flex-shrink-0"
-            />
-            <span>
-              {phases.length === 1 
-                ? phases[0].location 
-                : `${phases.length} địa điểm`}
-            </span>
-          </div>
-        )}
+        <div className="mt-3 text-xs text-gray-500 font-medium flex items-start gap-x-1.5 min-h-[1.75rem]">
+          {phases && phases.length > 0 && (
+            <>
+              <MapPin
+                animate
+                animateOnView
+                loop
+                className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
+              />
+              <span className="line-clamp-2 flex-1">
+                {phases.length === 1
+                  ? phases[0].location
+                  : `${phases.length} địa điểm`}
+              </span>
+            </>
+          )}
+        </div>
 
-        {creatorName && (
-          <div className="mt-2 text-xs text-gray-400 italic">
-            Bởi {creatorName}
-          </div>
-        )}
+        <div className="mt-2 text-xs text-gray-400 italic min-h-[1.25rem]">
+          {creatorName && `Bởi ${creatorName}`}
+        </div>
 
         <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between text-sm">

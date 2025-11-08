@@ -92,27 +92,12 @@ export default function CreateCampaignStepGoal() {
   };
 
   const addPhase = () => {
-    // Tạo default times cho phase mới
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    
-    // Giờ mặc định
-    const purchaseTime = new Date(tomorrow);
-    purchaseTime.setHours(8, 0, 0, 0); // 8:00 AM
-    
-    const cookingTime = new Date(tomorrow);
-    cookingTime.setHours(10, 0, 0, 0); // 10:00 AM
-    
-    const deliveryTime = new Date(tomorrow);
-    deliveryTime.setHours(14, 0, 0, 0); // 2:00 PM
-    
     setPhases([...phases, {
       phaseName: `Giai đoạn ${phases.length + 1}`,
       location: "",
-      ingredientPurchaseDate: purchaseTime.toISOString(),
-      cookingDate: cookingTime.toISOString(),
-      deliveryDate: deliveryTime.toISOString(),
+      ingredientPurchaseDate: "",
+      cookingDate: "",
+      deliveryDate: "",
     }]);
   };
 
