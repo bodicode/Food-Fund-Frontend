@@ -152,10 +152,10 @@ export function AdminExpenseProofDetailDialog({
               {/* Status & Request ID */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-gray-600" />
+                  <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <div>
-                    <div className="text-sm text-gray-500">Mã yêu cầu</div>
-                    <div className="font-semibold text-gray-900">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Mã yêu cầu</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
                       {expenseProof.requestId}
                     </div>
                   </div>
@@ -175,30 +175,30 @@ export function AdminExpenseProofDetailDialog({
 
               {/* Campaign & Phase Info */}
               {expenseProof.request && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                   <div className="space-y-3">
                     <div>
-                      <div className="text-sm text-blue-600 font-medium mb-1">
+                      <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
                         Chiến dịch
                       </div>
-                      <div className="font-semibold text-gray-900">
+                      <div className="font-semibold text-gray-900 dark:text-white">
                         {expenseProof.request.campaignPhase.campaign.title}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-sm text-blue-600 font-medium mb-1">
+                        <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
                           Giai đoạn
                         </div>
-                        <div className="text-gray-900">
+                        <div className="text-gray-900 dark:text-white">
                           {expenseProof.request.campaignPhase.phaseName}
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm text-blue-600 font-medium mb-1">
+                        <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
                           Địa điểm
                         </div>
-                        <div className="text-gray-900">
+                        <div className="text-gray-900 dark:text-white">
                           {expenseProof.request.campaignPhase.location}
                         </div>
                       </div>
@@ -208,33 +208,33 @@ export function AdminExpenseProofDetailDialog({
               )}
 
               {/* Amount */}
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200">
-                <div className="text-sm text-gray-600 mb-1">Số tiền</div>
-                <div className="text-2xl font-bold text-[#ad4e28]">
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Số tiền</div>
+                <div className="text-2xl font-bold text-[#ad4e28] dark:text-orange-500">
                   {formatCurrency(expenseProof.amount)}
                 </div>
               </div>
 
               {/* Timestamps */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Calendar className="w-5 h-5 text-gray-600 mt-0.5" />
+                <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5" />
                   <div>
-                    <div className="text-sm text-gray-500">Ngày tạo</div>
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Ngày tạo</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {formatDateTime(expenseProof.created_at)}
                     </div>
                   </div>
                 </div>
 
                 {expenseProof.changedStatusAt && (
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Calendar className="w-5 h-5 text-gray-600 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5" />
                     <div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         Ngày thay đổi trạng thái
                       </div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {formatDateTime(expenseProof.changedStatusAt)}
                       </div>
                     </div>
@@ -245,7 +245,7 @@ export function AdminExpenseProofDetailDialog({
               {/* Media Gallery */}
               {expenseProof.media && expenseProof.media.length > 0 && (
                 <div>
-                  <div className="text-sm font-medium text-gray-700 mb-3">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Hình ảnh chứng từ ({expenseProof.media.length})
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -310,7 +310,7 @@ export function AdminExpenseProofDetailDialog({
               )}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               Không tìm thấy chứng từ
             </div>
           )}

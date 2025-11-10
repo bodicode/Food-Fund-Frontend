@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { expenseProofService } from "@/services/expense-proof.service";
-import { ExpenseProof, ExpenseProofStatus } from "@/types/api/expense-proof";
+import { ingredientRequestService } from "@/services/ingredient-request.service";
+import { IngredientRequest, IngredientRequestStatus } from "@/types/api/ingredient-request";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
@@ -18,19 +18,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Receipt,
-  FileText,
+  ShoppingCart,
   CheckCircle,
   XCircle,
   Clock,
   Eye,
   RefreshCw,
   Filter,
+  User,
+  Calendar,
 } from "lucide-react";
-import { AdminExpenseProofDetailDialog } from "@/components/admin";
+import { AdminIngredientRequestDetailDialog } from "@/components/admin";
 
 const statusConfig: Record<
-  ExpenseProofStatus,
+  IngredientRequestStatus,
   { label: string; color: string; icon: React.ElementType }
 > = {
   PENDING: {
@@ -52,82 +53,67 @@ const statusConfig: Record<
 
 const ITEMS_PER_PAGE = 10;
 
-export default function AdminExpenseProofsPage() {
-  const [expenseProofs, setExpenseProofs] = useState<ExpenseProof[]>([]);
-  const [allExpenseProofs, setAllExpenseProofs] = useState<ExpenseProof[]>([]);
+export default function AdminIngredientRequestsPage() {
+  const [requests, setRequests] = useState<IngredientRequest[]>([]);
+  const [allRequests, setAllRequests] = useState<IngredientRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<ExpenseProofStatus | "ALL">("ALL");
-  const [selectedProofId, setSelectedProofId] = useState<string | null>(null);
-  const [stats, setStats] = useState({
-    totalProofs: 0,
-    pendingCount: 0,
-    approvedCount: 0,
-    rejectedCount: 0,
-  });
+  const [statusFilter, setStatusFilter] = useState<IngredientRequestStatus | "ALL">("ALL");
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const data = await expenseProofService.getExpenseProofStats();
-      if (data) setStats(data);
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-    }
-  };
-
-  const fetchAllExpenseProofs = React.useCallback(async () => {
+  const fetchAllRequests = React.useCallback(async () => {
     setLoading(true);
     try {
-      const data = await expenseProofService.getExpenseProofs({
+      const data = await ingredientRequestService.getIngredientRequests({
         filter: {
-          campaignId: "",
           status: statusFilter === "ALL" ? null : statusFilter,
         },
         limit: 1000,
         offset: 0,
       });
-      setAllExpenseProofs(data);
+      setAllRequests(data);
     } catch (error) {
-      console.error("Error fetching expense proofs:", error);
+      console.error("Error fetching ingredient requests:", error);
     } finally {
       setLoading(false);
     }
   }, [statusFilter]);
 
-  const paginateExpenseProofs = React.useCallback(() => {
+  const paginateRequests = React.useCallback(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    setExpenseProofs(allExpenseProofs.slice(startIndex, endIndex));
-  }, [allExpenseProofs, currentPage]);
+    setRequests(allRequests.slice(startIndex, endIndex));
+  }, [allRequests, currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter]);
 
   useEffect(() => {
-    fetchAllExpenseProofs();
-  }, [fetchAllExpenseProofs]);
+    fetchAllRequests();
+  }, [fetchAllRequests]);
 
   useEffect(() => {
-    paginateExpenseProofs();
-  }, [paginateExpenseProofs]);
+    paginateRequests();
+  }, [paginateRequests]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
   const handleRefresh = () => {
-    fetchStats();
-    fetchAllExpenseProofs();
+    fetchAllRequests();
   };
 
-  const handleProofUpdated = () => {
-    fetchStats();
-    fetchAllExpenseProofs();
+  const handleRequestUpdated = () => {
+    fetchAllRequests();
+  };
+
+  const stats = {
+    total: allRequests.length,
+    pending: allRequests.filter((r) => r.status === "PENDING").length,
+    approved: allRequests.filter((r) => r.status === "APPROVED").length,
+    rejected: allRequests.filter((r) => r.status === "REJECTED").length,
   };
 
   return (
@@ -135,16 +121,16 @@ export default function AdminExpenseProofsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Quản lý Chứng từ Chi phí
+            Quản lý Yêu cầu Nguyên liệu
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-            Duyệt và quản lý các chứng từ chi phí từ người bếp
+            Duyệt và quản lý các yêu cầu mua nguyên liệu từ người bếp
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="px-3 py-1">
             <Filter className="w-3 h-3 mr-1" />
-            {allExpenseProofs.length} chứng từ
+            {allRequests.length} yêu cầu
           </Badge>
           <Button
             variant="outline"
@@ -165,13 +151,13 @@ export default function AdminExpenseProofsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng số chứng từ</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng số yêu cầu</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {stats.totalProofs}
+                  {stats.total}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <Receipt className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <ShoppingCart className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
@@ -183,7 +169,7 @@ export default function AdminExpenseProofsPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Chờ duyệt</p>
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-500 mt-1">
-                  {stats.pendingCount}
+                  {stats.pending}
                 </p>
               </div>
               <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
@@ -199,7 +185,7 @@ export default function AdminExpenseProofsPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Đã duyệt</p>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-500 mt-1">
-                  {stats.approvedCount}
+                  {stats.approved}
                 </p>
               </div>
               <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -215,7 +201,7 @@ export default function AdminExpenseProofsPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Từ chối</p>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-500 mt-1">
-                  {stats.rejectedCount}
+                  {stats.rejected}
                 </p>
               </div>
               <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
@@ -249,56 +235,74 @@ export default function AdminExpenseProofsPage() {
         </CardContent>
       </Card>
 
-      {/* Expense Proof List */}
+      {/* Request List */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader className="w-12 h-12 animate-spin text-[#ad4e28]" />
         </div>
-      ) : expenseProofs.length === 0 ? (
+      ) : requests.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <Receipt className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">Không có chứng từ nào</p>
+            <ShoppingCart className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400">Không có yêu cầu nào</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {expenseProofs.map((proof) => {
-            const status = statusConfig[proof.status];
+          {requests.map((request) => {
+            const status = statusConfig[request.status];
             const StatusIcon = status.icon;
 
             return (
-              <Card key={proof.id} className="hover:shadow-md transition-shadow">
+              <Card key={request.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          Mã yêu cầu: {proof.requestId}
-                        </span>
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center gap-3">
                         <Badge className={`${status.color} flex items-center gap-1`}>
                           <StatusIcon className="w-3 h-3" />
                           {status.label}
                         </Badge>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {formatDateTime(request.created_at)}
+                        </span>
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        {formatDateTime(proof.created_at)}
-                      </div>
-                      <div className="text-xl font-bold text-[#ad4e28] dark:text-orange-500">
-                        {formatCurrency(proof.amount)}
-                      </div>
-                      {proof.media && proof.media.length > 0 && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                          📎 {proof.media.length} hình ảnh đính kèm
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Người bếp</div>
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {request.kitchenStaff.full_name}
+                            </div>
+                          </div>
                         </div>
-                      )}
+
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Giai đoạn</div>
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {request.campaignPhase.phaseName}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Tổng chi phí</div>
+                          <div className="text-lg font-bold text-[#ad4e28] dark:text-orange-500">
+                            {formatCurrency(request.totalCost)}
+                          </div>
+                        </div>
+                      </div>
                     </div>
+
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedProofId(proof.id)}
-                      className="gap-2"
+                      onClick={() => setSelectedRequestId(request.id)}
+                      className="gap-2 ml-4"
                     >
                       <Eye className="w-4 h-4" />
                       Xem & Duyệt
@@ -312,22 +316,22 @@ export default function AdminExpenseProofsPage() {
       )}
 
       {/* Pagination */}
-      {allExpenseProofs.length > ITEMS_PER_PAGE && (
+      {allRequests.length > ITEMS_PER_PAGE && (
         <Pagination
           currentPage={currentPage}
-          totalItems={allExpenseProofs.length}
+          totalItems={allRequests.length}
           itemsPerPage={ITEMS_PER_PAGE}
           onPageChange={handlePageChange}
         />
       )}
 
       {/* Detail Dialog */}
-      {selectedProofId && (
-        <AdminExpenseProofDetailDialog
-          isOpen={!!selectedProofId}
-          onClose={() => setSelectedProofId(null)}
-          expenseProofId={selectedProofId}
-          onUpdated={handleProofUpdated}
+      {selectedRequestId && (
+        <AdminIngredientRequestDetailDialog
+          isOpen={!!selectedRequestId}
+          onClose={() => setSelectedRequestId(null)}
+          requestId={selectedRequestId}
+          onUpdated={handleRequestUpdated}
         />
       )}
     </div>

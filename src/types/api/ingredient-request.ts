@@ -1,0 +1,64 @@
+// ==============================
+// INGREDIENT REQUEST TYPES
+// ==============================
+
+export type IngredientRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface IngredientRequestItem {
+  id: string;
+  ingredientName: string;
+  quantity: number;
+  estimatedUnitPrice: number;
+  estimatedTotalPrice: number;
+  supplier?: string;
+}
+
+export interface IngredientRequest {
+  id: string;
+  kitchenStaff: {
+    id: string;
+    full_name: string;
+  };
+  campaignPhase: {
+    id: string;
+    phaseName: string;
+    cookingDate: string;
+    status: string;
+  };
+  totalCost: number;
+  status: IngredientRequestStatus;
+  changedStatusAt?: string;
+  created_at: string;
+  items?: IngredientRequestItem[];
+}
+
+export interface IngredientRequestFilterInput {
+  status?: IngredientRequestStatus | null;
+}
+
+export interface GetIngredientRequestsParams {
+  filter?: IngredientRequestFilterInput;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetIngredientRequestsResponse {
+  getIngredientRequests: IngredientRequest[];
+}
+
+export interface GetIngredientRequestResponse {
+  getIngredientRequest: IngredientRequest;
+}
+
+export interface UpdateIngredientRequestStatusInput {
+  status: IngredientRequestStatus;
+  adminNote?: string;
+}
+
+export interface UpdateIngredientRequestStatusResponse {
+  updateIngredientRequestStatus: {
+    id: string;
+    status: IngredientRequestStatus;
+    changedStatusAt: string;
+  };
+}
