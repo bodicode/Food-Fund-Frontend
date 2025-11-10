@@ -74,7 +74,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       });
 
       const role = decoded["custom:role"]?.toUpperCase();
-      if (role === USER_ROLES.ADMIN) router.push("/admin/users");
+      if (role === USER_ROLES.ADMIN) router.push("/admin");
       else if (role === USER_ROLES.KITCHEN) router.push(ROUTES.KITCHEN);
       else if (role === USER_ROLES.DELIVERY) router.push(ROUTES.DELIVERY);
       else router.push(ROUTES.HOME);

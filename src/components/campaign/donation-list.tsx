@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { donationService } from "@/services/donation.service";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
@@ -38,11 +38,7 @@ export function DonationList({ campaignId }: DonationListProps) {
   const [sortBy, setSortBy] = useState<DonationSortField>("TRANSACTION_DATE");
   const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
 
-  useEffect(() => {
-    fetchDonations();
-  }, [campaignId, sortBy, sortOrder]);
-
-  const fetchDonations = async () => {
+  const fetchDonations = React.useCallback(async () => {
     setLoading(true);
     try {
       const data = await donationService.getCampaignDonations({
@@ -59,7 +55,11 @@ export function DonationList({ campaignId }: DonationListProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId, sortBy, sortOrder, searchQuery]);
+
+  useEffect(() => {
+    fetchDonations();
+  }, [fetchDonations]);
 
   const handleSearch = () => {
     fetchDonations();

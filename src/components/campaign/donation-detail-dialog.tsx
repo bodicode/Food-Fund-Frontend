@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -40,13 +40,7 @@ export function DonationDetailDialog({
   const [detail, setDetail] = useState<DonationPaymentDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && orderCode) {
-      fetchDetail();
-    }
-  }, [isOpen, orderCode]);
-
-  const fetchDetail = async () => {
+  const fetchDetail = React.useCallback(async () => {
     setLoading(true);
     try {
       const data = await donationService.getDonationPaymentLink(orderCode);
@@ -57,7 +51,13 @@ export function DonationDetailDialog({
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderCode]);
+
+  useEffect(() => {
+    if (isOpen && orderCode) {
+      fetchDetail();
+    }
+  }, [isOpen, orderCode, fetchDetail]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);

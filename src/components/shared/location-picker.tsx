@@ -162,7 +162,7 @@ export default function LocationPicker({
     if (value && value !== address) {
       setAddress(value);
     }
-  }, [value]);
+  }, [value, address]);
 
   // Geocode address to position when dialog opens
   useEffect(() => {
@@ -186,7 +186,7 @@ export default function LocationPicker({
       };
       geocodeAddress();
     }
-  }, [isOpen]);
+  }, [isOpen, address]);
 
   // --- Reverse geocoding (lat/lng -> address) ---
   const getAddressFromCoords = async (lat: number, lng: number) => {
