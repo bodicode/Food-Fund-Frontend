@@ -41,6 +41,7 @@ import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
 import { CampaignPosts } from "@/components/campaign/campaign-posts";
 import { DonationList } from "@/components/campaign/donation-list";
+import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -293,10 +294,11 @@ export default function CampaignDetailPage() {
               onValueChange={setActiveTab}
               className="mb-8"
             >
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="story">Câu chuyện</TabsTrigger>
                 <TabsTrigger value="posts">Bài viết</TabsTrigger>
                 <TabsTrigger value="donations">Danh sách ủng hộ</TabsTrigger>
+                <TabsTrigger value="expenses">Chứng từ chi phí</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -328,6 +330,12 @@ export default function CampaignDetailPage() {
               <TabsContent value="donations">
                 <div className="bg-white rounded-2xl border p-6">
                   <DonationList campaignId={campaign.id} />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="expenses">
+                <div className="bg-white rounded-2xl border p-6">
+                  <ExpenseProofList campaignId={campaign.id} />
                 </div>
               </TabsContent>
             </Tabs>
