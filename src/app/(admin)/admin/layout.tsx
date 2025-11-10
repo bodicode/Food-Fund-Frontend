@@ -17,6 +17,7 @@ import {
   Tag,
   ChevronDown,
   Building2,
+  ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -108,6 +109,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </NavLink>
       <NavLink href="/admin/expense-proofs" icon={FileText}>
         Chứng từ chi phí
+      </NavLink>
+      <NavLink href="/admin/ingredient-requests" icon={ShoppingCart}>
+        Yêu cầu nguyên liệu
       </NavLink>
 
       <div className="pt-4">
