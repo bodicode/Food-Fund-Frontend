@@ -31,7 +31,7 @@ export default function TeamPage() {
   }, []);
 
   return (
-    <div className="lg:container mx-auto p-4 sm:p-6 space-y-6">
+    <div className="w-full mx-auto p-4 sm:p-6 space-y-6 max-w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -58,11 +58,8 @@ export default function TeamPage() {
           </Button>
         </div>
       </div>
-      <div
-        className="
-      w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900"
-      >
-        <table className=" w-full border-collapse">
+      <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900">
+        <table className="w-full border-collapse min-w-[1000px]">
           <thead>
             <tr>
               {[

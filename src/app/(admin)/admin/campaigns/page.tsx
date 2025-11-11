@@ -6,6 +6,7 @@ import { categoryService } from "@/services/category.service";
 import { campaignService } from "@/services/campaign.service";
 import { Category } from "@/types/api/category";
 import { Campaign, CampaignParams } from "@/types/api/campaign";
+import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,10 +81,12 @@ export default function AdminCampaignsPage() {
   const getStatusBadge = (status: Campaign["status"]) => {
     const config = statusConfig[status];
     const Icon = config.icon;
+    const label = translateCampaignStatus(status);
+    const colorClass = getStatusColorClass(status);
     return (
-      <Badge className={`${config.color} flex items-center gap-1 border-0`}>
+      <Badge className={`${colorClass} flex items-center gap-1 border-0`}>
         <Icon className="w-3 h-3" />
-        {config.label}
+        {label}
       </Badge>
     );
   };

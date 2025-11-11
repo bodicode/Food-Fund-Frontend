@@ -29,9 +29,7 @@ export interface CreateDonationResponse {
 // ==============================
 export interface CampaignDonation {
   amount: number;
-  campaignId: string;
   donorName: string;
-  isAnonymous: boolean;
   transactionDatetime: string;
 }
 
@@ -54,8 +52,7 @@ export interface GetCampaignDonationsResponse {
 // ==============================
 // MY DONATIONS TYPES
 // ==============================
-export interface MyDonation {
-  amount: number;
+export interface DonationDetail {
   campaignId: string;
   donorName: string;
   donorId: string;
@@ -66,8 +63,32 @@ export interface MyDonation {
   transactionDatetime: string;
 }
 
+export interface MyDonationItem {
+  amount: number;
+  orderCode: string;
+  donation: DonationDetail;
+  paymentAmountStatus: string;
+  receivedAmount: number;
+  transactionStatus: string;
+}
+
+export interface MyDonation {
+  amount: number;
+  campaignId: string;
+  donorName: string;
+  donorId: string;
+  id: string;
+  isAnonymous: boolean;
+  status: string;
+  orderCode: string;
+  transactionDatetime: string;
+  paymentAmountStatus?: string;
+  receivedAmount?: number;
+  transactionStatus?: string;
+}
+
 export interface MyDonationsData {
-  donations: MyDonation[];
+  donations: MyDonationItem[];
   totalAmount: number;
   totalSuccessDonations: number;
   totalDonatedCampaigns: number;

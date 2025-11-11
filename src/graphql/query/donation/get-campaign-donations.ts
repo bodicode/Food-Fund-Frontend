@@ -18,9 +18,7 @@ export const GET_CAMPAIGN_DONATIONS = gql`
       searchDonorName: $searchDonorName
     ) {
       amount
-      campaignId
       donorName
-      isAnonymous
       transactionDatetime
     }
   }

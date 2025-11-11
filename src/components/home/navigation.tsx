@@ -95,11 +95,10 @@ export function Navigation() {
     <header
       ref={headerRef}
       className={`fixed left-1/2 z-50 -translate-x-1/2 transition-colors duration-300
-      ${
-        pathname === "/"
+      ${pathname === "/"
           ? "top-4 text-white bg-transparent w-[92%] max-w-7xl rounded-2xl"
           : "top-0 text-color bg-color-base w-full"
-      }
+        }
     `}
     >
       <nav className="container mx-auto">
@@ -325,6 +324,12 @@ export function Navigation() {
                     className="cursor-pointer text-sm py-3"
                   >
                     Hồ sơ
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/profile?tab=history")}
+                    className="cursor-pointer text-sm py-3"
+                  >
+                    Lịch sử ủng hộ
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleLogout}

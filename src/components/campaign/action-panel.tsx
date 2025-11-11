@@ -65,6 +65,14 @@ export function ActionPanel({
     }
   };
 
+  const handleViewStatement = () => {
+    if (onViewStatement) {
+      onViewStatement();
+    } else if (campaignId) {
+      router.push(`/campaign/${campaignId}/statement`);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -91,7 +99,7 @@ export function ActionPanel({
             <CheckCircle className="w-4 h-4 text-[#E77731] shrink-0" />
           </div>
           <button
-            onClick={onViewStatement}
+            onClick={handleViewStatement}
             className="mt-1 text-xs text-[#E77731] font-medium hover:underline"
           >
             Xem sao kê tài khoản →
