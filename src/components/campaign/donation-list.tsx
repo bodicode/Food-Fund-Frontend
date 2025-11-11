@@ -22,9 +22,7 @@ interface DonationListProps {
 
 interface Donation {
   amount: number;
-  campaignId: string;
   donorName: string;
-  isAnonymous: boolean;
   transactionDatetime: string;
 }
 
@@ -90,7 +88,7 @@ export function DonationList({ campaignId }: DonationListProps) {
         <Button onClick={handleSearch} className="bg-[#ad4e28] hover:bg-[#9c4624]">
           Tìm kiếm
         </Button>
-        
+
         <Select value={sortBy} onValueChange={(val) => setSortBy(val as typeof sortBy)}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
@@ -127,17 +125,13 @@ export function DonationList({ campaignId }: DonationListProps) {
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 flex items-center justify-center text-white">
-                  {donation.isAnonymous ? (
-                    <User className="w-6 h-6" />
-                  ) : (
-                    <span className="font-semibold text-lg">
-                      {donation.donorName.charAt(0).toUpperCase()}
-                    </span>
-                  )}
+                  <span className="font-semibold text-lg">
+                    {donation.donorName.charAt(0).toUpperCase()}
+                  </span>
                 </div>
                 <div>
                   <div className="font-semibold text-gray-900">
-                    {donation.isAnonymous ? "Ẩn danh" : donation.donorName}
+                    {donation.donorName}
                   </div>
                   <div className="text-sm text-gray-500">
                     {formatDateTime(donation.transactionDatetime)}
@@ -161,12 +155,6 @@ export function DonationList({ campaignId }: DonationListProps) {
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600">
               Tổng số lượt ủng hộ: <span className="font-semibold">{donations.length}</span>
-            </div>
-            <div className="text-sm text-gray-600">
-              Tổng số tiền:{" "}
-              <span className="font-bold text-[#ad4e28]">
-                {formatCurrency(donations.reduce((sum, d) => sum + d.amount, 0))}
-              </span>
             </div>
           </div>
         </div>

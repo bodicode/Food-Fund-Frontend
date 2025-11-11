@@ -18,6 +18,8 @@ import {
   GetDonationPaymentLinkResponse,
   DonationPaymentDetail,
 } from "@/types/api/donation";
+import { DonationDetails, GetDonationDetailsResponse } from "@/types/api/donation-detail";
+import { GET_DONATION_DETAILS } from "@/graphql/query/donation/get-donation-details";
 
 export const donationService = {
   async createDonation(input: CreateDonationInput): Promise<DonationResponse | null> {
@@ -88,6 +90,25 @@ export const donationService = {
       return data?.getMyDonationPaymentLink || null;
     } catch (error) {
       console.error("❌ Error fetching donation payment link:", error);
+      throw error;
+    }
+  },
+
+  async getDonationDetails(orderCode: string): Promise<DonationDetails | null> {
+    try {
+      const result = await client.query<GetDonationDetailsResponse>({
+        query: GET_DONATION_DETAILS,
+        variables: { orderCode },
+        fetchPolicy: "network-only",
+      });
+
+      if (!result.data) {
+        return null;
+      }
+
+      return result.data.getMyDonationDetails;
+    } catch (error) {
+      console.error("❌ Error fetching donation details:", error);
       throw error;
     }
   },

@@ -15,6 +15,7 @@ import {
     BarChart3,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
 import {
     BarChart,
     Bar,
@@ -113,16 +114,11 @@ export default function AdminDashboard() {
 
 
     const getStatusBadge = (status: string) => {
-        const statusConfig = {
-            ACTIVE: { label: "Đang hoạt động", color: "bg-green-500 text-white" },
-            PENDING: { label: "Chờ duyệt", color: "bg-yellow-500 text-white" },
-            COMPLETED: { label: "Hoàn thành", color: "bg-blue-500 text-white" },
-            REJECTED: { label: "Từ chối", color: "bg-red-500 text-white" },
-        };
-        const config = statusConfig[status as keyof typeof statusConfig];
+        const label = translateCampaignStatus(status);
+        const colorClass = getStatusColorClass(status);
         return (
-            <Badge className={`${config?.color || "bg-gray-500 text-white"} border-0`}>
-                {config?.label || status}
+            <Badge className={`${colorClass} border-0`}>
+                {label}
             </Badge>
         );
     };

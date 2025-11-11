@@ -330,8 +330,10 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </div>
         </header>
 
-        <main className="relative z-0 flex-1 p-4 lg:p-6 overflow-auto bg-white dark:bg-slate-900">
-          <ThemeTransition>{children}</ThemeTransition>
+        <main className="relative z-0 flex-1 overflow-x-auto overflow-y-auto bg-white dark:bg-slate-900">
+          <div className="p-4 lg:p-6">
+            <ThemeTransition>{children}</ThemeTransition>
+          </div>
         </main>
       </div>
     </div>

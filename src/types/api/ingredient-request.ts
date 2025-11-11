@@ -24,6 +24,10 @@ export interface IngredientRequest {
     phaseName: string;
     cookingDate: string;
     status: string;
+    campaign?: {
+      id: string;
+      title: string;
+    };
   };
   totalCost: number;
   status: IngredientRequestStatus;

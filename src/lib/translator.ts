@@ -145,3 +145,15 @@ export const translateRole = (role?: string): string => {
 // Re-export constants for backward compatibility
 export const statusConfig = STATUS_CONFIG;
 export const statusActions = STATUS_ACTIONS;
+
+// Re-export status utilities
+export {
+  translateCampaignStatus,
+  translatePaymentStatus,
+  translateTransactionStatus,
+  translateRequestStatus,
+  translateOrganizationStatus,
+  translateUserStatus,
+  translateStatus,
+  getStatusColorClass,
+} from "@/lib/utils/status-utils";

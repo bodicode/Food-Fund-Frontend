@@ -6,24 +6,29 @@ import { donationService } from "@/services/donation.service";
 import { MyDonationsData } from "@/types/api/donation";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
+import { getStatusColorClass, translateTransactionStatus } from "@/lib/utils/status-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Heart, 
-  TrendingUp, 
-  DollarSign, 
+import { DonationDetailDialog } from "@/components/profile/donation-detail-dialog";
+import {
+  Heart,
+  TrendingUp,
+  DollarSign,
   Calendar,
   Eye,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  FileText,
 } from "lucide-react";
 
 export function HistoryTab() {
   const router = useRouter();
   const [data, setData] = useState<MyDonationsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedOrderCode, setSelectedOrderCode] = useState<string | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchDonations();
@@ -45,30 +50,23 @@ export function HistoryTab() {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-      SUCCESS: { 
-        label: "Thành công", 
-        color: "bg-green-100 text-green-700 border-green-200",
-        icon: <CheckCircle className="w-3 h-3" />
-      },
-      PENDING: { 
-        label: "Đang xử lý", 
-        color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-        icon: <Clock className="w-3 h-3" />
-      },
-      FAILED: { 
-        label: "Thất bại", 
-        color: "bg-red-100 text-red-700 border-red-200",
-        icon: <XCircle className="w-3 h-3" />
-      },
+    const label = translateTransactionStatus(status);
+    const colorClass = getStatusColorClass(status);
+
+    const iconMap: Record<string, React.ReactNode> = {
+      SUCCESS: <CheckCircle className="w-3 h-3" />,
+      PENDING: <Clock className="w-3 h-3" />,
+      PROCESSING: <Clock className="w-3 h-3" />,
+      FAILED: <XCircle className="w-3 h-3" />,
+      CANCELLED: <XCircle className="w-3 h-3" />,
     };
 
-    const statusInfo = statusMap[status] || statusMap.PENDING;
+    const icon = iconMap[status.toUpperCase()] || <Clock className="w-3 h-3" />;
 
     return (
-      <Badge className={`${statusInfo.color} flex items-center gap-1 border`}>
-        {statusInfo.icon}
-        {statusInfo.label}
+      <Badge className={`${colorClass} flex items-center gap-1 border`}>
+        {icon}
+        {label}
       </Badge>
     );
   };
@@ -152,35 +150,62 @@ export function HistoryTab() {
           </div>
         ) : (
           <div className="divide-y">
-            {data.donations.map((donation) => (
+            {data.donations.map((item, index) => (
               <div
-                key={donation.id}
+                key={item.donation.id || `${item.orderCode}-${index}`}
                 className="p-6 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="font-semibold text-gray-900">
-                        Mã đơn: {donation.orderCode}
+                        Mã đơn: {item.orderCode}
                       </div>
-                      {getStatusBadge(donation.status)}
-                      {donation.isAnonymous && (
+                      {getStatusBadge(item.transactionStatus || item.donation.status)}
+                      {item.donation.isAnonymous && (
                         <Badge variant="outline" className="text-xs">
                           Ẩn danh
                         </Badge>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                       <Calendar className="w-4 h-4" />
-                      {formatDateTime(donation.transactionDatetime)}
+                      {formatDateTime(item.donation.transactionDatetime)}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                      <div>
+                        <span className="text-gray-500">Số tiền ủng hộ:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {formatCurrency(item.amount)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Đã nhận:</span>
+                        <span className="ml-2 font-medium text-green-600">
+                          {formatCurrency(item.receivedAmount)}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2 mt-3">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/campaign/${donation.campaignId}`)}
+                        onClick={() => {
+                          setSelectedOrderCode(item.orderCode);
+                          setDetailDialogOpen(true);
+                        }}
+                        className="text-xs"
+                      >
+                        <FileText className="w-3 h-3 mr-1" />
+                        Xem chi tiết
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/campaign/${item.donation.campaignId}`)}
                         className="text-xs"
                       >
                         <Eye className="w-3 h-3 mr-1" />
@@ -191,7 +216,7 @@ export function HistoryTab() {
 
                   <div className="text-right">
                     <div className="text-2xl font-bold text-[#ad4e28]">
-                      {formatCurrency(donation.amount)}
+                      {formatCurrency(item.amount)}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">VNĐ</div>
                   </div>
@@ -201,6 +226,15 @@ export function HistoryTab() {
           </div>
         )}
       </div>
+
+      {/* Donation Detail Dialog */}
+      {selectedOrderCode && (
+        <DonationDetailDialog
+          orderCode={selectedOrderCode}
+          open={detailDialogOpen}
+          onOpenChange={setDetailDialogOpen}
+        />
+      )}
     </div>
   );
 }

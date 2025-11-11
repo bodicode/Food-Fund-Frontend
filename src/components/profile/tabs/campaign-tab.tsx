@@ -9,6 +9,7 @@ import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { statusConfig } from "@/lib/translator";
+import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
 import Link from "next/link";
 
 const LoadingSkeleton = () => (
@@ -62,6 +63,8 @@ const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
   const router = useRouter();
   const config = statusConfig[campaign.status];
   const Icon = config?.icon;
+  const statusLabel = translateCampaignStatus(campaign.status);
+  const statusColor = getStatusColorClass(campaign.status);
 
   return (
     <div
@@ -83,10 +86,10 @@ const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
         )}
         {config && Icon && (
           <Badge
-            className={`${config.color} absolute top-3 right-3 flex items-center gap-1 border-0`}
+            className={`${statusColor} absolute top-3 right-3 flex items-center gap-1 border-0`}
           >
             <Icon className="w-3 h-3" />
-            {config.label}
+            {statusLabel}
           </Badge>
         )}
       </div>

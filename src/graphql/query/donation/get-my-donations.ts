@@ -5,14 +5,20 @@ export const GET_MY_DONATIONS = gql`
     getMyDonations(skip: $skip, take: $take) {
       donations {
         amount
-        campaignId
-        donorName
-        donorId
-        id
-        isAnonymous
-        status
         orderCode
-        transactionDatetime
+        donation {
+          campaignId
+          donorName
+          donorId
+          id
+          isAnonymous
+          status
+          orderCode
+          transactionDatetime
+        }
+        paymentAmountStatus
+        receivedAmount
+        transactionStatus
       }
       totalAmount
       totalSuccessDonations

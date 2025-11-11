@@ -171,6 +171,18 @@ export function AdminIngredientRequestDetailDialog({
 
                             {/* Info Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {request.campaignPhase.campaign && (
+                                    <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200 dark:border-orange-800 md:col-span-2">
+                                        <ShoppingCart className="w-5 h-5 text-[#ad4e28] dark:text-orange-500 mt-0.5" />
+                                        <div className="flex-1">
+                                            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Chiến dịch</div>
+                                            <div className="font-bold text-[#ad4e28] dark:text-orange-500 mt-1 text-lg">
+                                                {request.campaignPhase.campaign.title}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <User className="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5" />
                                     <div>
