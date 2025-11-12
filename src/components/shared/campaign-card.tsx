@@ -139,16 +139,16 @@ export function CampaignCard({
       ref={cardRef}
       key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none ${isHero
-          ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-md transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
-          : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+      className={`cursor-pointer select-none will-change-transform ${isHero
+          ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-lg transition-all duration-300 ease-out hover:-translate-y-2"
+          : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-md transition-all duration-300 ease-out hover:-translate-y-3"
         } ${isEmergency
-          ? "ring-2 ring-red-400 ring-offset-2 bg-white/90 backdrop-blur-xl"
+          ? "ring-2 ring-red-400 ring-offset-2 bg-white/95 backdrop-blur-xl"
           : ""
         } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
     >
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10 opacity-70 group-hover:opacity-50 transition-opacity duration-300" />
 
         <Image
           src={coverImage || "/images/default-cover.jpg"}
@@ -156,7 +156,7 @@ export function CampaignCard({
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
           className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
-            } object-cover transition-transform duration-700 group-hover:scale-110`}
+            } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
         />
 
         {isEmergency && (
@@ -175,23 +175,23 @@ export function CampaignCard({
         )}
 
         <div className="absolute bottom-0 left-0 w-full px-4 pb-4 z-20">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 shadow-lg border border-white/30">
-            <div className="flex items-center justify-between text-white text-sm font-bold mb-2 drop-shadow-lg">
-              <span className="fc-money" data-value={raised}>
+          <div className="bg-white/15 backdrop-blur-lg rounded-2xl p-4 shadow-xl border border-white/40 group-hover:bg-white/20 transition-all duration-300">
+            <div className="flex items-center justify-between text-white text-sm font-bold mb-2.5 drop-shadow-lg">
+              <span className="fc-money text-base" data-value={raised}>
                 {fmtVND(raised)}
               </span>
-              <span className="text-xs bg-white/25 backdrop-blur-sm text-white px-2.5 py-1 rounded-full font-semibold border border-white/30">
+              <span className="text-xs bg-white/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full font-bold border border-white/40 shadow-sm">
                 {progress}%
               </span>
             </div>
 
-            <div className="w-full bg-white/20 backdrop-blur-sm h-2.5 rounded-full overflow-hidden border border-white/30">
+            <div className="w-full bg-white/25 backdrop-blur-sm h-3 rounded-full overflow-hidden border border-white/40 shadow-inner">
               <div
-                className="fc-progress h-2.5 bg-white/60 backdrop-blur-sm rounded-full shadow-sm relative border-r border-white/40"
+                className="fc-progress h-3 bg-gradient-to-r from-white/70 to-white/90 rounded-full shadow-md relative"
                 style={{ width: `${progress}%` }}
                 data-value={progress}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/40 rounded-full animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full animate-pulse" />
               </div>
             </div>
           </div>
@@ -200,7 +200,7 @@ export function CampaignCard({
 
       <span
         className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"
-          } z-20 bg-[#ad4e28] text-white text-[10px] md:text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20`}
+          } z-20 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full border border-white/30 shadow-lg backdrop-blur-sm`}
       >
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
@@ -208,8 +208,8 @@ export function CampaignCard({
       <div className={`${isHero ? "p-5" : "p-4"} flex flex-col`}>
         <h3
           className={`${isHero
-              ? "font-bold text-xl line-clamp-2 text-gray-900"
-              : "font-semibold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-color transition-colors duration-300"
+              ? "font-bold text-xl line-clamp-2 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
+              : "font-bold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
             }`}
         >
           {title}
@@ -228,20 +228,48 @@ export function CampaignCard({
           </div>
         )}
 
-        <div className="mt-3 text-xs text-gray-500 font-medium flex items-start gap-x-1.5 min-h-[1.75rem]">
+        <div className="mt-3 text-xs text-gray-500 font-medium space-y-1 h-6">
           {phases && phases.length > 0 && (
             <>
-              <MapPin
-                animate
-                animateOnView
-                loop
-                className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
-              />
-              <span className="line-clamp-2 flex-1">
-                {phases.length === 1
-                  ? phases[0].location
-                  : `${phases.length} địa điểm`}
-              </span>
+              {phases.length === 1 ? (
+                <div className="flex items-start gap-x-1.5">
+                  <MapPin
+                    animate
+                    animateOnView
+                    loop
+                    className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
+                  />
+                  <span className="line-clamp-1 flex-1">{phases[0].location}</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start gap-x-1.5">
+                    <MapPin
+                      animate
+                      animateOnView
+                      loop
+                      className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
+                    />
+                    <span className="line-clamp-1 flex-1">{phases[0].location}</span>
+                  </div>
+                  <div className="flex items-start gap-x-1.5">
+                    <MapPin
+                      animate
+                      animateOnView
+                      loop
+                      className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
+                    />
+                    <span className="line-clamp-1 flex-1">
+                      {phases[1].location}
+                      {phases.length > 2 && (
+                        <span className="ml-1 text-[#E77731] font-semibold">
+                          +{phases.length - 2}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
@@ -251,6 +279,12 @@ export function CampaignCard({
         </div>
 
         <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500 font-medium">Lượt ủng hộ</span>
+            <span className="font-bold text-[#E77731]">
+              {donationCount.toLocaleString('vi-VN')}
+            </span>
+          </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 font-medium">Đã ủng hộ</span>
             <span

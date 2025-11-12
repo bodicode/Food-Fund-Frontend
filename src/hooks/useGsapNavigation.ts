@@ -15,7 +15,13 @@ export function useGsapNavigation(
     ScrollTrigger.getAll().forEach((t) => t.kill());
 
     if (pathname !== "/") {
-      gsap.set(headerRef.current, { clearProps: "all" });
+      // Đảm bảo nav luôn visible khi không phải homepage
+      gsap.set(headerRef.current, { 
+        clearProps: "all",
+        y: 0,
+        opacity: 1,
+        yPercent: 0
+      });
       return;
     }
 

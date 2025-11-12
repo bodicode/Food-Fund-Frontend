@@ -63,6 +63,7 @@ export function MealBatchDetailDialog({
     if (open && mealBatchId) {
       fetchMealBatch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mealBatchId]);
 
   const fetchMealBatch = async () => {

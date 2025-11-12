@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { expenseProofService } from "@/services/expense-proof.service";
 import { ExpenseProof, ExpenseProofStatus } from "@/types/api/expense-proof";
 import { formatCurrency } from "@/lib/utils/currency-utils";
@@ -25,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Clock, FileText, Calendar } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, Calendar, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -63,6 +64,7 @@ export function AdminExpenseProofDetailDialog({
   expenseProofId,
   onUpdated,
 }: AdminExpenseProofDetailDialogProps) {
+  const router = useRouter();
   const [expenseProof, setExpenseProof] = useState<ExpenseProof | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -161,9 +163,8 @@ export function AdminExpenseProofDetailDialog({
                   </div>
                 </div>
                 <Badge
-                  className={`${
-                    statusConfig[expenseProof.status].color
-                  } flex items-center gap-1`}
+                  className={`${statusConfig[expenseProof.status].color
+                    } flex items-center gap-1`}
                 >
                   {(() => {
                     const StatusIcon = statusConfig[expenseProof.status].icon;
@@ -181,9 +182,17 @@ export function AdminExpenseProofDetailDialog({
                       <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
                         Chiến dịch
                       </div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
+
+                      <button
+                        onClick={() => {
+                          router.push(`/admin/campaigns/${expenseProof?.request?.campaignPhase.campaign.id}`);
+                          onClose();
+                        }}
+                        className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:underline flex items-center gap-2 group"
+                      >
                         {expenseProof.request.campaignPhase.campaign.title}
-                      </div>
+                        <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
