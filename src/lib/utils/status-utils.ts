@@ -128,6 +128,7 @@ export const translateStatus = (status?: string): string => {
         REQUEST_STATUS_TRANSLATIONS[upperStatus] ||
         ORGANIZATION_STATUS_TRANSLATIONS[upperStatus] ||
         USER_STATUS_TRANSLATIONS[upperStatus] ||
+        MEAL_BATCH_STATUS_TRANSLATIONS[upperStatus] ||
         status
     );
 };
@@ -165,7 +166,19 @@ export const getStatusColorClass = (status?: string): string => {
         INACTIVE: "bg-gray-100 text-gray-700",
         EXPIRED: "bg-gray-100 text-gray-700",
         REFUNDED: "bg-purple-100 text-purple-700",
+        
+        // Meal batch states
+        PREPARING: "bg-yellow-100 text-yellow-700",
+        READY: "bg-green-100 text-green-700",
+        DELIVERED: "bg-blue-100 text-blue-700",
     };
 
     return colorMap[upperStatus] || "bg-gray-100 text-gray-700";
+};
+
+// Meal Batch Status Translations
+export const MEAL_BATCH_STATUS_TRANSLATIONS: Record<string, string> = {
+  PREPARING: "Đang chuẩn bị",
+  READY: "Đã sẵn sàng",
+  DELIVERED: "Đã giao",
 };
