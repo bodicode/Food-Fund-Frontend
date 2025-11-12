@@ -119,7 +119,7 @@ export function FeaturedFundraisers() {
   }, []);
 
   return (
-    <section className="container mx-auto py-6 md:pb-20 px-4">
+    <section className="container mx-auto pb-6 md:pb-20 px-4">
       <div
         ref={rootRef}
         className="mx-auto overflow-hidden bg-gradient-to-br from-[#E77731] via-[#E77731]/95 to-[#ad4e28] rounded-2xl md:rounded-3xl shadow-2xl min-h-[300px]"

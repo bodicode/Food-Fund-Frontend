@@ -69,22 +69,27 @@ export function Navigation() {
   };
 
   useEffect(() => {
-    if (headerRef.current) {
-      gsap.fromTo(
-        headerRef.current,
-        { y: -80, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: "power3.out" }
-      );
+    if (!headerRef.current) return;
 
+    // Đảm bảo header luôn visible, không thay đổi position
+    gsap.set(headerRef.current, { 
+      opacity: 1, 
+      yPercent: 0,
+      clearProps: "y,x,xPercent" // Clear các transform không cần thiết
+    });
+
+    // Animate children
+    const children = headerRef.current.querySelectorAll("nav .flex > *");
+    if (children.length > 0) {
       gsap.fromTo(
-        headerRef.current.querySelectorAll("nav .flex > *"),
-        { opacity: 0, y: -20 },
+        children,
+        { opacity: 0, y: -10 },
         {
           opacity: 1,
           y: 0,
-          stagger: 0.1,
-          delay: 0.3,
-          duration: 0.8,
+          stagger: 0.08,
+          delay: 0.1,
+          duration: 0.5,
           ease: "power2.out",
         }
       );
@@ -102,7 +107,7 @@ export function Navigation() {
     `}
     >
       <nav className="container mx-auto">
-        <div className="hidden lg:flex items-center justify-between h-20 px-6 relative whitespace-nowrap">
+        <div className="hidden lg:flex items-center justify-between h-20 px-6 relative whitespace-nowrap overflow-visible">
           <div className="flex items-center gap-4 text-sm">
             <button
               className="inline-flex items-center gap-2 cursor-pointer"
@@ -223,13 +228,13 @@ export function Navigation() {
             />
           </div>
 
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <div
               onClick={(e) => {
                 e.preventDefault();
                 window.location.href = "/";
               }}
-              className="inline-flex items-center cursor-pointer"
+              className="inline-flex items-center cursor-pointer pointer-events-auto"
             >
               <Image
                 src="/images/logo.png"
@@ -293,7 +298,7 @@ export function Navigation() {
             />
 
             <Link
-              className="nav-hover-btn nav-hover-white-btn mx-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white font-semibold rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 mx-2"
               href="/register"
             >
               Tạo Chiến dịch
@@ -505,7 +510,7 @@ export function Navigation() {
                   />
 
                   <Link
-                    className="text-xs font-semibold uppercase px-2"
+                    className="block px-4 py-3 btn-color font-semibold rounded-lg hover:shadow-lg transition duration-300 text-center text-sm"
                     href="/register"
                   >
                     Tạo Chiến dịch

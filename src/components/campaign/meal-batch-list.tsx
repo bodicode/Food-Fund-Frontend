@@ -29,6 +29,7 @@ export function MealBatchList({ campaignId }: MealBatchListProps) {
 
     useEffect(() => {
         fetchMealBatches();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [campaignId]);
 
     const fetchMealBatches = async () => {

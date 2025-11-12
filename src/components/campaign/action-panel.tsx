@@ -57,7 +57,7 @@ export function ActionPanel({
 
   const handleDonate = () => {
     if (!isDonationEnabled) return;
-    
+
     if (onDonate) {
       onDonate();
     } else if (campaignId) {
@@ -90,7 +90,7 @@ export function ActionPanel({
         />
         <div className="flex-1">
           <p className="text-xs text-gray-500 mb-0.5">
-            Tiền ủng hộ được chuyển đến
+            Tổ chức / Người đại diện
           </p>
           <div className="flex items-center gap-1">
             <p className="text-sm font-semibold text-[#E77731] truncate">
@@ -146,9 +146,9 @@ export function ActionPanel({
           value={progress}
           className="h-2 bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-[#E77731] [&>div]:to-[#ad4e28]"
         />
-        <div className="flex justify-between text-xs text-gray-600 mt-1">
-          <span>Đã đạt được</span>
-          <span>{Math.round(progress)}%</span>
+        <div className="flex justify-between text-xs text-gray-700 mt-2">
+          <span className="font-medium">Đã đạt được</span>
+          <span className="font-semibold">{Math.round(progress)}%</span>
         </div>
 
         <p className="text-base font-semibold text-[#E77731] mt-2">
@@ -171,11 +171,10 @@ export function ActionPanel({
           <Button
             onClick={handleDonate}
             disabled={!isDonationEnabled}
-            className={`flex-1 font-semibold transition-all ${
-              isDonationEnabled
+            className={`flex-1 font-semibold transition-all ${isDonationEnabled
                 ? "bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white hover:opacity-90"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+              }`}
           >
             {isDonationEnabled ? "Ủng hộ" : "Chiến dịch chưa đến ngày"}
           </Button>

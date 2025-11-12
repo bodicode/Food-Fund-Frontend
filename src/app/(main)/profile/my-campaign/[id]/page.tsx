@@ -47,6 +47,8 @@ import { CreatePostDialog } from "@/components/campaign/create-post-dialog";
 import { DonationList } from "@/components/campaign/donation-list";
 import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 import { Info, Plus } from "lucide-react";
+import { CreateOperationRequestDialog } from "@/components/campaign/create-operation-request-dialog";
+import { OperationRequestList } from "@/components/campaign/operation-request-list";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -59,6 +61,8 @@ export default function MyCampaignDetailPage() {
   const [activeTab, setActiveTab] = useState("story");
   const [isCreatePostDialogOpen, setIsCreatePostDialogOpen] = useState(false);
   const [refreshPosts, setRefreshPosts] = useState(0);
+  const [isCreateOperationRequestDialogOpen, setIsCreateOperationRequestDialogOpen] = useState(false);
+  const [refreshOperationRequests, setRefreshOperationRequests] = useState(0);
 
   // Get current user from Redux store
   const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -294,11 +298,12 @@ export default function MyCampaignDetailPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
                 <TabsTrigger value="story">Câu chuyện</TabsTrigger>
                 <TabsTrigger value="posts">Bài viết</TabsTrigger>
                 <TabsTrigger value="donations">Danh sách ủng hộ</TabsTrigger>
                 <TabsTrigger value="expenses">Chứng từ chi phí</TabsTrigger>
+                <TabsTrigger value="operations">Giải ngân</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -348,6 +353,25 @@ export default function MyCampaignDetailPage() {
                   <ExpenseProofList campaignId={campaign.id} />
                 </div>
               </TabsContent>
+
+              <TabsContent value="operations">
+                <div className="mb-4 flex justify-end">
+                  <Button
+                    onClick={() => setIsCreateOperationRequestDialogOpen(true)}
+                    className="gap-2 btn-color"
+                    disabled={!campaign.phases || campaign.phases.length === 0}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tạo yêu cầu giải ngân
+                  </Button>
+                </div>
+                <div className="bg-white rounded-2xl border p-6">
+                  <OperationRequestList 
+                    campaignId={campaign.id} 
+                    refreshKey={refreshOperationRequests}
+                  />
+                </div>
+              </TabsContent>
             </Tabs>
 
             {hasBudget && (
@@ -385,12 +409,17 @@ export default function MyCampaignDetailPage() {
 
           <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
+              campaignId={campaign.id}
+              campaignStatus={campaign.status}
               organizationName={campaign.creator.full_name}
               canEdit={campaign.status === "PENDING"}
               onEdit={() =>
                 router.push(`/profile/my-campaign/${campaign.id}/edit`)
               }
               goal={formatCurrency(goal)}
+              targetAmount={goal}
+              raisedAmount={raised}
+              daysLeft={timeLeft}
             />
 
             <OrganizerCard
@@ -478,6 +507,14 @@ export default function MyCampaignDetailPage() {
         onClose={() => setIsCreatePostDialogOpen(false)}
         campaignId={campaign.id}
         onSuccess={() => setRefreshPosts((prev) => prev + 1)}
+      />
+
+      {/* Create Operation Request Dialog */}
+      <CreateOperationRequestDialog
+        isOpen={isCreateOperationRequestDialogOpen}
+        onClose={() => setIsCreateOperationRequestDialogOpen(false)}
+        campaignPhases={campaign.phases || []}
+        onSuccess={() => setRefreshOperationRequests((prev) => prev + 1)}
       />
     </div>
   );

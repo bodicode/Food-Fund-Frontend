@@ -63,6 +63,7 @@ export function DonationDetailDialog({
         if (open && orderCode) {
             fetchDetails();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, orderCode]);
 
     const fetchDetails = async () => {

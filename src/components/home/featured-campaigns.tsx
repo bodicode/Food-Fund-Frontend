@@ -10,8 +10,9 @@ import { campaignService } from "@/services/campaign.service";
 import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
 import { Campaign } from "@/types/api/campaign";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
+import "swiper/css/pagination";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -88,7 +89,7 @@ export function FeaturedCampaigns() {
 
   if (loading) {
     return (
-      <section className="py-12 mt-6">
+      <section className="pt-12 mt-6">
         <div className="px-6 md:px-12 mx-auto max-w-7xl">
           <h2 className="text-center text-4xl font-bold mb-12 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
             Chiến dịch nổi bật
@@ -116,12 +117,17 @@ export function FeaturedCampaigns() {
     );
   }
 
-  const [hero, ...rest] = campaigns.map(mapCampaignToCardProps);
+  // Sort campaigns by donation count to get the most supported one as hero
+  const sortedCampaigns = [...campaigns].sort((a, b) =>
+    (b.donationCount || 0) - (a.donationCount || 0)
+  );
+
+  const [hero, ...rest] = sortedCampaigns.map(mapCampaignToCardProps);
   const rightTwoByTwo = rest.slice(0, 4);
   const bottomSliderList = rest.slice(-6);
 
   return (
-    <section className="py-12 mt-6 bg-base-color">
+    <section className="pt-12 mt-6 bg-base-color">
       <div ref={rootRef} className="px-6 md:px-12 mx-auto max-w-7xl">
         <div className="flex items-center justify-between mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-color text-transparent">
@@ -153,9 +159,9 @@ export function FeaturedCampaigns() {
           </div>
         </div>
 
-        <div className="mt-12">
+        <div className="mt-20 relative pb-8">
           <Swiper
-            modules={[Autoplay]}
+            modules={[Autoplay, Pagination]}
             spaceBetween={24}
             slidesPerView={1}
             loop
@@ -165,11 +171,17 @@ export function FeaturedCampaigns() {
               disableOnInteraction: false,
               pauseOnMouseEnter: true,
             }}
+            pagination={{
+              clickable: true,
+              bulletClass: 'swiper-pagination-bullet !w-4 !h-2 !rounded-full !bg-orange-200 !opacity-100 transition-all duration-300',
+              bulletActiveClass: 'swiper-pagination-bullet-active !w-10 !bg-gradient-to-r !from-[#E77731] !to-[#ad4e28]',
+            }}
             breakpoints={{
               640: { slidesPerView: 1 },
               768: { slidesPerView: 2 },
               1024: { slidesPerView: 3 },
             }}
+            className="!pb-12"
           >
             {bottomSliderList.map((c) => (
               <SwiperSlide key={`bottom-${c.id}`}>

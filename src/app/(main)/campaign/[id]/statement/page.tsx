@@ -7,7 +7,7 @@ import { CampaignDonationStatement } from "@/types/api/donation-statement";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { translatePaymentStatus, getStatusColorClass } from "@/lib/utils/status-utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, FileText, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, Download, FileText, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";

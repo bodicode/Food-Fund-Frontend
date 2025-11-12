@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Heart, User } from "lucide-react";
+import { Search, Heart } from "lucide-react";
 
 interface DonationListProps {
   campaignId: string;

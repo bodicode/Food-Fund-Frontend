@@ -113,6 +113,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/ingredient-requests" icon={ShoppingCart}>
         Yêu cầu nguyên liệu
       </NavLink>
+      <NavLink href="/admin/operation-requests" icon={DollarSign}>
+        Giải ngân
+      </NavLink>
 
       <div className="pt-4">
         <button
