@@ -293,7 +293,7 @@ export function Navigation() {
             />
 
             <Link
-              className="nav-hover-btn nav-hover-white-btn mx-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white font-semibold rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 mx-2"
               href="/register"
             >
               Tạo Chiến dịch
@@ -505,7 +505,7 @@ export function Navigation() {
                   />
 
                   <Link
-                    className="text-xs font-semibold uppercase px-2"
+                    className="block px-4 py-3 btn-color font-semibold rounded-lg hover:shadow-lg transition duration-300 text-center text-sm"
                     href="/register"
                   >
                     Tạo Chiến dịch
