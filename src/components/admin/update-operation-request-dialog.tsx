@@ -36,9 +36,10 @@ interface UpdateOperationRequestDialogProps {
   onSuccess: () => void;
 }
 
-const expenseTypeLabels = {
+const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
   DELIVERY: "Vận chuyển",
+  INGREDIENT: "Nguyen lieu",
 };
 
 export function UpdateOperationRequestDialog({

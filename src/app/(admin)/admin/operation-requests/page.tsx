@@ -32,9 +32,10 @@ import {
 } from "lucide-react";
 import { UpdateOperationRequestDialog } from "@/components/admin/update-operation-request-dialog";
 
-const expenseTypeLabels = {
+const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
   DELIVERY: "Vận chuyển",
+  INGREDIENT: "Nguyen lieu",
 };
 
 const statusLabels: Record<string, { label: string; color: string; icon: React.ElementType }> = {
