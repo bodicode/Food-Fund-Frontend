@@ -39,7 +39,7 @@ export function CreateOperationRequestDialog({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     campaignPhaseId: "",
-    expenseType: "" as "COOKING" | "DELIVERY" | "",
+    expenseType: "" as "COOKING" | "DELIVERY" | "INGREDIENT" | "",
     title: "",
     totalCost: "",
   });
@@ -61,7 +61,12 @@ export function CreateOperationRequestDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.campaignPhaseId || !formData.expenseType || !formData.title || !formData.totalCost) {
+    if (
+      !formData.campaignPhaseId ||
+      !formData.expenseType ||
+      !formData.title ||
+      !formData.totalCost
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin");
       return;
     }
@@ -76,7 +81,10 @@ export function CreateOperationRequestDialog({
     try {
       await operationRequestService.createOperationRequest({
         campaignPhaseId: formData.campaignPhaseId,
-        expenseType: formData.expenseType as "COOKING" | "DELIVERY",
+        expenseType: formData.expenseType as
+          | "COOKING"
+          | "DELIVERY"
+          | "INGREDIENT",
         title: formData.title,
         totalCost: formData.totalCost,
       });

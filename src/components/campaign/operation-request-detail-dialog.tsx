@@ -32,6 +32,7 @@ interface OperationRequestDetailDialogProps {
 }
 
 const expenseTypeLabels = {
+  INGREDIENT: "Nguyên liệu",
   COOKING: "Nấu ăn",
   DELIVERY: "Vận chuyển",
 };
