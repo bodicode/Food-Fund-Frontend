@@ -23,7 +23,6 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(form);
     alert("Đã gửi thông tin!");
   };
 

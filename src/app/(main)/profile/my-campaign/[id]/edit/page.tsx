@@ -65,7 +65,6 @@ export default function EditCampaignPage() {
         setPreviewImage(campaignData?.coverImage || "");
 
         if (campaignData) {
-
           setIngredientPct(
             toPercentString(campaignData.ingredientBudgetPercentage)
           );
@@ -76,21 +75,25 @@ export default function EditCampaignPage() {
 
           // Try to load phases, fallback to default if not available
           try {
-            if (campaignData.phases && Array.isArray(campaignData.phases) && campaignData.phases.length > 0) {
+            if (
+              campaignData.phases &&
+              Array.isArray(campaignData.phases) &&
+              campaignData.phases.length > 0
+            ) {
               const loadedPhases = campaignData.phases as CampaignPhase[];
               setExistingPhases(loadedPhases);
-              setPhases(loadedPhases.map((phase) => ({
-                phaseName: phase?.phaseName || "",
-                location: phase?.location || "",
-                ingredientPurchaseDate: phase?.ingredientPurchaseDate || "",
-                cookingDate: phase?.cookingDate || "",
-                deliveryDate: phase?.deliveryDate || "",
-              })));
+              setPhases(
+                loadedPhases.map((phase) => ({
+                  phaseName: phase?.phaseName || "",
+                  location: phase?.location || "",
+                  ingredientPurchaseDate: phase?.ingredientPurchaseDate || "",
+                  cookingDate: phase?.cookingDate || "",
+                  deliveryDate: phase?.deliveryDate || "",
+                }))
+              );
             } else {
-              console.log("📋 No phases found, creating default");
               setExistingPhases([]);
 
-              // Tạo default times cho phase mặc định
               const today = new Date();
               const tomorrow = new Date(today);
               tomorrow.setDate(today.getDate() + 1);
@@ -104,13 +107,15 @@ export default function EditCampaignPage() {
               const deliveryTime = new Date(tomorrow);
               deliveryTime.setHours(14, 0, 0, 0); // 2:00 PM
 
-              setPhases([{
-                phaseName: "Giai đoạn 1",
-                location: "",
-                ingredientPurchaseDate: purchaseTime.toISOString(),
-                cookingDate: cookingTime.toISOString(),
-                deliveryDate: deliveryTime.toISOString(),
-              }]);
+              setPhases([
+                {
+                  phaseName: "Giai đoạn 1",
+                  location: "",
+                  ingredientPurchaseDate: purchaseTime.toISOString(),
+                  cookingDate: cookingTime.toISOString(),
+                  deliveryDate: deliveryTime.toISOString(),
+                },
+              ]);
             }
           } catch {
             setExistingPhases([]);
@@ -129,13 +134,15 @@ export default function EditCampaignPage() {
             const deliveryTime = new Date(tomorrow);
             deliveryTime.setHours(14, 0, 0, 0); // 2:00 PM
 
-            setPhases([{
-              phaseName: "Giai đoạn 1",
-              location: "",
-              ingredientPurchaseDate: purchaseTime.toISOString(),
-              cookingDate: cookingTime.toISOString(),
-              deliveryDate: deliveryTime.toISOString(),
-            }]);
+            setPhases([
+              {
+                phaseName: "Giai đoạn 1",
+                location: "",
+                ingredientPurchaseDate: purchaseTime.toISOString(),
+                cookingDate: cookingTime.toISOString(),
+                deliveryDate: deliveryTime.toISOString(),
+              },
+            ]);
           }
         }
       } catch (err) {
@@ -167,7 +174,11 @@ export default function EditCampaignPage() {
     setCampaign((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
-  const updatePhase = (index: number, field: keyof CreatePhaseInput, value: string) => {
+  const updatePhase = (
+    index: number,
+    field: keyof CreatePhaseInput,
+    value: string
+  ) => {
     const newPhases = [...phases];
     newPhases[index] = { ...newPhases[index], [field]: value };
     setPhases(newPhases);
@@ -189,13 +200,16 @@ export default function EditCampaignPage() {
     const deliveryTime = new Date(tomorrow);
     deliveryTime.setHours(14, 0, 0, 0); // 2:00 PM
 
-    setPhases([...phases, {
-      phaseName: `Giai đoạn ${phases.length + 1}`,
-      location: "",
-      ingredientPurchaseDate: purchaseTime.toISOString(),
-      cookingDate: cookingTime.toISOString(),
-      deliveryDate: deliveryTime.toISOString(),
-    }]);
+    setPhases([
+      ...phases,
+      {
+        phaseName: `Giai đoạn ${phases.length + 1}`,
+        location: "",
+        ingredientPurchaseDate: purchaseTime.toISOString(),
+        cookingDate: cookingTime.toISOString(),
+        deliveryDate: deliveryTime.toISOString(),
+      },
+    ]);
   };
 
   const removePhase = (index: number) => {
@@ -247,7 +261,7 @@ export default function EditCampaignPage() {
 
       // Simple approach: Delete all existing phases and add new ones
       if (existingPhases.length > 0) {
-        const existingIds = existingPhases.map(p => p.id);
+        const existingIds = existingPhases.map((p) => p.id);
         await phaseService.deleteManyCampaignPhases(existingIds);
       }
 
@@ -256,12 +270,15 @@ export default function EditCampaignPage() {
         const phaseInput: CreatePhaseInput = {
           phaseName: phase.phaseName,
           location: phase.location,
-          ingredientPurchaseDate: phase.ingredientPurchaseDate ?
-            new Date(phase.ingredientPurchaseDate).toISOString() : "",
-          cookingDate: phase.cookingDate ?
-            new Date(phase.cookingDate).toISOString() : "",
-          deliveryDate: phase.deliveryDate ?
-            new Date(phase.deliveryDate).toISOString() : "",
+          ingredientPurchaseDate: phase.ingredientPurchaseDate
+            ? new Date(phase.ingredientPurchaseDate).toISOString()
+            : "",
+          cookingDate: phase.cookingDate
+            ? new Date(phase.cookingDate).toISOString()
+            : "",
+          deliveryDate: phase.deliveryDate
+            ? new Date(phase.deliveryDate).toISOString()
+            : "",
         };
 
         await phaseService.addCampaignPhase(campaignId, phaseInput);
@@ -371,7 +388,10 @@ export default function EditCampaignPage() {
         ...(fileKey && { coverImageFileKey: fileKey }),
       };
 
-      const updated = await campaignService.updateCampaign(campaign.id, campaignInput);
+      const updated = await campaignService.updateCampaign(
+        campaign.id,
+        campaignInput
+      );
 
       // 2. Handle phases separately
       await handlePhasesUpdate(campaign.id);
@@ -604,9 +624,14 @@ export default function EditCampaignPage() {
               </div>
 
               {phases.map((phase, index) => (
-                <div key={index} className="p-4 border rounded-lg bg-gray-50 space-y-4">
+                <div
+                  key={index}
+                  className="p-4 border rounded-lg bg-gray-50 space-y-4"
+                >
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900">Giai đoạn {index + 1}</h4>
+                    <h4 className="font-medium text-gray-900">
+                      Giai đoạn {index + 1}
+                    </h4>
                     {phases.length > 1 && (
                       <Button
                         variant="outline"
@@ -621,10 +646,14 @@ export default function EditCampaignPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs text-gray-600">Tên giai đoạn</label>
+                      <label className="text-xs text-gray-600">
+                        Tên giai đoạn
+                      </label>
                       <Input
                         value={phase.phaseName}
-                        onChange={(e) => updatePhase(index, 'phaseName', e.target.value)}
+                        onChange={(e) =>
+                          updatePhase(index, "phaseName", e.target.value)
+                        }
                         placeholder="Ví dụ: Giai đoạn 1"
                       />
                     </div>
@@ -632,7 +661,9 @@ export default function EditCampaignPage() {
                       <label className="text-xs text-gray-600">Địa điểm</label>
                       <LocationPicker
                         value={phase.location}
-                        onChange={(location) => updatePhase(index, 'location', location)}
+                        onChange={(location) =>
+                          updatePhase(index, "location", location)
+                        }
                         placeholder="Chọn địa điểm thực hiện"
                       />
                     </div>
@@ -640,30 +671,51 @@ export default function EditCampaignPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs text-gray-600">Ngày & giờ mua nguyên liệu</label>
+                      <label className="text-xs text-gray-600">
+                        Ngày & giờ mua nguyên liệu
+                      </label>
                       <Input
                         type="datetime-local"
                         value={isoToLocalInput(phase.ingredientPurchaseDate)}
-                        onChange={(e) => updatePhase(index, 'ingredientPurchaseDate',
-                          localInputToIso(e.target.value))}
+                        onChange={(e) =>
+                          updatePhase(
+                            index,
+                            "ingredientPurchaseDate",
+                            localInputToIso(e.target.value)
+                          )
+                        }
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs text-gray-600">Ngày & giờ nấu ăn</label>
+                      <label className="text-xs text-gray-600">
+                        Ngày & giờ nấu ăn
+                      </label>
                       <Input
                         type="datetime-local"
                         value={isoToLocalInput(phase.cookingDate)}
-                        onChange={(e) => updatePhase(index, 'cookingDate',
-                          localInputToIso(e.target.value))}
+                        onChange={(e) =>
+                          updatePhase(
+                            index,
+                            "cookingDate",
+                            localInputToIso(e.target.value)
+                          )
+                        }
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs text-gray-600">Ngày & giờ giao hàng</label>
+                      <label className="text-xs text-gray-600">
+                        Ngày & giờ giao hàng
+                      </label>
                       <Input
                         type="datetime-local"
                         value={isoToLocalInput(phase.deliveryDate)}
-                        onChange={(e) => updatePhase(index, 'deliveryDate',
-                          localInputToIso(e.target.value))}
+                        onChange={(e) =>
+                          updatePhase(
+                            index,
+                            "deliveryDate",
+                            localInputToIso(e.target.value)
+                          )
+                        }
                       />
                     </div>
                   </div>

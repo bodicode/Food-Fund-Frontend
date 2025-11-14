@@ -54,7 +54,9 @@ export default function OrgRegisterPage() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
-  const [autoFilledFields, setAutoFilledFields] = useState<Set<FormKeys>>(new Set());
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<FormKeys>>(
+    new Set()
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -232,9 +234,13 @@ export default function OrgRegisterPage() {
   const fieldClass = (key: FormKeys) => {
     const baseClass = "h-12 border-2 focus-visible:ring-orange-200";
     const paddingClass = autoFilledFields.has(key) ? "pl-11 pr-11" : "pl-11";
-    const errorClass = errors[key] ? "border-red-400 focus:border-red-500" : "focus:border-orange-500";
-    const readOnlyClass = autoFilledFields.has(key) ? "bg-green-50 border-green-300 text-green-800 cursor-not-allowed" : "";
-    
+    const errorClass = errors[key]
+      ? "border-red-400 focus:border-red-500"
+      : "focus:border-orange-500";
+    const readOnlyClass = autoFilledFields.has(key)
+      ? "bg-green-50 border-green-300 text-green-800 cursor-not-allowed"
+      : "";
+
     return `${baseClass} ${paddingClass} ${errorClass} ${readOnlyClass}`;
   };
 
@@ -255,19 +261,19 @@ export default function OrgRegisterPage() {
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file hình ảnh hợp lệ');
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn file hình ảnh hợp lệ");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Kích thước file không được vượt quá 5MB');
+      toast.error("Kích thước file không được vượt quá 5MB");
       return;
     }
 
     setUploadedImage(file);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -281,23 +287,24 @@ export default function OrgRegisterPage() {
 
   const processIdCard = async (file: File) => {
     setIsProcessingImage(true);
-    
+
     try {
       const apiKey = process.env.NEXT_PUBLIC_FPT_API_KEY;
       if (!apiKey) {
-        toast.error('API key chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
+        toast.error(
+          "API key chưa được cấu hình. Vui lòng liên hệ quản trị viên."
+        );
         clearImage();
         return;
       }
 
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append("image", file);
 
-      console.log('Processing ID card with FPT AI...');
-      const response = await fetch('https://api.fpt.ai/vision/idr/vnm/', {
-        method: 'POST',
+      const response = await fetch("https://api.fpt.ai/vision/idr/vnm/", {
+        method: "POST",
         headers: {
-          'api-key': apiKey,
+          "api-key": apiKey,
         },
         body: formData,
       });
@@ -307,31 +314,27 @@ export default function OrgRegisterPage() {
       }
 
       const result = await response.json();
-      console.log('FPT AI response:', result);
 
       if (result.errorCode === 0 && result.data && result.data.length > 0) {
         const idData = result.data[0];
-        console.log('Extracted ID data:', idData);
-        
-        // Track which fields will be auto-filled
         const filledFields = new Set<FormKeys>();
         const updatedForm: Partial<Record<FormKeys, string>> = {};
 
         if (idData.name) {
           updatedForm.representative_name = idData.name;
-          filledFields.add('representative_name');
+          filledFields.add("representative_name");
         }
         if (idData.id) {
           updatedForm.representative_identity_number = idData.id;
-          filledFields.add('representative_identity_number');
+          filledFields.add("representative_identity_number");
         }
         if (idData.address) {
           updatedForm.address = idData.address;
-          filledFields.add('address');
+          filledFields.add("address");
         }
 
         // Auto-fill form fields from OCR response
-        setForm(prev => ({
+        setForm((prev) => ({
           ...prev,
           ...updatedForm,
         }));
@@ -339,18 +342,22 @@ export default function OrgRegisterPage() {
         // Mark these fields as auto-filled (read-only)
         setAutoFilledFields(filledFields);
 
-        toast.success('Đã tự động điền thông tin từ CCCD/CMND. Các thông tin này đã được khóa để đảm bảo tính chính xác.');
+        toast.success(
+          "Đã tự động điền thông tin từ CCCD/CMND. Các thông tin này đã được khóa để đảm bảo tính chính xác."
+        );
       } else if (result.errorCode === 3) {
-        toast.error('Không tìm thấy CCCD/CMND trong hình ảnh. Vui lòng tải lên ảnh khác.');
+        toast.error(
+          "Không tìm thấy CCCD/CMND trong hình ảnh. Vui lòng tải lên ảnh khác."
+        );
         clearImage();
       } else {
-        console.error('FPT AI error:', result);
-        toast.error(result.errorMessage || 'Có lỗi xảy ra khi xử lý hình ảnh');
+        console.error("FPT AI error:", result);
+        toast.error(result.errorMessage || "Có lỗi xảy ra khi xử lý hình ảnh");
         clearImage();
       }
     } catch (error) {
-      console.error('Error processing ID card:', error);
-      toast.error('Có lỗi xảy ra khi xử lý hình ảnh. Vui lòng thử lại.');
+      console.error("Error processing ID card:", error);
+      toast.error("Có lỗi xảy ra khi xử lý hình ảnh. Vui lòng thử lại.");
       clearImage();
     } finally {
       setIsProcessingImage(false);
@@ -361,22 +368,22 @@ export default function OrgRegisterPage() {
     setUploadedImage(null);
     setImagePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const handleRemoveImage = () => {
     clearImage();
     // Clear the auto-filled fields when removing image
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      representative_name: '',
-      representative_identity_number: '',
-      address: '',
+      representative_name: "",
+      representative_identity_number: "",
+      address: "",
     }));
     // Clear auto-filled fields tracking
     setAutoFilledFields(new Set());
-    toast.info('Đã xóa ảnh CCCD/CMND và mở khóa các trường thông tin');
+    toast.info("Đã xóa ảnh CCCD/CMND và mở khóa các trường thông tin");
   };
 
   return (
@@ -463,9 +470,11 @@ export default function OrgRegisterPage() {
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold text-gray-700">
                       Tải ảnh CCCD/CMND để tự động điền thông tin
-                      <span className="text-orange-600 font-normal ml-2">(Khuyến nghị)</span>
+                      <span className="text-orange-600 font-normal ml-2">
+                        (Khuyến nghị)
+                      </span>
                     </Label>
-                    
+
                     {!imagePreview ? (
                       <div className="relative">
                         <input
@@ -523,7 +532,9 @@ export default function OrgRegisterPage() {
                                     {uploadedImage?.name}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    {isProcessingImage ? 'Đang xử lý và điền thông tin...' : 'Đã xử lý thành công'}
+                                    {isProcessingImage
+                                      ? "Đang xử lý và điền thông tin..."
+                                      : "Đã xử lý thành công"}
                                   </p>
                                 </div>
                                 <Button
@@ -548,10 +559,12 @@ export default function OrgRegisterPage() {
                   {!imagePreview && (
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
                       <p className="text-blue-700 text-sm font-medium">
-                        📸 Vui lòng tải lên ảnh CCCD/CMND để bắt đầu điền thông tin
+                        📸 Vui lòng tải lên ảnh CCCD/CMND để bắt đầu điền thông
+                        tin
                       </p>
                       <p className="text-blue-600 text-xs mt-1">
-                        Hệ thống sẽ tự động điền thông tin cơ bản từ CCCD/CMND của bạn
+                        Hệ thống sẽ tự động điền thông tin cơ bản từ CCCD/CMND
+                        của bạn
                       </p>
                     </div>
                   )}
@@ -566,8 +579,10 @@ export default function OrgRegisterPage() {
                         </p>
                       </div>
                       <p className="text-green-600 text-xs">
-                        Các trường có biểu tượng <Shield className="w-3 h-3 inline mx-1" /> đã được khóa để đảm bảo tính chính xác. 
-                        Nếu cần chỉnh sửa, vui lòng xóa ảnh và tải lên lại.
+                        Các trường có biểu tượng{" "}
+                        <Shield className="w-3 h-3 inline mx-1" /> đã được khóa
+                        để đảm bảo tính chính xác. Nếu cần chỉnh sửa, vui lòng
+                        xóa ảnh và tải lên lại.
                       </p>
                     </div>
                   )}
@@ -663,16 +678,18 @@ export default function OrgRegisterPage() {
                         className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         Địa chỉ <span className="text-red-500">*</span>
-                        {autoFilledFields.has('address') && (
+                        {autoFilledFields.has("address") && (
                           <div className="flex items-center gap-1 text-green-600">
                             <Shield className="w-3 h-3" />
-                            <span className="text-xs font-normal">Tự động điền</span>
+                            <span className="text-xs font-normal">
+                              Tự động điền
+                            </span>
                           </div>
                         )}
                       </Label>
                       <div className="relative group">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-                        {autoFilledFields.has('address') && (
+                        {autoFilledFields.has("address") && (
                           <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
                         )}
                         <Input
@@ -687,7 +704,7 @@ export default function OrgRegisterPage() {
                           placeholder="30 Nguyễn Trãi, Quận 5, TP.HCM"
                           className={fieldClass("address")}
                           disabled={loading || !imagePreview}
-                          readOnly={autoFilledFields.has('address')}
+                          readOnly={autoFilledFields.has("address")}
                         />
                       </div>
                       <ErrorLine keyName="address" />
@@ -729,16 +746,18 @@ export default function OrgRegisterPage() {
                       >
                         Tên người đại diện{" "}
                         <span className="text-red-500">*</span>
-                        {autoFilledFields.has('representative_name') && (
+                        {autoFilledFields.has("representative_name") && (
                           <div className="flex items-center gap-1 text-green-600">
                             <Shield className="w-3 h-3" />
-                            <span className="text-xs font-normal">Tự động điền</span>
+                            <span className="text-xs font-normal">
+                              Tự động điền
+                            </span>
                           </div>
                         )}
                       </Label>
                       <div className="relative group">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-                        {autoFilledFields.has('representative_name') && (
+                        {autoFilledFields.has("representative_name") && (
                           <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
                         )}
                         <Input
@@ -753,7 +772,7 @@ export default function OrgRegisterPage() {
                           placeholder="Nguyễn Văn A"
                           className={fieldClass("representative_name")}
                           disabled={loading || !imagePreview}
-                          readOnly={autoFilledFields.has('representative_name')}
+                          readOnly={autoFilledFields.has("representative_name")}
                         />
                       </div>
                       <ErrorLine keyName="representative_name" />
@@ -767,16 +786,22 @@ export default function OrgRegisterPage() {
                       >
                         CMND/CCCD người đại diện{" "}
                         <span className="text-red-500">*</span>
-                        {autoFilledFields.has('representative_identity_number') && (
+                        {autoFilledFields.has(
+                          "representative_identity_number"
+                        ) && (
                           <div className="flex items-center gap-1 text-green-600">
                             <Shield className="w-3 h-3" />
-                            <span className="text-xs font-normal">Tự động điền</span>
+                            <span className="text-xs font-normal">
+                              Tự động điền
+                            </span>
                           </div>
                         )}
                       </Label>
                       <div className="relative group">
                         <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-                        {autoFilledFields.has('representative_identity_number') && (
+                        {autoFilledFields.has(
+                          "representative_identity_number"
+                        ) && (
                           <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
                         )}
                         <Input
@@ -793,7 +818,9 @@ export default function OrgRegisterPage() {
                             "representative_identity_number"
                           )}
                           disabled={loading || !imagePreview}
-                          readOnly={autoFilledFields.has('representative_identity_number')}
+                          readOnly={autoFilledFields.has(
+                            "representative_identity_number"
+                          )}
                         />
                       </div>
                       <ErrorLine keyName="representative_identity_number" />

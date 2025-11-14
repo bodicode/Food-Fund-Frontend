@@ -32,9 +32,9 @@ export function FeaturedCampaigns() {
     const fetchCampaigns = async () => {
       try {
         const data = await campaignService.getCampaigns({
-          filter: { status: ["ACTIVE", "APPROVED"] },
-          sortBy: "NEWEST_FIRST",
-          limit: 10,
+          filter: { status: ["ACTIVE"] },
+          sortBy: "MOST_DONATED",
+          limit: 20,
           offset: 0,
         });
         setCampaigns(data ?? []);
@@ -118,8 +118,8 @@ export function FeaturedCampaigns() {
   }
 
   // Sort campaigns by donation count to get the most supported one as hero
-  const sortedCampaigns = [...campaigns].sort((a, b) =>
-    (b.donationCount || 0) - (a.donationCount || 0)
+  const sortedCampaigns = [...campaigns].sort(
+    (a, b) => (b.donationCount || 0) - (a.donationCount || 0)
   );
 
   const [hero, ...rest] = sortedCampaigns.map(mapCampaignToCardProps);
@@ -149,12 +149,22 @@ export function FeaturedCampaigns() {
 
         <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-stretch">
           <div className="lg:col-span-2 flex">
-            <CampaignCard {...hero} coverImage={hero.coverImage || ""} isHero className="flex-1" />
+            <CampaignCard
+              {...hero}
+              coverImage={hero.coverImage || ""}
+              isHero
+              className="flex-1"
+            />
           </div>
 
           <div className="flex flex-col gap-8">
             {rightTwoByTwo.slice(0, 2).map((c) => (
-              <CampaignCard key={c.id} {...c} coverImage={c.coverImage || ""} className="flex-1" />
+              <CampaignCard
+                key={c.id}
+                {...c}
+                coverImage={c.coverImage || ""}
+                className="flex-1"
+              />
             ))}
           </div>
         </div>
@@ -173,8 +183,10 @@ export function FeaturedCampaigns() {
             }}
             pagination={{
               clickable: true,
-              bulletClass: 'swiper-pagination-bullet !w-4 !h-2 !rounded-full !bg-orange-200 !opacity-100 transition-all duration-300',
-              bulletActiveClass: 'swiper-pagination-bullet-active !w-10 !bg-gradient-to-r !from-[#E77731] !to-[#ad4e28]',
+              bulletClass:
+                "swiper-pagination-bullet !w-4 !h-2 !rounded-full !bg-orange-200 !opacity-100 transition-all duration-300",
+              bulletActiveClass:
+                "swiper-pagination-bullet-active !w-10 !bg-gradient-to-r !from-[#E77731] !to-[#ad4e28]",
             }}
             breakpoints={{
               640: { slidesPerView: 1 },

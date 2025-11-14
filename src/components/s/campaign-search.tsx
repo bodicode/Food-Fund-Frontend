@@ -42,7 +42,24 @@ export default function CampaignSearchPage() {
   }, []);
 
   const { campaigns, loading, hasMore, params, setParams, fetchCampaigns } =
-    useCampaigns({ limit: 9, offset: 0 });
+    useCampaigns({ limit: 9, offset: 0, sortBy: "MOST_DONATED" });
+
+  // Local state for debounced search input
+  const [searchText, setSearchText] = useState<string>("");
+  useEffect(() => {
+    setSearchText(params.search || "");
+  }, [params.search]);
+
+  // Debounce: trigger search after user stops typing
+  useEffect(() => {
+    const h = setTimeout(() => {
+      if (searchText !== params.search) {
+        setParams((prev) => ({ ...prev, search: searchText }));
+        fetchCampaigns({ search: searchText, offset: 0 });
+      }
+    }, 400);
+    return () => clearTimeout(h);
+  }, [searchText, params.search]);
 
   // Handle category filter from URL params
   useEffect(() => {
@@ -73,10 +90,11 @@ export default function CampaignSearchPage() {
     });
   };
 
-  // Apply custom sorting when showing all statuses
+  // Apply custom sorting when showing all statuses ONLY if no explicit sortBy provided
   const displayCampaigns = (!params.filter?.status || params.filter.status.length === 0)
-    ? sortCampaignsByStatus(campaigns)
-    : campaigns;
+    && !params.sortBy
+      ? sortCampaignsByStatus(campaigns)
+      : campaigns;
 
   useLayoutEffect(() => {
     if (!cardsRef.current) return;
@@ -142,6 +160,27 @@ export default function CampaignSearchPage() {
             </Select>
 
             <Select
+              value={params.sortBy || "MOST_DONATED"}
+              onValueChange={(val) => {
+                const newSort = val as typeof params.sortBy;
+                setParams((prev) => ({ ...prev, sortBy: newSort }));
+                fetchCampaigns({ sortBy: newSort, offset: 0 });
+              }}
+            >
+              <SelectTrigger className="w-[220px] border rounded-md px-3 py-2 text-sm">
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MOST_DONATED">Nhiều ủng hộ nhất</SelectItem>
+                <SelectItem value="LEAST_DONATED">Ít ủng hộ nhất</SelectItem>
+                <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                <SelectItem value="TARGET_AMOUNT_ASC">Mục tiêu tăng dần</SelectItem>
+                <SelectItem value="TARGET_AMOUNT_DESC">Mục tiêu giảm dần</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
               value={params.filter?.status?.[0] || "ALL"}
               onValueChange={(val) => {
                 const newFilter = {
@@ -160,7 +199,7 @@ export default function CampaignSearchPage() {
                 <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
                 <SelectItem value="APPROVED">Đã duyệt</SelectItem>
-                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
+                {/* <SelectItem value="PENDING">Chờ duyệt</SelectItem> */}
               </SelectContent>
             </Select>
 
@@ -183,13 +222,30 @@ export default function CampaignSearchPage() {
             <input
               type="text"
               placeholder="Tìm kiếm tên chiến dịch"
-              className="w-full rounded-md border pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-200"
-              value={params.search || ""}
-              onChange={(e) => {
-                setParams((prev) => ({ ...prev, search: e.target.value }));
-                fetchCampaigns({ search: e.target.value, offset: 0 });
+              className="w-full rounded-md border pl-9 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-200"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setParams((prev) => ({ ...prev, search: searchText }));
+                  fetchCampaigns({ search: searchText, offset: 0 });
+                }
               }}
             />
+            {searchText && (
+              <button
+                type="button"
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-base leading-none"
+                onClick={() => {
+                  setSearchText("");
+                  setParams((prev) => ({ ...prev, search: "" }));
+                  fetchCampaigns({ search: "", offset: 0 });
+                }}
+              >
+                x
+              </button>
+            )}
           </div>
         </div>
       </div>

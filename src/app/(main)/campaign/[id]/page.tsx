@@ -30,12 +30,7 @@ import { ProgressBar } from "@/components/campaign/progress-bar";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
 import { Timeline } from "@/components/campaign/timeline";
 import { ActionPanel } from "@/components/campaign/action-panel";
-import {
-  calcDaysLeft,
-  calcProgress,
-  coverSrc,
-  toNumber,
-} from "@/lib/utils/utils";
+import { coverSrc, toNumber } from "@/lib/utils/utils";
 import { Stat } from "@/components/campaign/stat";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
@@ -87,11 +82,30 @@ export default function CampaignDetailPage() {
 
   const raised = toNumber(campaign.receivedAmount, 0);
   const goal = Math.max(toNumber(campaign.targetAmount, 0), 1);
-  const progress = calcProgress(campaign.receivedAmount, campaign.targetAmount);
-  const timeLeft = calcDaysLeft(
-    campaign.fundraisingEndDate,
-    campaign.fundraisingStartDate
-  );
+  const progress =
+    typeof campaign.fundingProgress === "number"
+      ? Math.round(campaign.fundingProgress)
+      : Math.min(Math.round((raised / (goal || 1)) * 100), 100);
+  const timeLeft =
+    typeof campaign.daysRemaining === "number"
+      ? campaign.daysRemaining
+      : (() => {
+          const now = new Date();
+          const end = campaign.fundraisingEndDate
+            ? new Date(campaign.fundraisingEndDate)
+            : null;
+          const start = campaign.fundraisingStartDate
+            ? new Date(campaign.fundraisingStartDate)
+            : null;
+          if (!end) return "Không xác định";
+          if (start && now < start) {
+            const days = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return `Chưa bắt đầu (còn ${days} ngày)`;
+          }
+          if (now > end) return "Đã kết thúc";
+          const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          return diff;
+        })();
 
   const ingredientPct = toNumber(campaign.ingredientBudgetPercentage, 0);
   const cookingPct = toNumber(campaign.cookingBudgetPercentage, 0);

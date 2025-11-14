@@ -18,7 +18,14 @@ import { useRouter } from "next/navigation";
 
 interface ActionPanelProps {
   campaignId?: string;
-  campaignStatus?: "PENDING" | "APPROVED" | "ACTIVE" | "REJECTED" | "CANCELLED" | "COMPLETED";
+  campaignStatus?:
+    | "PENDING"
+    | "APPROVED"
+    | "ACTIVE"
+    | "REJECTED"
+    | "CANCELLED"
+    | "COMPLETED"
+    | "PROCESSING";
   canEdit: boolean;
   onEdit: () => void;
   onDirection?: () => void;
