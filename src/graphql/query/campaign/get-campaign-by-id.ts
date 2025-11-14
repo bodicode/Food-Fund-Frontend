@@ -11,6 +11,10 @@ export const GET_CAMPAIGN_BY_ID = gql`
       targetAmount
       donationCount
       receivedAmount
+      fundingProgress
+      daysActive
+      totalPhases
+      daysRemaining
       fundraisingStartDate
       fundraisingEndDate
       

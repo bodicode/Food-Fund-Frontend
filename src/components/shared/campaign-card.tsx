@@ -26,12 +26,13 @@ type CampaignCardProps = {
     status?: string;
   }>;
   status?:
-  | "PENDING"
-  | "APPROVED"
-  | "ACTIVE"
-  | "REJECTED"
-  | "COMPLETED"
-  | "CANCELLED";
+    | "PENDING"
+    | "APPROVED"
+    | "ACTIVE"
+    | "PROCESSING"
+    | "REJECTED"
+    | "COMPLETED"
+    | "CANCELLED";
   donationCount: number;
   receivedAmount: string;
   targetAmount: string;
@@ -39,6 +40,11 @@ type CampaignCardProps = {
   fundraisingEndDate?: string;
   categoryId?: string;
   creatorName?: string;
+
+  fundingProgress?: number;
+  daysRemaining?: number;
+  totalPhases?: number;
+  daysActive?: number;
 
   isHero?: boolean;
   isEmergency?: boolean;
@@ -55,26 +61,35 @@ const fmtVND = (n: number) =>
 export function CampaignCard({
   id,
   title,
-  // description,
+  description,
   coverImage,
   phases,
   status,
   donationCount,
   receivedAmount,
   targetAmount,
-  // fundraisingStartDate,
+  fundraisingStartDate,
   fundraisingEndDate,
   // categoryId,
   creatorName,
   isHero = false,
   isEmergency = false,
+  fundingProgress,
+  daysRemaining: daysRemainingFromApi,
+  daysActive,
+  className,
 }: CampaignCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const raised = Number(receivedAmount);
   const goal = Number(targetAmount);
-  const progress = goal > 0 ? Math.round((raised / goal) * 100) : 0;
+  const progress =
+    typeof fundingProgress === "number"
+      ? Math.round(fundingProgress)
+      : goal > 0
+      ? Math.round((raised / goal) * 100)
+      : 0;
 
   useLayoutEffect(() => {
     if (!cardRef.current) return;
@@ -122,12 +137,22 @@ export function CampaignCard({
   }, [progress, raised, goal]);
 
   const daysLeft = () => {
+    if (typeof daysRemainingFromApi === "number") return daysRemainingFromApi;
     if (!fundraisingEndDate) return null;
     const diff = new Date(fundraisingEndDate).getTime() - Date.now();
     return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
   };
 
   const isPending = status === "PENDING";
+
+  // Derived date metrics (fallbacks if API not provided)
+  const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+  const computedDaysActive = (() => {
+    if (typeof daysActive === "number") return daysActive;
+    if (!fundraisingStartDate) return null;
+    const diff = Date.now() - new Date(fundraisingStartDate).getTime();
+    return Math.max(Math.ceil(diff / ONE_DAY_MS), 0);
+  })();
 
   const handleClick = () => {
     if (isPending) return;
@@ -139,13 +164,17 @@ export function CampaignCard({
       ref={cardRef}
       key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none will-change-transform ${isHero
+      className={`cursor-pointer select-none will-change-transform ${
+        isHero
           ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-lg transition-all duration-300 ease-out hover:-translate-y-2"
           : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-md transition-all duration-300 ease-out hover:-translate-y-3"
-        } ${isEmergency
+      } ${
+        isEmergency
           ? "ring-2 ring-red-400 ring-offset-2 bg-white/95 backdrop-blur-xl"
           : ""
-        } ${isPending ? "opacity-50 pointer-events-none" : ""}`}
+      } ${isPending ? "opacity-50 pointer-events-none" : ""} ${
+        className ? className : ""
+      }`}
     >
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10 opacity-70 group-hover:opacity-50 transition-opacity duration-300" />
@@ -155,8 +184,9 @@ export function CampaignCard({
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
-            } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
+          className={`fc-img w-full ${
+            isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
+          } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
         />
 
         {isEmergency && (
@@ -199,21 +229,32 @@ export function CampaignCard({
       </div>
 
       <span
-        className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"
-          } z-20 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full border border-white/30 shadow-lg backdrop-blur-sm`}
+        className={`absolute ${
+          isHero ? "top-4 left-4" : "top-3 left-3"
+        } z-20 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full border border-white/30 shadow-lg backdrop-blur-sm`}
       >
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
 
       <div className={`${isHero ? "p-5" : "p-4"} flex flex-col`}>
         <h3
-          className={`${isHero
+          className={`${
+            isHero
               ? "font-bold text-xl line-clamp-2 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
               : "font-bold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
-            }`}
+          }`}
         >
           {title}
         </h3>
+
+        {isHero && description && (
+          <div className="mt-2 text-sm text-gray-600 leading-relaxed line-clamp-3 overflow-hidden">
+            <div
+              className="[&_p]:my-1 [&_p]:last:mb-0"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+          </div>
+        )}
 
         {isEmergency && fundraisingEndDate && (
           <div className="mt-3 text-sm text-red-600 font-semibold flex items-center gap-x-2 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
@@ -228,6 +269,15 @@ export function CampaignCard({
           </div>
         )}
 
+        {!isHero && description && (
+          <div className="mt-2 text-xs text-gray-600 leading-relaxed line-clamp-2 overflow-hidden min-h-[2.5rem]">
+            <div
+              className="[&_p]:inline [&_*]:inline [&_p]:m-0 [&_br]:hidden"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+          </div>
+        )}
+
         <div className="mt-3 text-xs text-gray-500 font-medium space-y-1 h-6">
           {phases && phases.length > 0 && (
             <>
@@ -239,7 +289,9 @@ export function CampaignCard({
                     loop
                     className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
                   />
-                  <span className="line-clamp-1 flex-1">{phases[0].location}</span>
+                  <span className="line-clamp-1 flex-1">
+                    {phases[0].location}
+                  </span>
                 </div>
               ) : (
                 <>
@@ -250,7 +302,9 @@ export function CampaignCard({
                       loop
                       className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
                     />
-                    <span className="line-clamp-1 flex-1">{phases[0].location}</span>
+                    <span className="line-clamp-1 flex-1">
+                      {phases[0].location}
+                    </span>
                   </div>
                   <div className="flex items-start gap-x-1.5">
                     <MapPin
@@ -278,11 +332,36 @@ export function CampaignCard({
           {creatorName && `Bởi ${creatorName}`}
         </div>
 
+        {isHero && (computedDaysActive != null || daysLeft() != null) && (
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {computedDaysActive != null && (
+              <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+                <span className="text-gray-500 text-sm font-medium">
+                  Đang hoạt động
+                </span>
+                <span className="text-gray-800 font-semibold">
+                  {computedDaysActive} ngày
+                </span>
+              </div>
+            )}
+            {daysLeft() != null && (
+              <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+                <span className="text-gray-500 text-sm font-medium">
+                  Còn lại
+                </span>
+                <span className="text-gray-800 font-semibold">
+                  {daysLeft()} ngày
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 font-medium">Lượt ủng hộ</span>
             <span className="font-bold text-[#E77731]">
-              {donationCount.toLocaleString('vi-VN')}
+              {donationCount.toLocaleString("vi-VN")}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
@@ -290,14 +369,18 @@ export function CampaignCard({
             <span
               className="fc-money font-bold text-color"
               data-value={raised}
-            ></span>
+            >
+              {fmtVND(raised)}
+            </span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 font-medium">Mục tiêu</span>
             <span
               className="fc-money font-semibold text-gray-700"
               data-value={goal}
-            ></span>
+            >
+              {fmtVND(goal)}
+            </span>
           </div>
         </div>
       </div>

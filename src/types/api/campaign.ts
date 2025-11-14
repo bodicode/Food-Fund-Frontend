@@ -1,7 +1,5 @@
 import { CampaignPhase, CreatePhaseInput } from "./phase";
 
-
-
 // ==============================
 // CAMPAIGN TYPES
 // ==============================
@@ -15,6 +13,7 @@ export interface Campaign {
     | "PENDING"
     | "APPROVED"
     | "ACTIVE"
+    | "PROCESSING"
     | "REJECTED"
     | "COMPLETED"
     | "CANCELLED";
@@ -22,6 +21,12 @@ export interface Campaign {
   targetAmount: string;
   donationCount: number;
   receivedAmount: string;
+
+  // Computed fields from backend (optional for backward compatibility)
+  fundingProgress?: number; // 0-100
+  daysActive?: number; // days since fundraising start
+  totalPhases?: number; // number of phases
+  daysRemaining?: number; // remaining days until fundraising end
 
   // Ngày gây quỹ
   fundraisingStartDate?: string;
@@ -75,11 +80,11 @@ export interface CampaignFilterInput {
 export interface CampaignParams {
   filter?: CampaignFilterInput;
   search?: string;
-  sortBy?: 
-    | "NEWEST_FIRST" 
-    | "OLDEST_FIRST" 
+  sortBy?:
+    | "NEWEST_FIRST"
+    | "OLDEST_FIRST"
     | "ACTIVE_FIRST"
-    | "TARGET_AMOUNT_ASC" 
+    | "TARGET_AMOUNT_ASC"
     | "TARGET_AMOUNT_DESC"
     | "MOST_DONATED"
     | "LEAST_DONATED";
@@ -94,6 +99,7 @@ export type CampaignStatus =
   | "PENDING"
   | "APPROVED"
   | "ACTIVE"
+  | "PROCESSING"
   | "REJECTED"
   | "COMPLETED"
   | "CANCELLED";
@@ -107,8 +113,6 @@ export interface ChangeCampaignStatusResponse {
     status: Campaign["status"];
   };
 }
-
-
 
 export interface CreateCampaignInput {
   title: string;

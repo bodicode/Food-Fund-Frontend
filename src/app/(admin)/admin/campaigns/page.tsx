@@ -79,13 +79,13 @@ export default function AdminCampaignsPage() {
     }).format(Number(amount));
 
   const getStatusBadge = (status: Campaign["status"]) => {
-    const config = statusConfig[status];
-    const Icon = config.icon;
+    const cfg = statusConfig[status as keyof typeof statusConfig];
+    const Icon = cfg?.icon;
     const label = translateCampaignStatus(status);
     const colorClass = getStatusColorClass(status);
     return (
       <Badge className={`${colorClass} flex items-center gap-1 border-0`}>
-        <Icon className="w-3 h-3" />
+        {Icon ? <Icon className="w-3 h-3" /> : null}
         {label}
       </Badge>
     );
@@ -396,12 +396,18 @@ export default function AdminCampaignsPage() {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {statusActions[campaign.status].length > 0 && (
+                      {(
+                        (statusActions[
+                          campaign.status as keyof typeof statusActions
+                        ] || []).length > 0
+                      ) && (
                         <>
                           <DropdownMenuLabel className="text-xs text-gray-500">
                             Thay đổi trạng thái
                           </DropdownMenuLabel>
-                          {statusActions[campaign.status].map((action) => {
+                          {(statusActions[
+                            campaign.status as keyof typeof statusActions
+                          ] || []).map((action) => {
                             const Icon = action.icon;
                             return (
                               <DropdownMenuItem

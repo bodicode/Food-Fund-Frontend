@@ -16,6 +16,12 @@ export const STATUS_CONFIG = {
     icon: Clock,
     color: "bg-yellow-100 text-yellow-800",
   },
+  PROCESSING: {
+    label: "Dang xu ly",
+    variant: "secondary" as const,
+    icon: Clock,
+    color: "bg-yellow-100 text-yellow-800",
+  },
   APPROVED: {
     label: "Đã duyệt",
     variant: "default" as const,

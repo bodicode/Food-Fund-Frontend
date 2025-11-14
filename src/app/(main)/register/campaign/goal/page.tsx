@@ -20,8 +20,6 @@ import { CreatePhaseInput } from "@/types/api/phase";
 import { Plus, MapPin, Trash2 } from "lucide-react";
 import LocationPicker from "@/components/shared/location-picker";
 
-
-
 export default function CreateCampaignStepGoal() {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -75,30 +73,39 @@ export default function CreateCampaignStepGoal() {
   );
 
   // ===== Phases =====
-  const [phases, setPhases] = useState<CreatePhaseInput[]>(form.phases || [
-    {
-      phaseName: "Giai đoạn 1",
-      location: "",
-      ingredientPurchaseDate: "",
-      cookingDate: "",
-      deliveryDate: "",
-    },
-  ]);
+  const [phases, setPhases] = useState<CreatePhaseInput[]>(
+    form.phases || [
+      {
+        phaseName: "Giai đoạn 1",
+        location: "",
+        ingredientPurchaseDate: "",
+        cookingDate: "",
+        deliveryDate: "",
+      },
+    ]
+  );
 
-  const updatePhase = (index: number, field: keyof CreatePhaseInput, value: string) => {
+  const updatePhase = (
+    index: number,
+    field: keyof CreatePhaseInput,
+    value: string
+  ) => {
     const newPhases = [...phases];
     newPhases[index] = { ...newPhases[index], [field]: value };
     setPhases(newPhases);
   };
 
   const addPhase = () => {
-    setPhases([...phases, {
-      phaseName: `Giai đoạn ${phases.length + 1}`,
-      location: "",
-      ingredientPurchaseDate: "",
-      cookingDate: "",
-      deliveryDate: "",
-    }]);
+    setPhases([
+      ...phases,
+      {
+        phaseName: `Giai đoạn ${phases.length + 1}`,
+        location: "",
+        ingredientPurchaseDate: "",
+        cookingDate: "",
+        deliveryDate: "",
+      },
+    ]);
   };
 
   const removePhase = (index: number) => {
@@ -106,8 +113,6 @@ export default function CreateCampaignStepGoal() {
       setPhases(phases.filter((_, i) => i !== index));
     }
   };
-
-
 
   // ====== Derived validations  ======
   const amountNumeric = parseCurrency(targetAmount);
@@ -131,56 +136,50 @@ export default function CreateCampaignStepGoal() {
 
   const timelineAllFilled = !!fundStart && !!fundEnd;
 
-  const phasesValid = phases.every(phase => 
-    phase.phaseName?.trim() && 
-    phase.location?.trim() && 
-    phase.ingredientPurchaseDate && 
-    phase.cookingDate && 
-    phase.deliveryDate
+  const phasesValid = phases.every(
+    (phase) =>
+      phase.phaseName?.trim() &&
+      phase.location?.trim() &&
+      phase.ingredientPurchaseDate &&
+      phase.cookingDate &&
+      phase.deliveryDate
   );
 
-  const timelineOrderOk = timelineAllFilled && (() => {
-    const fundEndDate = new Date(fundEnd);
-    const fundStartDate = new Date(fundStart);
-    
-    if (fundEndDate < fundStartDate) return false;
-    
-    return phases.every(phase => {
-      if (!phase.ingredientPurchaseDate || !phase.cookingDate || !phase.deliveryDate) {
-        return false;
-      }
-      
-      const ingDate = new Date(phase.ingredientPurchaseDate);
-      const cookDate = new Date(phase.cookingDate);
-      const deliveryDate = new Date(phase.deliveryDate);
-      
-      return ingDate >= fundEndDate && 
-             cookDate >= ingDate && 
-             deliveryDate >= cookDate;
-    });
-  })();
+  const timelineOrderOk =
+    timelineAllFilled &&
+    (() => {
+      const fundEndDate = new Date(fundEnd);
+      const fundStartDate = new Date(fundStart);
 
-  const canContinue = isAmountValid && percentsValid && timelineAllFilled && phasesValid && timelineOrderOk;
+      if (fundEndDate < fundStartDate) return false;
 
-  // Debug validation states
-  console.log('Validation Debug:', {
-    isAmountValid,
-    percentsValid,
-    timelineAllFilled,
-    phasesValid,
-    timelineOrderOk,
-    canContinue,
-    targetAmount,
-    fundStart,
-    fundEnd,
-    phases: phases.map(p => ({
-      phaseName: p.phaseName,
-      location: p.location,
-      ingredientPurchaseDate: p.ingredientPurchaseDate,
-      cookingDate: p.cookingDate,
-      deliveryDate: p.deliveryDate
-    }))
-  });
+      return phases.every((phase) => {
+        if (
+          !phase.ingredientPurchaseDate ||
+          !phase.cookingDate ||
+          !phase.deliveryDate
+        ) {
+          return false;
+        }
+
+        const ingDate = new Date(phase.ingredientPurchaseDate);
+        const cookDate = new Date(phase.cookingDate);
+        const deliveryDate = new Date(phase.deliveryDate);
+
+        return (
+          ingDate >= fundEndDate &&
+          cookDate >= ingDate &&
+          deliveryDate >= cookDate
+        );
+      });
+    })();
+
+  const canContinue =
+    isAmountValid &&
+    percentsValid &&
+    timelineAllFilled &&
+    phasesValid &&
+    timelineOrderOk;
 
   // ===== Submit =====
   const handleNextStep = () => {
@@ -190,7 +189,9 @@ export default function CreateCampaignStepGoal() {
         return;
       }
       if (!percentsValid) {
-        toast.error("Tổng tỷ lệ ngân sách phải bằng 100% và mỗi mục trong 0–100%.");
+        toast.error(
+          "Tổng tỷ lệ ngân sách phải bằng 100% và mỗi mục trong 0–100%."
+        );
         return;
       }
       if (!timelineAllFilled) {
@@ -209,12 +210,18 @@ export default function CreateCampaignStepGoal() {
 
     const isoFundStart = localInputToIso(fundStart);
     const isoFundEnd = localInputToIso(fundEnd);
-    
-    const updatedPhases = phases.map(phase => ({
+
+    const updatedPhases = phases.map((phase) => ({
       ...phase,
-      ingredientPurchaseDate: phase.ingredientPurchaseDate,
-      cookingDate: phase.cookingDate,
-      deliveryDate: phase.deliveryDate,
+      ingredientPurchaseDate: phase.ingredientPurchaseDate
+        ? new Date(phase.ingredientPurchaseDate).toISOString()
+        : "",
+      cookingDate: phase.cookingDate
+        ? new Date(phase.cookingDate).toISOString()
+        : "",
+      deliveryDate: phase.deliveryDate
+        ? new Date(phase.deliveryDate).toISOString()
+        : "",
     }));
 
     dispatch(
@@ -242,7 +249,8 @@ export default function CreateCampaignStepGoal() {
               Đặt mục tiêu <br /> gây quỹ của bạn
             </h1>
             <p className="text-lg text-gray-600 leading-relaxed">
-              Xác định số tiền, phân bổ ngân sách và các giai đoạn thực hiện chiến dịch.
+              Xác định số tiền, phân bổ ngân sách và các giai đoạn thực hiện
+              chiến dịch.
             </p>
           </div>
 
@@ -284,7 +292,10 @@ export default function CreateCampaignStepGoal() {
                     placeholder="60.00"
                     value={ingredientPct}
                     onChange={onPercentChange(setIngredientPct)}
-                    onBlur={onPercentBlur(() => ingredientPct, setIngredientPct)}
+                    onBlur={onPercentBlur(
+                      () => ingredientPct,
+                      setIngredientPct
+                    )}
                     className="h-11"
                   />
                 </div>
@@ -365,11 +376,16 @@ export default function CreateCampaignStepGoal() {
               <h2 className="text-xl font-semibold text-color">
                 Giai đoạn thực hiện
               </h2>
-              
+
               {phases.map((phase, index) => (
-                <div key={index} className="p-6 border rounded-lg bg-white shadow-sm">
+                <div
+                  key={index}
+                  className="p-6 border rounded-lg bg-white shadow-sm"
+                >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium">Giai đoạn {index + 1}</h3>
+                    <h3 className="text-lg font-medium">
+                      Giai đoạn {index + 1}
+                    </h3>
                     {phases.length > 1 && (
                       <Button
                         variant="outline"
@@ -390,7 +406,9 @@ export default function CreateCampaignStepGoal() {
                       </label>
                       <Input
                         value={phase.phaseName}
-                        onChange={(e) => updatePhase(index, 'phaseName', e.target.value)}
+                        onChange={(e) =>
+                          updatePhase(index, "phaseName", e.target.value)
+                        }
                         placeholder="Ví dụ: Giai đoạn 1"
                         className="h-11"
                       />
@@ -402,10 +420,12 @@ export default function CreateCampaignStepGoal() {
                         <MapPin className="inline w-4 h-4 mr-1" />
                         Địa điểm thực hiện
                       </label>
-                      
+
                       <LocationPicker
                         value={phase.location}
-                        onChange={(location) => updatePhase(index, 'location', location)}
+                        onChange={(location) =>
+                          updatePhase(index, "location", location)
+                        }
                         placeholder="Chọn địa điểm thực hiện"
                       />
                     </div>
@@ -419,7 +439,13 @@ export default function CreateCampaignStepGoal() {
                         <Input
                           type="datetime-local"
                           value={isoToLocalInput(phase.ingredientPurchaseDate)}
-                          onChange={(e) => updatePhase(index, 'ingredientPurchaseDate', localInputToIso(e.target.value))}
+                          onChange={(e) =>
+                            updatePhase(
+                              index,
+                              "ingredientPurchaseDate",
+                              localInputToIso(e.target.value)
+                            )
+                          }
                           className="h-11"
                         />
                       </div>
@@ -430,7 +456,13 @@ export default function CreateCampaignStepGoal() {
                         <Input
                           type="datetime-local"
                           value={isoToLocalInput(phase.cookingDate)}
-                          onChange={(e) => updatePhase(index, 'cookingDate', localInputToIso(e.target.value))}
+                          onChange={(e) =>
+                            updatePhase(
+                              index,
+                              "cookingDate",
+                              localInputToIso(e.target.value)
+                            )
+                          }
                           className="h-11"
                         />
                       </div>
@@ -441,7 +473,13 @@ export default function CreateCampaignStepGoal() {
                         <Input
                           type="datetime-local"
                           value={isoToLocalInput(phase.deliveryDate)}
-                          onChange={(e) => updatePhase(index, 'deliveryDate', localInputToIso(e.target.value))}
+                          onChange={(e) =>
+                            updatePhase(
+                              index,
+                              "deliveryDate",
+                              localInputToIso(e.target.value)
+                            )
+                          }
                           className="h-11"
                         />
                       </div>
@@ -461,7 +499,8 @@ export default function CreateCampaignStepGoal() {
                   Thêm giai đoạn {phases.length + 1}
                 </Button>
                 <p className="text-sm text-gray-500 mt-2">
-                  Thêm giai đoạn mới nếu chiến dịch của bạn cần nhiều địa điểm thực hiện
+                  Thêm giai đoạn mới nếu chiến dịch của bạn cần nhiều địa điểm
+                  thực hiện
                 </p>
               </div>
             </div>
@@ -469,13 +508,28 @@ export default function CreateCampaignStepGoal() {
             {/* Validation Status */}
             {!canContinue && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="font-medium text-yellow-800 mb-2">Cần hoàn thành:</h3>
+                <h3 className="font-medium text-yellow-800 mb-2">
+                  Cần hoàn thành:
+                </h3>
                 <ul className="text-sm text-yellow-700 space-y-1">
                   {!isAmountValid && <li>• Nhập số tiền mục tiêu hợp lệ</li>}
-                  {!percentsValid && <li>• Phân bổ ngân sách phải tổng cộng 100%</li>}
-                  {!timelineAllFilled && <li>• Chọn thời gian bắt đầu và kết thúc gây quỹ</li>}
-                  {!phasesValid && <li>• Điền đầy đủ thông tin các giai đoạn (tên, địa điểm, thời gian)</li>}
-                  {timelineAllFilled && !timelineOrderOk && <li>• Thời gian các giai đoạn phải sau khi kết thúc gây quỹ</li>}
+                  {!percentsValid && (
+                    <li>• Phân bổ ngân sách phải tổng cộng 100%</li>
+                  )}
+                  {!timelineAllFilled && (
+                    <li>• Chọn thời gian bắt đầu và kết thúc gây quỹ</li>
+                  )}
+                  {!phasesValid && (
+                    <li>
+                      • Điền đầy đủ thông tin các giai đoạn (tên, địa điểm, thời
+                      gian)
+                    </li>
+                  )}
+                  {timelineAllFilled && !timelineOrderOk && (
+                    <li>
+                      • Thời gian các giai đoạn phải sau khi kết thúc gây quỹ
+                    </li>
+                  )}
                 </ul>
               </div>
             )}

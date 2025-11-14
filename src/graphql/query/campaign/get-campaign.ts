@@ -7,22 +7,26 @@ export const GET_CAMPAIGNS = gql`
     $sortBy: CampaignSortOrder
     $limit: Int
     $offset: Int
-  ) {
-    campaigns(
-      filter: $filter
-      search: $search
-      sortBy: $sortBy
-      limit: $limit
-      offset: $offset
     ) {
-      id
-      title
-      description
-      coverImage
-      status
-      targetAmount
+      campaigns(
+        filter: $filter
+        search: $search
+        sortBy: $sortBy
+        limit: $limit
+        offset: $offset
+      ) {
+        id
+        title
+        description
+        coverImage
+        status
+        targetAmount
       donationCount
       receivedAmount
+      fundingProgress
+      daysActive
+      totalPhases
+      daysRemaining
       fundraisingStartDate
       fundraisingEndDate
       

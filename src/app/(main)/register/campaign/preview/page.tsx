@@ -106,31 +106,31 @@ export default function CreateCampaignStepPreview() {
         setLoading(false);
         return;
       }
-      
+
       if (!form.description?.trim()) {
         toast.error("Thiếu mô tả chiến dịch");
         setLoading(false);
         return;
       }
-      
+
       if (!form.coverImageFileKey?.trim()) {
         toast.error("Thiếu ảnh bìa");
         setLoading(false);
         return;
       }
-      
+
       if (!form.targetAmount) {
         toast.error("Thiếu mục tiêu quyên góp");
         setLoading(false);
         return;
       }
-      
+
       if (!form.categoryId?.trim()) {
         toast.error("Thiếu danh mục");
         setLoading(false);
         return;
       }
-      
+
       if (!form.phases || form.phases.length === 0) {
         toast.error("Thiếu thông tin giai đoạn thực hiện");
         setLoading(false);
@@ -175,6 +175,18 @@ export default function CreateCampaignStepPreview() {
         return;
       }
 
+      // Normalize phases' datetime values to ISO strings to avoid timezone drift
+      const phasesIso = form.phases!.map((p) => ({
+        ...p,
+        ingredientPurchaseDate: p.ingredientPurchaseDate
+          ? new Date(p.ingredientPurchaseDate).toISOString()
+          : "",
+        cookingDate: p.cookingDate ? new Date(p.cookingDate).toISOString() : "",
+        deliveryDate: p.deliveryDate
+          ? new Date(p.deliveryDate).toISOString()
+          : "",
+      }));
+
       const input: CreateCampaignInput = {
         title: form.title!,
         description: form.description!,
@@ -186,15 +198,11 @@ export default function CreateCampaignStepPreview() {
         deliveryBudgetPercentage: form.deliveryBudgetPercentage!,
         fundraisingStartDate: startISO,
         fundraisingEndDate: endISO,
-        phases: form.phases!,
+        phases: phasesIso,
       };
 
-      console.log("Creating campaign with input:", input);
-      
       const result = await campaignService.createCampaign(input);
-      
-      console.log("Create campaign result:", result);
-      
+
       if (result) {
         toast.success("Chiến dịch đã được tạo thành công!");
         dispatch(resetForm());
@@ -205,25 +213,38 @@ export default function CreateCampaignStepPreview() {
       }
     } catch (err) {
       console.error("Create campaign error:", err);
-      
+
       // Extract error message from GraphQL error or use default
       let errorMessage = "Tạo chiến dịch thất bại. Vui lòng thử lại!";
-      
-      if (err && typeof err === 'object') {
+
+      if (err && typeof err === "object") {
         // Handle GraphQL errors
-        if ('graphQLErrors' in err && Array.isArray((err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors) && (err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors.length > 0) {
-          errorMessage = (err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors[0].message || errorMessage;
+        if (
+          "graphQLErrors" in err &&
+          Array.isArray(
+            (err as { graphQLErrors: Array<{ message?: string }> })
+              .graphQLErrors
+          ) &&
+          (err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors
+            .length > 0
+        ) {
+          errorMessage =
+            (err as { graphQLErrors: Array<{ message?: string }> })
+              .graphQLErrors[0].message || errorMessage;
         }
         // Handle network errors
-        else if ('networkError' in err && (err as { networkError: unknown }).networkError) {
+        else if (
+          "networkError" in err &&
+          (err as { networkError: unknown }).networkError
+        ) {
           errorMessage = "Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.";
         }
         // Handle other error formats
-        else if ('message' in err) {
+        else if ("message" in err) {
           errorMessage = (err as { message?: string }).message || errorMessage;
         }
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -237,7 +258,7 @@ export default function CreateCampaignStepPreview() {
       datetime: fmtDateTime(form.fundraisingStartDate),
     },
     {
-      key: "fundraisingEndDate", 
+      key: "fundraisingEndDate",
       label: "Kết thúc gây quỹ",
       datetime: fmtDateTime(form.fundraisingEndDate),
     },
@@ -299,7 +320,9 @@ export default function CreateCampaignStepPreview() {
                 <MapPin className="inline w-4 h-4 mr-1" />
                 Số giai đoạn
               </p>
-              <p className="font-medium">{form.phases?.length || 0} giai đoạn</p>
+              <p className="font-medium">
+                {form.phases?.length || 0} giai đoạn
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">
@@ -423,7 +446,9 @@ export default function CreateCampaignStepPreview() {
             <div className="space-y-4">
               {form.phases.map((phase, index) => (
                 <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                  <h3 className="font-semibold text-gray-900 mb-2">{phase.phaseName}</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    {phase.phaseName}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Địa điểm:</span>
@@ -431,15 +456,21 @@ export default function CreateCampaignStepPreview() {
                     </div>
                     <div>
                       <span className="text-gray-500">Mua nguyên liệu:</span>
-                      <p className="font-medium">{fmtDateTime(phase.ingredientPurchaseDate) || "—"}</p>
+                      <p className="font-medium">
+                        {fmtDateTime(phase.ingredientPurchaseDate) || "—"}
+                      </p>
                     </div>
                     <div>
                       <span className="text-gray-500">Nấu ăn:</span>
-                      <p className="font-medium">{fmtDateTime(phase.cookingDate) || "—"}</p>
+                      <p className="font-medium">
+                        {fmtDateTime(phase.cookingDate) || "—"}
+                      </p>
                     </div>
                     <div>
                       <span className="text-gray-500">Giao hàng:</span>
-                      <p className="font-medium">{fmtDateTime(phase.deliveryDate) || "—"}</p>
+                      <p className="font-medium">
+                        {fmtDateTime(phase.deliveryDate) || "—"}
+                      </p>
                     </div>
                   </div>
                 </div>
