@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { campaignService } from "@/services/campaign.service";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import { translateCampaignStatus } from "@/lib/utils/status-utils";
 import type { MyCampaignStats } from "@/types/api/campaign";
 import {
   BarChart,
@@ -49,13 +50,13 @@ export function MyCampaignStatsSection() {
   }
 
   const statusChartData = [
-    { key: "Chờ duyệt", value: stats.byStatus.pending },
-    { key: "Đã duyệt", value: stats.byStatus.approved },
-    { key: "Đang gây quỹ", value: stats.byStatus.active },
-    { key: "Đang xử lý", value: stats.byStatus.processing },
-    { key: "Hoàn thành", value: stats.byStatus.completed },
-    { key: "Từ chối", value: stats.byStatus.rejected },
-    { key: "Đã huỷ", value: stats.byStatus.cancelled },
+    { key: translateCampaignStatus("PENDING"), value: stats.byStatus.pending },
+    { key: translateCampaignStatus("APPROVED"), value: stats.byStatus.approved },
+    { key: translateCampaignStatus("ACTIVE"), value: stats.byStatus.active },
+    { key: translateCampaignStatus("PROCESSING"), value: stats.byStatus.processing },
+    { key: translateCampaignStatus("COMPLETED"), value: stats.byStatus.completed },
+    { key: translateCampaignStatus("REJECTED"), value: stats.byStatus.rejected },
+    { key: translateCampaignStatus("CANCELLED"), value: stats.byStatus.cancelled },
   ].filter((item) => item.value > 0);
 
   return (
