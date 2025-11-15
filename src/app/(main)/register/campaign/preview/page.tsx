@@ -15,8 +15,8 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { buildCoverUrl } from "@/lib/build-image";
 import { BookOpen, CalendarDays, Goal, MapPin, Tag } from "lucide-react";
 import { CreateCampaignInput } from "@/types/api/campaign";
-import { formatCurrency } from "@/lib/utils/currency-utils";
 import { TermsConditionsDialog } from "@/components/campaign/terms-conditions-dialog";
+import { translateError } from "@/lib/translator";
 
 export default function CreateCampaignStepPreview() {
   const router = useRouter();
@@ -67,21 +67,7 @@ export default function CreateCampaignStepPreview() {
     });
   };
 
-  // ===== Budget preview =====
-  const target = Number(form.targetAmount ?? 0);
-  const iPct = parseFloat(String(form.ingredientBudgetPercentage ?? "0"));
-  const cPct = parseFloat(String(form.cookingBudgetPercentage ?? "0"));
-  const dPct = parseFloat(String(form.deliveryBudgetPercentage ?? "0"));
 
-  const iAmt = Math.round((target * (isFinite(iPct) ? iPct : 0)) / 100);
-  const cAmt = Math.round((target * (isFinite(cPct) ? cPct : 0)) / 100);
-  const dAmt = Math.round((target * (isFinite(dPct) ? dPct : 0)) / 100);
-
-  const pctSum =
-    (isFinite(iPct) ? iPct : 0) +
-    (isFinite(cPct) ? cPct : 0) +
-    (isFinite(dPct) ? dPct : 0);
-  const pctOk = Math.abs(pctSum - 100) <= 0.01;
 
   const handleCreateCampaign = () => {
     if (!termsAccepted) {
@@ -177,7 +163,8 @@ export default function CreateCampaignStepPreview() {
 
       // Normalize phases' datetime values to ISO strings to avoid timezone drift
       const phasesIso = form.phases!.map((p) => ({
-        ...p,
+        phaseName: p.phaseName,
+        location: p.location,
         ingredientPurchaseDate: p.ingredientPurchaseDate
           ? new Date(p.ingredientPurchaseDate).toISOString()
           : "",
@@ -185,6 +172,9 @@ export default function CreateCampaignStepPreview() {
         deliveryDate: p.deliveryDate
           ? new Date(p.deliveryDate).toISOString()
           : "",
+        ingredientBudgetPercentage: p.ingredientBudgetPercentage,
+        cookingBudgetPercentage: p.cookingBudgetPercentage,
+        deliveryBudgetPercentage: p.deliveryBudgetPercentage,
       }));
 
       const input: CreateCampaignInput = {
@@ -193,60 +183,27 @@ export default function CreateCampaignStepPreview() {
         coverImageFileKey: form.coverImageFileKey!,
         targetAmount: String(form.targetAmount!),
         categoryId: form.categoryId!,
-        ingredientBudgetPercentage: form.ingredientBudgetPercentage!,
-        cookingBudgetPercentage: form.cookingBudgetPercentage!,
-        deliveryBudgetPercentage: form.deliveryBudgetPercentage!,
         fundraisingStartDate: startISO,
         fundraisingEndDate: endISO,
         phases: phasesIso,
       };
 
-      const result = await campaignService.createCampaign(input);
+      try {
+        const result = await campaignService.createCampaign(input);
 
-      if (result) {
-        toast.success("Chiến dịch đã được tạo thành công!");
-        dispatch(resetForm());
-        router.push("/profile?tab=campaigns");
-      } else {
-        console.error("Create campaign returned null");
-        toast.error("Tạo chiến dịch thất bại. Server không trả về dữ liệu.");
+        if (result) {
+          toast.success("Chiến dịch đã được tạo thành công!");
+          dispatch(resetForm());
+          router.push("/profile?tab=campaigns");
+        }
+      } catch (error) {
+        const errorMessage = translateError(error);
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Create campaign error:", err);
-
-      // Extract error message from GraphQL error or use default
-      let errorMessage = "Tạo chiến dịch thất bại. Vui lòng thử lại!";
-
-      if (err && typeof err === "object") {
-        // Handle GraphQL errors
-        if (
-          "graphQLErrors" in err &&
-          Array.isArray(
-            (err as { graphQLErrors: Array<{ message?: string }> })
-              .graphQLErrors
-          ) &&
-          (err as { graphQLErrors: Array<{ message?: string }> }).graphQLErrors
-            .length > 0
-        ) {
-          errorMessage =
-            (err as { graphQLErrors: Array<{ message?: string }> })
-              .graphQLErrors[0].message || errorMessage;
-        }
-        // Handle network errors
-        else if (
-          "networkError" in err &&
-          (err as { networkError: unknown }).networkError
-        ) {
-          errorMessage = "Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.";
-        }
-        // Handle other error formats
-        else if ("message" in err) {
-          errorMessage = (err as { message?: string }).message || errorMessage;
-        }
-      }
-
-      toast.error(errorMessage);
-    } finally {
+    } catch {
+      toast.error("Có lỗi không mong muốn xảy ra. Vui lòng thử lại!");
       setLoading(false);
     }
   };
@@ -262,21 +219,21 @@ export default function CreateCampaignStepPreview() {
       label: "Kết thúc gây quỹ",
       datetime: fmtDateTime(form.fundraisingEndDate),
     },
-    ...(form.phases || []).flatMap((phase, index) => [
+    ...(form.phases || []).flatMap((phase, index: number) => [
       {
         key: `phase-${index}-ingredient`,
-        label: `${phase.phaseName} - Mua nguyên liệu`,
-        datetime: fmtDateTime(phase.ingredientPurchaseDate),
+        label: `${phase.phaseName || ""} - Mua nguyên liệu`,
+        datetime: fmtDateTime(phase.ingredientPurchaseDate || ""),
       },
       {
         key: `phase-${index}-cooking`,
-        label: `${phase.phaseName} - Nấu ăn`,
-        datetime: fmtDateTime(phase.cookingDate),
+        label: `${phase.phaseName || ""} - Nấu ăn`,
+        datetime: fmtDateTime(phase.cookingDate || ""),
       },
       {
         key: `phase-${index}-delivery`,
-        label: `${phase.phaseName} - Giao hàng`,
-        datetime: fmtDateTime(phase.deliveryDate),
+        label: `${phase.phaseName || ""} - Giao hàng`,
+        datetime: fmtDateTime(phase.deliveryDate || ""),
       },
     ]),
   ].filter((m) => m.datetime);
@@ -362,81 +319,6 @@ export default function CreateCampaignStepPreview() {
           </div>
         </div>
 
-        {/* ===== Budget breakdown ===== */}
-        <div className="mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-              Phân bổ ngân sách
-            </h2>
-            <span
-              className={`text-sm ${
-                pctOk ? "text-gray-600" : "text-red-600 font-medium"
-              }`}
-            >
-              Tổng: {pctSum.toFixed(2)}% {!pctOk && "— Tổng phải bằng 100%"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Nguyên liệu */}
-            <div className="rounded-2xl border p-4 bg-white">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-semibold text-gray-800">Nguyên liệu</h4>
-                <span className="text-sm text-gray-500">
-                  {isFinite(iPct) ? iPct.toFixed(2) : "0.00"}%
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 mb-3">
-                {formatCurrency(iAmt)}
-              </div>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-2 bg-[#E77731]"
-                  style={{ width: `${Math.max(0, Math.min(100, iPct || 0))}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Nấu ăn */}
-            <div className="rounded-2xl border p-4 bg-white">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-semibold text-gray-800">Nấu ăn</h4>
-                <span className="text-sm text-gray-500">
-                  {isFinite(cPct) ? cPct.toFixed(2) : "0.00"}%
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 mb-3">
-                {formatCurrency(cAmt)}
-              </div>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-2 bg-[#E77731]"
-                  style={{ width: `${Math.max(0, Math.min(100, cPct || 0))}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Giao hàng */}
-            <div className="rounded-2xl border p-4 bg-white">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-semibold text-gray-800">Giao hàng</h4>
-                <span className="text-sm text-gray-500">
-                  {isFinite(dPct) ? dPct.toFixed(2) : "0.00"}%
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 mb-3">
-                {formatCurrency(dAmt)}
-              </div>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-2 bg-[#E77731]"
-                  style={{ width: `${Math.max(0, Math.min(100, dPct || 0))}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Phases Section */}
         {form.phases && form.phases.length > 0 && (
           <div className="mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
@@ -444,37 +326,81 @@ export default function CreateCampaignStepPreview() {
               Giai đoạn thực hiện
             </h2>
             <div className="space-y-4">
-              {form.phases.map((phase, index) => (
-                <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    {phase.phaseName}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Địa điểm:</span>
-                      <p className="font-medium">{phase.location || "—"}</p>
+              {form.phases.map((phase, index: number) => {
+                const phaseBudgetSum =
+                  parseFloat((phase.ingredientBudgetPercentage as string) || "0") +
+                  parseFloat((phase.cookingBudgetPercentage as string) || "0") +
+                  parseFloat((phase.deliveryBudgetPercentage as string) || "0");
+                const phaseBudgetValid = Math.abs(phaseBudgetSum - 100) <= 0.01;
+
+                return (
+                  <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                    <h3 className="font-semibold text-gray-900 mb-3">
+                      {(phase.phaseName as string) || ""}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
+                      <div>
+                        <span className="text-gray-500">Địa điểm:</span>
+                        <p className="font-medium">{(phase.location as string) || "—"}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Mua nguyên liệu:</span>
+                        <p className="font-medium">
+                          {fmtDateTime((phase.ingredientPurchaseDate as string) || "") || "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Nấu ăn:</span>
+                        <p className="font-medium">
+                          {fmtDateTime((phase.cookingDate as string) || "") || "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Giao hàng:</span>
+                        <p className="font-medium">
+                          {fmtDateTime(phase.deliveryDate) || "—"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Mua nguyên liệu:</span>
-                      <p className="font-medium">
-                        {fmtDateTime(phase.ingredientPurchaseDate) || "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Nấu ăn:</span>
-                      <p className="font-medium">
-                        {fmtDateTime(phase.cookingDate) || "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Giao hàng:</span>
-                      <p className="font-medium">
-                        {fmtDateTime(phase.deliveryDate) || "—"}
-                      </p>
+                    
+                    {/* Phase Budget */}
+                    <div className="border-t pt-3 mt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          Phân bổ ngân sách giai đoạn
+                        </span>
+                        <span
+                          className={`text-xs ${
+                            phaseBudgetValid ? "text-gray-600" : "text-red-600"
+                          }`}
+                        >
+                          Tổng: {phaseBudgetSum.toFixed(2)}%
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-white p-2 rounded border">
+                          <div className="text-gray-500 mb-1">Nguyên liệu</div>
+                          <div className="font-semibold text-gray-900">
+                            {phase.ingredientBudgetPercentage || "0"}%
+                          </div>
+                        </div>
+                        <div className="bg-white p-2 rounded border">
+                          <div className="text-gray-500 mb-1">Nấu ăn</div>
+                          <div className="font-semibold text-gray-900">
+                            {phase.cookingBudgetPercentage || "0"}%
+                          </div>
+                        </div>
+                        <div className="bg-white p-2 rounded border">
+                          <div className="text-gray-500 mb-1">Giao hàng</div>
+                          <div className="font-semibold text-gray-900">
+                            {phase.deliveryBudgetPercentage || "0"}%
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

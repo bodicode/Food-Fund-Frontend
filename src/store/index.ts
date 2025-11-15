@@ -29,5 +29,8 @@ export const store = configureStore({
 
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = {
+  auth: ReturnType<typeof authReducer>;
+  campaignForm: ReturnType<typeof campaignFormReducer>;
+};
 export type AppDispatch = typeof store.dispatch;

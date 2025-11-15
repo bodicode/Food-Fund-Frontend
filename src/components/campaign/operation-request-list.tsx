@@ -16,9 +16,10 @@ interface OperationRequestListProps {
   refreshKey?: number;
 }
 
-const expenseTypeLabels = {
+const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
   DELIVERY: "Vận chuyển",
+  INGREDIENT: "Nguyen lieu",
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {

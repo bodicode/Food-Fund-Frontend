@@ -59,7 +59,7 @@ export default function CampaignSearchPage() {
       }
     }, 400);
     return () => clearTimeout(h);
-  }, [searchText, params.search]);
+  }, [searchText, params.search, setParams, fetchCampaigns]);
 
   // Handle category filter from URL params
   useEffect(() => {

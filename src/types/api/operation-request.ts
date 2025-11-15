@@ -1,6 +1,6 @@
 export interface CreateOperationRequestInput {
   campaignPhaseId: string;
-  expenseType: "COOKING" | "DELIVERY";
+  expenseType: "COOKING" | "DELIVERY" | "INGREDIENT";
   title: string;
   totalCost: string;
 }
@@ -9,7 +9,7 @@ export interface OperationRequestFilterInput {
   campaignPhaseId?: string | null;
   campaignId?: string | null;
   status?: string | null;
-  expenseType?: "COOKING" | "DELIVERY" | null;
+  expenseType?: "COOKING" | "DELIVERY" | "INGREDIENT" | null;
   limit?: number;
   offset?: number;
 }
@@ -18,7 +18,7 @@ export interface OperationRequest {
   id: string;
   title: string;
   totalCost: string;
-  expenseType: "COOKING" | "DELIVERY";
+  expenseType: "COOKING" | "DELIVERY" | "INGREDIENT";
   status: string;
   created_at: string;
   adminNote?: string | null;

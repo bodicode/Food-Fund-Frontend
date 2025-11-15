@@ -13,9 +13,6 @@ export const CREATE_CAMPAIGN = gql`
       receivedAmount
       fundraisingStartDate
       fundraisingEndDate
-      ingredientBudgetPercentage
-      cookingBudgetPercentage
-      deliveryBudgetPercentage
       phases {
         id
         phaseName
@@ -23,6 +20,9 @@ export const CREATE_CAMPAIGN = gql`
         ingredientPurchaseDate
         cookingDate
         deliveryDate
+        ingredientBudgetPercentage
+        cookingBudgetPercentage
+        deliveryBudgetPercentage
         status
       }
       category {

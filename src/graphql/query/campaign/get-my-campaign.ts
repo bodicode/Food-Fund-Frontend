@@ -13,27 +13,11 @@ export const GET_MY_CAMPAIGNS = gql`
       receivedAmount
       fundraisingStartDate
       fundraisingEndDate
-      
-      # Budget percentages
-      cookingBudgetPercentage
-      ingredientBudgetPercentage
-      deliveryBudgetPercentage
-      
-      # Legacy fields
-      cookingFundsAmount
-      deliveryFundsAmount
-      ingredientFundsAmount
-      
-      # Phases
-      phases {
-        id
-        phaseName
-        location
-        ingredientPurchaseDate
-        cookingDate
-        deliveryDate
-        status
-      }
+      fundingProgress
+      daysActive
+      daysRemaining
+      totalPhases
+      created_at
       
       category {
         id
@@ -48,8 +32,18 @@ export const GET_MY_CAMPAIGNS = gql`
         phone_number
       }
       
-      created_at
-      createdBy
+      phases {
+        id
+        phaseName
+        location
+        ingredientPurchaseDate
+        cookingDate
+        deliveryDate
+        ingredientBudgetPercentage
+        cookingBudgetPercentage
+        deliveryBudgetPercentage
+        status
+      }
     }
   }
 `;

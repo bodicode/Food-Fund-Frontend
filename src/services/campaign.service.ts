@@ -7,6 +7,9 @@ import { DELETE_CAMPAIGN } from "@/graphql/mutations/campaign/delete-campaign";
 import { GET_CAMPAIGNS } from "@/graphql/query/campaign/get-campaign";
 import { GET_CAMPAIGN_BY_ID } from "@/graphql/query/campaign/get-campaign-by-id";
 import { GET_MY_CAMPAIGNS } from "@/graphql/query/campaign/get-my-campaign";
+import { GET_MY_CAMPAIGN_STATS } from "@/graphql/query/campaign/get-my-campaign-stats";
+import { GET_PLATFORM_CAMPAIGN_STATS } from "@/graphql/query/campaign/get-platform-campaign-stats";
+import { GET_CATEGORY_CAMPAIGN_STATS } from "@/graphql/query/campaign/get-category-campaign-stats";
 import client from "@/lib/apollo-client";
 import {
   Campaign,
@@ -16,6 +19,13 @@ import {
   CreateCampaignInput,
   CreateCampaignResponse,
   UpdateCampaignInput,
+  MyCampaignStats,
+  MyCampaignStatsResponse,
+  PlatformCampaignStats,
+  PlatformCampaignStatsResponse,
+  CampaignStatsFilterInput,
+  CategoryCampaignStats,
+  CategoryCampaignStatsResponse,
 } from "@/types/api/campaign";
 
 export const campaignService = {
@@ -34,6 +44,51 @@ export const campaignService = {
     } catch (error) {
       console.error("❌ Error fetching my campaigns:", error);
       return [];
+    }
+  },
+
+  async getMyCampaignStats(): Promise<MyCampaignStats | null> {
+    try {
+      const { data } = await client.query<MyCampaignStatsResponse>({
+        query: GET_MY_CAMPAIGN_STATS,
+        fetchPolicy: "no-cache",
+      });
+      return data?.myCampaignStats ?? null;
+    } catch (error) {
+      console.error("Error fetching my campaign stats:", error);
+      return null;
+    }
+  },
+
+  async getPlatformCampaignStats(
+    filter: CampaignStatsFilterInput
+  ): Promise<PlatformCampaignStats | null> {
+    try {
+      const { data } = await client.query<PlatformCampaignStatsResponse>({
+        query: GET_PLATFORM_CAMPAIGN_STATS,
+        variables: { filter },
+        fetchPolicy: "no-cache",
+      });
+      return data?.platformCampaignStats ?? null;
+    } catch (error) {
+      console.error("Error fetching platform campaign stats:", error);
+      return null;
+    }
+  },
+
+  async getCategoryCampaignStats(
+    categoryId: string
+  ): Promise<CategoryCampaignStats | null> {
+    try {
+      const { data } = await client.query<CategoryCampaignStatsResponse>({
+        query: GET_CATEGORY_CAMPAIGN_STATS,
+        variables: { categoryId },
+        fetchPolicy: "no-cache",
+      });
+      return data?.categoryCampaignStats ?? null;
+    } catch (error) {
+      console.error("Error fetching category campaign stats:", error);
+      return null;
     }
   },
 
@@ -95,13 +150,16 @@ export const campaignService = {
 
   async createCampaign(input: CreateCampaignInput): Promise<Campaign | null> {
     try {
-      const { data } = await client.mutate<CreateCampaignResponse>({
+      const { data, error } = await client.mutate<CreateCampaignResponse>({
         mutation: CREATE_CAMPAIGN,
         variables: { input },
         refetchQueries: [{ query: GET_CAMPAIGNS }],
       });
 
-      if (!data || !data.createCampaign) return null;
+      if (!data || !data.createCampaign) {
+        return Promise.reject(error);
+      }
+
       return data.createCampaign;
     } catch (error) {
       console.error("❌ Error creating campaign:", error);

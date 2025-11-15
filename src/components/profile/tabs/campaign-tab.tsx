@@ -9,8 +9,12 @@ import { vi } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { statusConfig } from "@/lib/translator";
-import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
+import {
+  translateCampaignStatus,
+  getStatusColorClass,
+} from "@/lib/utils/status-utils";
 import Link from "next/link";
+import { MyCampaignStatsSection } from "../my-campaign-stats";
 
 const LoadingSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -145,9 +149,12 @@ export function CampaignsTab() {
 
   return (
     <div className="bg-white p-6">
+      <MyCampaignStatsSection />
+
       <h2 className="text-2xl font-bold mb-6 text-[#ad4e28] hidden md:block">
         Chiến dịch của tôi
       </h2>
+
       {renderContent()}
     </div>
   );

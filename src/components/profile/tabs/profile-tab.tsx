@@ -202,8 +202,9 @@ export function ProfileTab() {
             value={phone}
             readOnly={!isEditing}
             onChange={(e) => handlePhoneChange(e.target.value)}
-            className={`mt-1 ${isEditing ? "" : "bg-gray-50"} ${phoneError ? "border-red-500" : ""
-              }`}
+            className={`mt-1 ${isEditing ? "" : "bg-gray-50"} ${
+              phoneError ? "border-red-500" : ""
+            }`}
           />
           {phoneError && (
             <p className="text-red-500 text-sm mt-1">{phoneError}</p>

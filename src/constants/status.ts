@@ -17,10 +17,16 @@ export const STATUS_CONFIG = {
     color: "bg-yellow-100 text-yellow-800",
   },
   PROCESSING: {
-    label: "Dang xu ly",
+    label: "Đang trong tiến trình",
     variant: "secondary" as const,
     icon: Clock,
     color: "bg-yellow-100 text-yellow-800",
+  },
+  ENDED: {
+    label: "Đã kết thúc",
+    variant: "outline" as const,
+    icon: StopCircle,
+    color: "bg-gray-100 text-gray-800",
   },
   APPROVED: {
     label: "Đã duyệt",
@@ -35,7 +41,7 @@ export const STATUS_CONFIG = {
     color: "bg-blue-100 text-blue-800",
   },
   ACTIVE: {
-    label: "Đang hoạt động",
+    label: "Đang gây quỹ",
     variant: "default" as const,
     icon: CheckCircle,
     color: "bg-green-100 text-green-800",

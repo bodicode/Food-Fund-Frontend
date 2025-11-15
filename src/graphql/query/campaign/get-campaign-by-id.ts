@@ -8,27 +8,28 @@ export const GET_CAMPAIGN_BY_ID = gql`
       description
       coverImage
       status
+      fundraisingStartDate
+      fundraisingEndDate
+      fundingProgress
+      daysActive
+      daysRemaining
+      totalPhases
       targetAmount
       donationCount
       receivedAmount
-      fundingProgress
-      daysActive
-      totalPhases
-      daysRemaining
-      fundraisingStartDate
-      fundraisingEndDate
+      created_at
       
-      # Budget percentages
-      cookingBudgetPercentage
-      ingredientBudgetPercentage
-      deliveryBudgetPercentage
-      
-      # Legacy fields for backward compatibility
-      cookingFundsAmount
-      deliveryFundsAmount
-      ingredientFundsAmount
-      
-      # Phases - new structure
+      category {
+        id
+        title
+        description
+      }
+      creator {
+        id
+        full_name
+        email
+        phone_number
+      }
       phases {
         id
         phaseName
@@ -36,24 +37,11 @@ export const GET_CAMPAIGN_BY_ID = gql`
         ingredientPurchaseDate
         cookingDate
         deliveryDate
+        ingredientBudgetPercentage
+        cookingBudgetPercentage
+        deliveryBudgetPercentage
         status
       }
-      
-      category {
-        id
-        title
-        description
-      }
-      
-      creator {
-        id
-        full_name
-        email
-        phone_number
-      }
-      
-      created_at
-      createdBy
     }
   }
 `;

@@ -67,6 +67,14 @@ interface ErrorWithGraphQL {
 
 export const translateError = (err: unknown): string => {
   try {
+    // Handle string errors directly
+    if (typeof err === "string") {
+      if (err.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS)) {
+        return ERROR_MESSAGES.ACTIVE_CAMPAIGN_EXISTS;
+      }
+      return err;
+    }
+
     const errorObj = err as ErrorWithGraphQL;
 
     const gqlError =
@@ -74,12 +82,19 @@ export const translateError = (err: unknown): string => {
       errorObj?.result?.errors?.[0] ||
       errorObj?.graphQLErrors?.[0];
 
+    const errorMessage = gqlError?.message || "";
     const cognitoError =
       (gqlError?.extensions?.details?.[0]?.message?.trim()
         ? gqlError.extensions.details[0].message
         : null) ??
       gqlError?.extensions?.context?.cognitoError ??
       "";
+
+    // Campaign errors - check both errorMessage and cognitoError
+    if (errorMessage.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS) || 
+        cognitoError.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS)) {
+      return ERROR_MESSAGES.ACTIVE_CAMPAIGN_EXISTS;
+    }
 
     // Login
     if (cognitoError.includes("Incorrect username or password")) {
@@ -125,6 +140,7 @@ export const translateError = (err: unknown): string => {
     }
 
     return (
+      errorMessage ||
       cognitoError ||
       gqlError?.message ||
       VALIDATION_MESSAGES.GENERAL_ERROR
