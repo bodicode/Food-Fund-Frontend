@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import RichTextEditor from "@/components/shared/rich-text-editor";
 import LocationPicker from "@/components/shared/location-picker";
-import { fromPercentInput, toPercentString } from "@/lib/utils/percent-utils";
+import { fromPercentInput } from "@/lib/utils/percent-utils";
 import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
 import { isoToLocalInput, localInputToIso } from "@/lib/utils/date-utils";
 import { isoDateOnly } from "@/lib/utils/date-utils";
@@ -45,9 +45,6 @@ export default function EditCampaignPage() {
   const [previewImage, setPreviewImage] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const [ingredientPct, setIngredientPct] = useState<string>("");
-  const [cookingPct, setCookingPct] = useState<string>("");
-  const [deliveryPct, setDeliveryPct] = useState<string>("");
   const [phases, setPhases] = useState<CreatePhaseInput[]>([]);
   const [existingPhases, setExistingPhases] = useState<CampaignPhase[]>([]);
 
@@ -65,14 +62,6 @@ export default function EditCampaignPage() {
         setPreviewImage(campaignData?.coverImage || "");
 
         if (campaignData) {
-          setIngredientPct(
-            toPercentString(campaignData.ingredientBudgetPercentage)
-          );
-          setCookingPct(toPercentString(campaignData.cookingBudgetPercentage));
-          setDeliveryPct(
-            toPercentString(campaignData.deliveryBudgetPercentage)
-          );
-
           // Try to load phases, fallback to default if not available
           try {
             if (
@@ -241,26 +230,7 @@ export default function EditCampaignPage() {
     return Number.isFinite(n) ? n : 0;
   }, [campaign?.targetAmount]);
 
-  const computedIngredientAmt = useMemo(() => {
-    const server = Number(campaign?.ingredientFundsAmount || 0);
-    if (server > 0) return server;
-    const pct = fromPercentInput(ingredientPct);
-    return Math.round((pct / 100) * targetAmountNumber);
-  }, [campaign, ingredientPct, targetAmountNumber]);
 
-  const computedCookingAmt = useMemo(() => {
-    const server = Number(campaign?.cookingFundsAmount || 0);
-    if (server > 0) return server;
-    const pct = fromPercentInput(cookingPct);
-    return Math.round((pct / 100) * targetAmountNumber);
-  }, [campaign, cookingPct, targetAmountNumber]);
-
-  const computedDeliveryAmt = useMemo(() => {
-    const server = Number(campaign?.deliveryFundsAmount || 0);
-    if (server > 0) return server;
-    const pct = fromPercentInput(deliveryPct);
-    return Math.round((pct / 100) * targetAmountNumber);
-  }, [campaign, deliveryPct, targetAmountNumber]);
 
   const handlePhasesUpdate = async (campaignId: string) => {
     try {
@@ -316,16 +286,20 @@ export default function EditCampaignPage() {
       return false;
     }
 
-    const p1 = fromPercentInput(ingredientPct);
-    const p2 = fromPercentInput(cookingPct);
-    const p3 = fromPercentInput(deliveryPct);
-    const total = p1 + p2 + p3;
+    // Validate phase budgets
+    for (let i = 0; i < phases.length; i++) {
+      const phase = phases[i];
+      const p1 = Number(phase.ingredientBudgetPercentage || 0);
+      const p2 = Number(phase.cookingBudgetPercentage || 0);
+      const p3 = Number(phase.deliveryBudgetPercentage || 0);
+      const total = p1 + p2 + p3;
 
-    if (p1 >= 0 && p2 >= 0 && p3 >= 0) {
-      // Cho phép sai số nhỏ khi gõ
-      if (Math.abs(total - 100) > 0.01) {
-        toast.error("Tổng phần trăm phân bổ phải bằng 100%.");
-        return false;
+      if (p1 >= 0 && p2 >= 0 && p3 >= 0) {
+        // Cho phép sai số nhỏ khi gõ
+        if (Math.abs(total - 100) > 0.01) {
+          toast.error(`Giai đoạn ${i + 1}: Tổng phần trăm phân bổ phải bằng 100%.`);
+          return false;
+        }
       }
     }
     return true;
@@ -375,7 +349,7 @@ export default function EditCampaignPage() {
         }
       }
 
-      // 1. Update campaign info (without phases)
+      // 1. Update campaign info (without phases and budget percentages)
       const campaignInput: UpdateCampaignInput = {
         title: campaign.title,
         description: campaign.description,
@@ -387,17 +361,6 @@ export default function EditCampaignPage() {
           : undefined,
         fundraisingEndDate: campaign.fundraisingEndDate
           ? new Date(campaign.fundraisingEndDate).toISOString()
-          : undefined,
-
-        // % phân bổ (string theo schema)
-        ingredientBudgetPercentage: ingredientPct?.trim()
-          ? Number(fromPercentInput(ingredientPct)).toFixed(2)
-          : undefined,
-        cookingBudgetPercentage: cookingPct?.trim()
-          ? Number(fromPercentInput(cookingPct)).toFixed(2)
-          : undefined,
-        deliveryBudgetPercentage: deliveryPct?.trim()
-          ? Number(fromPercentInput(deliveryPct)).toFixed(2)
           : undefined,
 
         ...(fileKey && { coverImageFileKey: fileKey }),
@@ -573,62 +536,6 @@ export default function EditCampaignPage() {
               />
             </div>
 
-            {/* Budget phân bổ */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  Phân bổ ngân sách (%)
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-600">Nguyên liệu</label>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={ingredientPct}
-                    onChange={(e) => setIngredientPct(e.target.value)}
-                    placeholder="vd: 60 hoặc 60.00"
-                  />
-                  <p className="text-xs text-gray-500">
-                    ≈ {formatCurrency(computedIngredientAmt)}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-600">Nấu ăn</label>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={cookingPct}
-                    onChange={(e) => setCookingPct(e.target.value)}
-                    placeholder="vd: 25 hoặc 25.00"
-                  />
-                  <p className="text-xs text-gray-500">
-                    ≈ {formatCurrency(computedCookingAmt)}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-600">Vận chuyển</label>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={deliveryPct}
-                    onChange={(e) => setDeliveryPct(e.target.value)}
-                    placeholder="vd: 15 hoặc 15.00"
-                  />
-                  <p className="text-xs text-gray-500">
-                    ≈ {formatCurrency(computedDeliveryAmt)}
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Tổng 3 khoản nên bằng <b>100%</b>. Nếu server đã có số tiền phân
-                bổ, con số phía trên là số thực tế (chỉ đọc); còn lại là ước
-                tính theo % × mục tiêu.
-              </p>
-            </div>
-
             {/* Phases */}
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center gap-2 mb-4">
@@ -733,6 +640,80 @@ export default function EditCampaignPage() {
                         }
                       />
                     </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Info className="w-4 h-4 text-gray-600" />
+                      <span className="text-xs font-semibold text-gray-700">
+                        Phân bổ ngân sách giai đoạn (%)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-600">Nguyên liệu</label>
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={phase.ingredientBudgetPercentage}
+                            onChange={(e) =>
+                              updatePhase(
+                                index,
+                                "ingredientBudgetPercentage",
+                                e.target.value
+                              )
+                            }
+                            placeholder="vd: 60"
+                            className="pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-600">Nấu ăn</label>
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={phase.cookingBudgetPercentage}
+                            onChange={(e) =>
+                              updatePhase(
+                                index,
+                                "cookingBudgetPercentage",
+                                e.target.value
+                              )
+                            }
+                            placeholder="vd: 25"
+                            className="pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-600">Vận chuyển</label>
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={phase.deliveryBudgetPercentage}
+                            onChange={(e) =>
+                              updatePhase(
+                                index,
+                                "deliveryBudgetPercentage",
+                                e.target.value
+                              )
+                            }
+                            placeholder="vd: 15"
+                            className="pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Tổng 3 khoản nên bằng <b>100%</b>
+                    </p>
                   </div>
                 </div>
               ))}

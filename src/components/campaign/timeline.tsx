@@ -72,33 +72,31 @@ export function Timeline({ items }: TimelineProps) {
                       : "bg-white border-gray-200"
                   }`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h4
-                      className={`font-semibold mb-1 ${status === "completed"
-                          ? "text-green-900"
-                          : status === "current"
-                            ? "text-orange-900"
-                            : "text-gray-700"
-                        }`}
-                    >
-                      {item.label}
-                    </h4>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <CalendarDays className="w-4 h-4" />
-                      <span>{item.date}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                  <h4
+                    className={`font-semibold whitespace-nowrap ${status === "completed"
+                        ? "text-green-900"
+                        : status === "current"
+                          ? "text-orange-900"
+                          : "text-gray-700"
+                      }`}
+                  >
+                    {item.label}
+                  </h4>
 
                   {/* Status badge */}
                   {getStatusText(status, item) && (
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${status === "current"
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap flex-shrink-0 ${status === "current"
                         ? "bg-orange-100 text-orange-700"
                         : "bg-green-100 text-green-700"
                       }`}>
                       {getStatusText(status, item)}
                     </span>
                   )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <CalendarDays className="w-4 h-4" />
+                  <span>{item.date}</span>
                 </div>
               </div>
             </div>
