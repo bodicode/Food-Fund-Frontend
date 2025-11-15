@@ -107,29 +107,28 @@ export default function CampaignDetailPage() {
           return diff;
         })();
 
-  const ingredientPct = toNumber(campaign.ingredientBudgetPercentage, 0);
-  const cookingPct = toNumber(campaign.cookingBudgetPercentage, 0);
-  const deliveryPct = toNumber(campaign.deliveryBudgetPercentage, 0);
+  // Calculate total budget percentages from all phases
+  const totalIngredientPct = campaign.phases?.reduce(
+    (sum, phase) => sum + toNumber(phase.ingredientBudgetPercentage, 0),
+    0
+  ) || 0;
+  const totalCookingPct = campaign.phases?.reduce(
+    (sum, phase) => sum + toNumber(phase.cookingBudgetPercentage, 0),
+    0
+  ) || 0;
+  const totalDeliveryPct = campaign.phases?.reduce(
+    (sum, phase) => sum + toNumber(phase.deliveryBudgetPercentage, 0),
+    0
+  ) || 0;
 
-  const ingredientAmt =
-    toNumber(campaign.ingredientFundsAmount, 0) ||
-    Math.round((ingredientPct / 100) * goal);
-
-  const cookingAmt =
-    toNumber(campaign.cookingFundsAmount, 0) ||
-    Math.round((cookingPct / 100) * goal);
-
-  const deliveryAmt =
-    toNumber(campaign.deliveryFundsAmount, 0) ||
-    Math.round((deliveryPct / 100) * goal);
+  const ingredientAmt = Math.round((totalIngredientPct / 100) * goal);
+  const cookingAmt = Math.round((totalCookingPct / 100) * goal);
+  const deliveryAmt = Math.round((totalDeliveryPct / 100) * goal);
 
   const hasBudget =
     ingredientAmt > 0 ||
     cookingAmt > 0 ||
-    deliveryAmt > 0 ||
-    ingredientPct > 0 ||
-    cookingPct > 0 ||
-    deliveryPct > 0;
+    deliveryAmt > 0;
 
   const handleDirection = () => router.push(`/map/${campaign.id}`);
 
@@ -374,23 +373,8 @@ export default function CampaignDetailPage() {
                   </p>
                 </div>
                 <BudgetBreakdown
-                  items={[
-                    {
-                      title: "Nguyên liệu",
-                      amount: ingredientAmt,
-                      percent: ingredientPct,
-                    },
-                    {
-                      title: "Nấu ăn",
-                      amount: cookingAmt,
-                      percent: cookingPct,
-                    },
-                    {
-                      title: "Vận chuyển",
-                      amount: deliveryAmt,
-                      percent: deliveryPct,
-                    },
-                  ]}
+                  phases={campaign?.phases}
+                  targetAmount={campaign?.targetAmount ? Number(campaign.targetAmount) : undefined}
                 />
               </div>
             )}

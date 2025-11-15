@@ -1,12 +1,13 @@
-export function isValidPercentInput(s: string) {
-  if (s === "") return true;
+export function isValidPercentInput(s: string | undefined) {
+  if (!s || s === "") return true;
   const v = s.replace(",", ".");
   if (!/^(\d{1,3})(\.(\d{0,2})?)?$/.test(v)) return false;
   const num = Number(v);
   return !isNaN(num) && num <= 100;
 }
 
-export function normalizePercentOnBlur(s: string) {
+export function normalizePercentOnBlur(s: string | undefined) {
+  if (!s || s === "") return "0.00";
   const v = s.replace(",", ".");
   let num = Number(v);
   if (isNaN(num)) num = 0;

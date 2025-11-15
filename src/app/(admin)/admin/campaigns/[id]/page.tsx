@@ -172,9 +172,8 @@ export default function AdminCampaignDetailPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <Badge
-              className={`${
-                statusConfig[campaign.status].color
-              } border-0 px-4 py-1.5 text-sm font-semibold shadow-sm`}
+              className={`${statusConfig[campaign.status].color
+                } border-0 px-4 py-1.5 text-sm font-semibold shadow-sm`}
             >
               {statusConfig[campaign.status].label}
             </Badge>
@@ -351,31 +350,63 @@ export default function AdminCampaignDetailPage() {
                         <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
                           {phase.phaseName}
                         </h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">Địa điểm:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <div className="space-y-3 text-sm">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">Địa điểm:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 break-words">
                               {phase.location || "—"}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">Mua nguyên liệu:</span>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                            <span className="text-gray-600 dark:text-gray-400 shrink-0">Mua nguyên liệu:</span>
                             <span className="font-medium text-gray-900 dark:text-gray-100">
                               {formatDate(phase.ingredientPurchaseDate)}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">Nấu ăn:</span>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                            <span className="text-gray-600 dark:text-gray-400 shrink-0">Nấu ăn:</span>
                             <span className="font-medium text-gray-900 dark:text-gray-100">
                               {formatDate(phase.cookingDate)}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">Giao hàng:</span>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                            <span className="text-gray-600 dark:text-gray-400 shrink-0">Giao hàng:</span>
                             <span className="font-medium text-gray-900 dark:text-gray-100">
                               {formatDate(phase.deliveryDate)}
                             </span>
                           </div>
+                          {/* Budget percentages */}
+                          {(phase.ingredientBudgetPercentage || phase.cookingBudgetPercentage || phase.deliveryBudgetPercentage) && (
+                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Phân bổ ngân sách:</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                {phase.ingredientBudgetPercentage && (
+                                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Nguyên liệu</p>
+                                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                      {phase.ingredientBudgetPercentage}%
+                                    </p>
+                                  </div>
+                                )}
+                                {phase.cookingBudgetPercentage && (
+                                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Nấu ăn</p>
+                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                      {phase.cookingBudgetPercentage}%
+                                    </p>
+                                  </div>
+                                )}
+                                {phase.deliveryBudgetPercentage && (
+                                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-900/20 rounded">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Vận chuyển</p>
+                                    <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                                      {phase.deliveryBudgetPercentage}%
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -415,55 +446,6 @@ export default function AdminCampaignDetailPage() {
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
                       {formatDate(campaign.fundraisingEndDate)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* ==== Phân bổ ngân sách ==== */}
-            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-              <CardContent className="p-6 space-y-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-[#38bdf8]" />
-                  Phân bổ ngân sách (%)
-                </h3>
-
-                <div className="space-y-3 text-sm">
-                  {[
-                    {
-                      label: "Nguyên liệu",
-                      value: campaign.ingredientBudgetPercentage,
-                    },
-                    {
-                      label: "Nấu ăn",
-                      value: campaign.cookingBudgetPercentage,
-                    },
-                    {
-                      label: "Vận chuyển",
-                      value: campaign.deliveryBudgetPercentage,
-                    },
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2"
-                    >
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {item.label}
-                      </span>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">
-                        {item.value || "0"}%
-                      </span>
-                    </div>
-                  ))}
-
-                  <div className="pt-2 flex justify-between items-center font-semibold text-gray-900 dark:text-gray-100">
-                    <span>Tổng cộng</span>
-                    <span>
-                      {Number(campaign.ingredientBudgetPercentage || 0) +
-                        Number(campaign.cookingBudgetPercentage || 0) +
-                        Number(campaign.deliveryBudgetPercentage || 0)}
-                      %
                     </span>
                   </div>
                 </div>

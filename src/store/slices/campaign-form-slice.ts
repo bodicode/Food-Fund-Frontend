@@ -1,7 +1,12 @@
 import { CreateCampaignInput } from "@/types/api/campaign";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type CampaignFormState = Partial<CreateCampaignInput>;
+type CampaignFormState = Partial<CreateCampaignInput> & {
+  // Legacy fields for backward compatibility (not sent to backend)
+  ingredientBudgetPercentage?: string;
+  cookingBudgetPercentage?: string;
+  deliveryBudgetPercentage?: string;
+};
 
 const initialState: CampaignFormState = {
   title: "",
@@ -9,9 +14,6 @@ const initialState: CampaignFormState = {
   coverImageFileKey: "",
   targetAmount: "",
   categoryId: "",
-  ingredientBudgetPercentage: "60.00",
-  cookingBudgetPercentage: "25.00", 
-  deliveryBudgetPercentage: "15.00",
   fundraisingStartDate: "",
   fundraisingEndDate: "",
   phases: [
@@ -21,6 +23,9 @@ const initialState: CampaignFormState = {
       ingredientPurchaseDate: "",
       cookingDate: "",
       deliveryDate: "",
+      ingredientBudgetPercentage: "",
+      cookingBudgetPercentage: "",
+      deliveryBudgetPercentage: "",
     },
   ],
 };

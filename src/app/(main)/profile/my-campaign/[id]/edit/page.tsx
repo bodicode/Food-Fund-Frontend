@@ -89,6 +89,9 @@ export default function EditCampaignPage() {
                   ingredientPurchaseDate: phase?.ingredientPurchaseDate || "",
                   cookingDate: phase?.cookingDate || "",
                   deliveryDate: phase?.deliveryDate || "",
+                  ingredientBudgetPercentage: phase?.ingredientBudgetPercentage || "0",
+                  cookingBudgetPercentage: phase?.cookingBudgetPercentage || "0",
+                  deliveryBudgetPercentage: phase?.deliveryBudgetPercentage || "0",
                 }))
               );
             } else {
@@ -114,6 +117,9 @@ export default function EditCampaignPage() {
                   ingredientPurchaseDate: purchaseTime.toISOString(),
                   cookingDate: cookingTime.toISOString(),
                   deliveryDate: deliveryTime.toISOString(),
+                  ingredientBudgetPercentage: "0",
+                  cookingBudgetPercentage: "0",
+                  deliveryBudgetPercentage: "0",
                 },
               ]);
             }
@@ -141,6 +147,9 @@ export default function EditCampaignPage() {
                 ingredientPurchaseDate: purchaseTime.toISOString(),
                 cookingDate: cookingTime.toISOString(),
                 deliveryDate: deliveryTime.toISOString(),
+                ingredientBudgetPercentage: "0",
+                cookingBudgetPercentage: "0",
+                deliveryBudgetPercentage: "0",
               },
             ]);
           }
@@ -208,6 +217,9 @@ export default function EditCampaignPage() {
         ingredientPurchaseDate: purchaseTime.toISOString(),
         cookingDate: cookingTime.toISOString(),
         deliveryDate: deliveryTime.toISOString(),
+        ingredientBudgetPercentage: "0",
+        cookingBudgetPercentage: "0",
+        deliveryBudgetPercentage: "0",
       },
     ]);
   };
@@ -279,6 +291,9 @@ export default function EditCampaignPage() {
           deliveryDate: phase.deliveryDate
             ? new Date(phase.deliveryDate).toISOString()
             : "",
+          ingredientBudgetPercentage: phase.ingredientBudgetPercentage || "0",
+          cookingBudgetPercentage: phase.cookingBudgetPercentage || "0",
+          deliveryBudgetPercentage: phase.deliveryBudgetPercentage || "0",
         };
 
         await phaseService.addCampaignPhase(campaignId, phaseInput);

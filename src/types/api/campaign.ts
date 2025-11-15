@@ -63,6 +63,166 @@ export interface Campaign {
 }
 
 // ==============================
+// MY CAMPAIGN STATS
+// ==============================
+
+export interface MyCampaignStatsOverview {
+  totalCampaigns: number;
+  activeCampaigns: number;
+  completedCampaigns: number;
+}
+
+export interface MyCampaignStatsByStatus {
+  pending: number;
+  approved: number;
+  active: number;
+  processing: number;
+  completed: number;
+  rejected: number;
+  cancelled: number;
+}
+
+export interface MyCampaignStatsFinancial {
+  totalTargetAmount: string;
+  totalReceivedAmount: string;
+  totalDonations: number;
+  averageDonationAmount: string;
+  fundingRate: number;
+}
+
+export interface MyCampaignStatsPerformance {
+  successRate: number;
+  averageDurationDays: number;
+  mostFundedCampaign: {
+    id: string;
+    title: string;
+  } | null;
+}
+
+export interface MyCampaignStats {
+  overview: MyCampaignStatsOverview;
+  byStatus: MyCampaignStatsByStatus;
+  financial: MyCampaignStatsFinancial;
+  performance: MyCampaignStatsPerformance;
+}
+
+export interface MyCampaignStatsResponse {
+  myCampaignStats: MyCampaignStats;
+}
+
+// ==============================
+// PLATFORM & CATEGORY STATS (ADMIN)
+// ==============================
+
+export interface PlatformCampaignStatsOverview {
+  totalCampaigns: number;
+  activeCampaigns: number;
+  completedCampaigns: number;
+}
+
+export interface PlatformCampaignStatsByStatus {
+  pending: number;
+  approved: number;
+  active: number;
+  processing: number;
+  completed: number;
+  rejected: number;
+  cancelled: number;
+}
+
+export interface PlatformCampaignStatsFinancial {
+  totalTargetAmount: string;
+  totalReceivedAmount: string;
+  totalDonations: number;
+  averageDonationAmount: string;
+  fundingRate: number;
+}
+
+export interface PlatformCampaignStatsByCategoryItem {
+  categoryId: string;
+  categoryTitle: string;
+  campaignCount: number;
+  totalReceivedAmount: string;
+}
+
+export interface PlatformCampaignStatsPerformance {
+  successRate: number;
+  averageDurationDays: number;
+  mostFundedCampaign: {
+    id: string;
+    title: string;
+  } | null;
+}
+
+export interface PlatformCampaignStatsTimeRange {
+  startDate: string;
+  endDate: string;
+  campaignsCreated: number;
+  campaignsCompleted: number;
+  totalRaised: string;
+  donationsMade: number;
+}
+
+export interface PlatformCampaignStats {
+  overview: PlatformCampaignStatsOverview;
+  byStatus: PlatformCampaignStatsByStatus;
+  financial: PlatformCampaignStatsFinancial;
+  byCategory: PlatformCampaignStatsByCategoryItem[];
+  performance: PlatformCampaignStatsPerformance;
+  timeRange: PlatformCampaignStatsTimeRange;
+}
+
+export interface PlatformCampaignStatsResponse {
+  platformCampaignStats: PlatformCampaignStats;
+}
+
+export interface CampaignStatsFilterInput {
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  categoryId?: string | null;
+  creatorId?: string | null;
+  status?: CampaignStatus[] | null;
+}
+
+export interface CategoryCampaignStatsOverview {
+  totalCampaigns: number;
+  activeCampaigns: number;
+  completedCampaigns: number;
+}
+
+export interface CategoryCampaignStatsByStatus {
+  active: number;
+  completed: number;
+}
+
+export interface CategoryCampaignStatsFinancial {
+  totalTargetAmount: string;
+  totalReceivedAmount: string;
+  totalDonations: number;
+  fundingRate: number;
+}
+
+export interface CategoryCampaignStatsPerformance {
+  successRate: number;
+  averageDurationDays: number;
+  mostFundedCampaign: {
+    id: string;
+    title: string;
+  } | null;
+}
+
+export interface CategoryCampaignStats {
+  overview: CategoryCampaignStatsOverview;
+  byStatus: CategoryCampaignStatsByStatus;
+  financial: CategoryCampaignStatsFinancial;
+  performance: CategoryCampaignStatsPerformance;
+}
+
+export interface CategoryCampaignStatsResponse {
+  categoryCampaignStats: CategoryCampaignStats;
+}
+
+// ==============================
 // LIST RESPONSE
 // ==============================
 export interface ListCampaignsResponse {
@@ -121,16 +281,11 @@ export interface CreateCampaignInput {
   targetAmount: string;
   categoryId: string;
 
-  // Budget percentages
-  ingredientBudgetPercentage: string; // "60.00"
-  cookingBudgetPercentage: string; // "25.00"
-  deliveryBudgetPercentage: string; // "15.00"
-
   // Fundraising dates
   fundraisingStartDate: string; // ISO
   fundraisingEndDate: string; // ISO
 
-  // Phases - new structure
+  // Phases - new structure with budget allocation per phase
   phases: CreatePhaseInput[];
 }
 

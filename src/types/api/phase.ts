@@ -8,6 +8,9 @@ export interface CampaignPhase {
   ingredientPurchaseDate: string;
   cookingDate: string;
   deliveryDate: string;
+  ingredientBudgetPercentage?: string;
+  cookingBudgetPercentage?: string;
+  deliveryBudgetPercentage?: string;
   status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
@@ -17,6 +20,9 @@ export interface CreatePhaseInput {
   ingredientPurchaseDate: string;
   cookingDate: string;
   deliveryDate: string;
+  ingredientBudgetPercentage: string;
+  cookingBudgetPercentage: string;
+  deliveryBudgetPercentage: string;
 }
 
 export interface UpdatePhaseInput {

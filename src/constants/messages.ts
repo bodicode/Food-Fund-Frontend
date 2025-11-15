@@ -24,6 +24,7 @@ export const ERROR_MESSAGES = {
   CONFIRMATION_CODE_FORMAT: "Mã xác nhận phải có 6 chữ số.",
   INVALID_CODE_REQUEST_AGAIN: "Mã xác nhận không đúng. Vui lòng thử lại.",
   SESSION_EXPIRED: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
+  ACTIVE_CAMPAIGN_EXISTS: "Bạn hiện đang có một chiến dịch đang hoạt động. Vui lòng hoàn thành chiến dịch này trước khi tạo chiến dịch mới.",
 } as const;
 
 // Message patterns for matching
@@ -36,4 +37,5 @@ export const MESSAGE_PATTERNS = {
   USER_SIGNED_OUT: "User signed out successfully",
   ORGANIZATION_REQUEST: "Organization request has been submitted successfully. Waiting for admin approval.",
   JOIN_REQUEST: "Join request to as Delivery Staff (food distribution) has been submitted successfully. Waiting for approval.",
+  ACTIVE_CAMPAIGN_EXISTS: "FundraiserHasActiveCampaignException",
 } as const;
