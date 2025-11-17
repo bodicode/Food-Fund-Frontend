@@ -116,6 +116,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/operation-requests" icon={DollarSign}>
         Giải ngân
       </NavLink>
+      <NavLink href="/admin/fundraiser-wallets" icon={DollarSign}>
+        Ví người gây quỹ
+      </NavLink>
 
       <div className="pt-4">
         <button
