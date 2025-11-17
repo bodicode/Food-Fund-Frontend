@@ -32,18 +32,8 @@ export interface Campaign {
   fundraisingStartDate?: string;
   fundraisingEndDate?: string;
 
-  // Budget percentages
-  cookingBudgetPercentage?: string;
-  ingredientBudgetPercentage?: string;
-  deliveryBudgetPercentage?: string;
-
-  // Phases - new structure
+  // Phases - new structure (budget percentages are now at phase level)
   phases?: CampaignPhase[];
-
-  // Legacy fields - for backward compatibility
-  cookingFundsAmount?: string;
-  deliveryFundsAmount?: string;
-  ingredientFundsAmount?: string;
 
   category: {
     id: string;
@@ -302,8 +292,4 @@ export interface UpdateCampaignInput {
 
   fundraisingStartDate?: string;
   fundraisingEndDate?: string;
-
-  ingredientBudgetPercentage?: string;
-  cookingBudgetPercentage?: string;
-  deliveryBudgetPercentage?: string;
 }

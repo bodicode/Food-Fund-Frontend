@@ -27,10 +27,14 @@ import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import RichTextEditor from "@/components/shared/rich-text-editor";
 import LocationPicker from "@/components/shared/location-picker";
-import { fromPercentInput } from "@/lib/utils/percent-utils";
+import { DateTimeInput } from "@/components/ui/date-time-input";
+import {
+  formatPercent,
+  isValidPercentInput,
+  normalizePercentOnBlur,
+  parsePercent,
+} from "@/lib/utils/percent-utils";
 import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
-import { isoToLocalInput, localInputToIso } from "@/lib/utils/date-utils";
-import { isoDateOnly } from "@/lib/utils/date-utils";
 
 type CampaignCategory = Campaign["category"];
 
@@ -78,9 +82,9 @@ export default function EditCampaignPage() {
                   ingredientPurchaseDate: phase?.ingredientPurchaseDate || "",
                   cookingDate: phase?.cookingDate || "",
                   deliveryDate: phase?.deliveryDate || "",
-                  ingredientBudgetPercentage: phase?.ingredientBudgetPercentage || "0",
-                  cookingBudgetPercentage: phase?.cookingBudgetPercentage || "0",
-                  deliveryBudgetPercentage: phase?.deliveryBudgetPercentage || "0",
+                  ingredientBudgetPercentage: phase?.ingredientBudgetPercentage || "",
+                  cookingBudgetPercentage: phase?.cookingBudgetPercentage || "",
+                  deliveryBudgetPercentage: phase?.deliveryBudgetPercentage || "",
                 }))
               );
             } else {
@@ -114,8 +118,6 @@ export default function EditCampaignPage() {
             }
           } catch {
             setExistingPhases([]);
-
-            // Tạo default times cho error fallback
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
@@ -183,19 +185,33 @@ export default function EditCampaignPage() {
   };
 
   const addPhase = () => {
-    // Tạo default times cho phase mới
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+    // Validate existing phases before adding new one
+    if (!validatePhases()) {
+      toast.error("Vui lòng hoàn thành các giai đoạn hiện tại trước khi thêm giai đoạn mới.");
+      return;
+    }
 
-    // Giờ mặc định
-    const purchaseTime = new Date(tomorrow);
+    // Calculate default times for new phase based on last phase
+    let baseDate = new Date();
+    baseDate.setDate(baseDate.getDate() + 1);
+
+    if (phases.length > 0) {
+      const lastPhase = phases[phases.length - 1];
+      if (lastPhase.deliveryDate) {
+        // Start new phase 1 day after last phase delivery
+        baseDate = new Date(lastPhase.deliveryDate);
+        baseDate.setDate(baseDate.getDate() + 1);
+      }
+    }
+
+    // Set default times
+    const purchaseTime = new Date(baseDate);
     purchaseTime.setHours(8, 0, 0, 0); // 8:00 AM
 
-    const cookingTime = new Date(tomorrow);
+    const cookingTime = new Date(baseDate);
     cookingTime.setHours(10, 0, 0, 0); // 10:00 AM
 
-    const deliveryTime = new Date(tomorrow);
+    const deliveryTime = new Date(baseDate);
     deliveryTime.setHours(14, 0, 0, 0); // 2:00 PM
 
     setPhases([
@@ -230,78 +246,293 @@ export default function EditCampaignPage() {
     return Number.isFinite(n) ? n : 0;
   }, [campaign?.targetAmount]);
 
+  // Parse ISO strings without timezone conversion
+  const parseLocalDateTime = (isoString: string): Date => {
+    const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (match) {
+      return new Date(
+        parseInt(match[1]),
+        parseInt(match[2]) - 1,
+        parseInt(match[3]),
+        parseInt(match[4]),
+        parseInt(match[5])
+      );
+    }
+    return new Date(isoString);
+  };
+
+  // Get validation errors for a specific phase's dates
+  const getPhaseTimelineErrors = (phaseIndex: number): string[] => {
+    const errors: string[] = [];
+    const phase = phases[phaseIndex];
+    const fundEnd = campaign?.fundraisingEndDate;
+
+    if (!phase.ingredientPurchaseDate || !phase.cookingDate || !phase.deliveryDate) {
+      return errors;
+    }
+
+    const ingDate = parseLocalDateTime(phase.ingredientPurchaseDate);
+    const cookDate = parseLocalDateTime(phase.cookingDate);
+    const deliveryDate = parseLocalDateTime(phase.deliveryDate);
+
+    // Validate dates are valid
+    if (isNaN(ingDate.getTime()) || isNaN(cookDate.getTime()) || isNaN(deliveryDate.getTime())) {
+      return errors;
+    }
+
+    // Check phase timeline order
+    if (cookDate <= ingDate) {
+      errors.push("Thời gian nấu ăn phải sau thời gian mua nguyên liệu");
+    }
+    if (deliveryDate <= cookDate) {
+      errors.push("Thời gian giao hàng phải sau thời gian nấu ăn");
+    }
+
+    // Check phase cannot start before fundraising ends
+    if (fundEnd) {
+      const fundEndDate = parseLocalDateTime(fundEnd);
+      if (ingDate <= fundEndDate) {
+        errors.push("Thời gian thực hiện phải sau ngày kết thúc gây quỹ (không thể cùng ngày)");
+      }
+    }
+
+    // Check against previous phases
+    if (phaseIndex > 0) {
+      const prevPhase = phases[phaseIndex - 1];
+      if (prevPhase.deliveryDate) {
+        const prevDeliveryDate = parseLocalDateTime(prevPhase.deliveryDate);
+        if (isNaN(prevDeliveryDate.getTime())) {
+          return errors;
+        }
+
+        if (ingDate < prevDeliveryDate) {
+          errors.push(`Giai đoạn này phải bắt đầu sau Giai đoạn ${phaseIndex}`);
+        }
+      }
+    }
+
+    return errors;
+  };
+
 
 
   const handlePhasesUpdate = async (campaignId: string) => {
     try {
-      // For now, we'll handle phases as new additions
-      // In a more complex scenario, you'd need to:
-      // 1. Compare existing vs current phases
-      // 2. Update existing phases
-      // 3. Add new phases
-      // 4. Delete removed phases
+      // Helper to add 7 hours to ISO string to compensate for UTC conversion
+      const addSevenHours = (isoString: string): string => {
+        if (!isoString) return "";
+        const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+        if (!match) return isoString;
+        
+        const date = new Date(
+          parseInt(match[1]),
+          parseInt(match[2]) - 1,
+          parseInt(match[3]),
+          parseInt(match[4]),
+          parseInt(match[5])
+        );
+        date.setHours(date.getHours() + 7);
+        return date.toISOString();
+      };
 
-      // Simple approach: Delete all existing phases and add new ones
-      if (existingPhases.length > 0) {
-        const existingIds = existingPhases.map((p) => p.id);
-        await phaseService.deleteManyCampaignPhases(existingIds);
-      }
+      // Sync phases - backend will handle create/update/delete
+      const syncPhases = phases.map((phase, index) => ({
+        id: existingPhases[index]?.id, // Include ID if updating existing phase
+        phaseName: phase.phaseName,
+        location: phase.location,
+        ingredientPurchaseDate: addSevenHours(phase.ingredientPurchaseDate),
+        cookingDate: addSevenHours(phase.cookingDate),
+        deliveryDate: addSevenHours(phase.deliveryDate),
+        ingredientBudgetPercentage: phase.ingredientBudgetPercentage || "0",
+        cookingBudgetPercentage: phase.cookingBudgetPercentage || "0",
+        deliveryBudgetPercentage: phase.deliveryBudgetPercentage || "0",
+      }));
 
-      // Add all current phases as new
-      for (const phase of phases) {
-        const phaseInput: CreatePhaseInput = {
-          phaseName: phase.phaseName,
-          location: phase.location,
-          ingredientPurchaseDate: phase.ingredientPurchaseDate
-            ? new Date(phase.ingredientPurchaseDate).toISOString()
-            : "",
-          cookingDate: phase.cookingDate
-            ? new Date(phase.cookingDate).toISOString()
-            : "",
-          deliveryDate: phase.deliveryDate
-            ? new Date(phase.deliveryDate).toISOString()
-            : "",
-          ingredientBudgetPercentage: phase.ingredientBudgetPercentage || "0",
-          cookingBudgetPercentage: phase.cookingBudgetPercentage || "0",
-          deliveryBudgetPercentage: phase.deliveryBudgetPercentage || "0",
-        };
-
-        await phaseService.addCampaignPhase(campaignId, phaseInput);
+      const result = await phaseService.syncCampaignPhases(campaignId, syncPhases);
+      
+      if (result) {
+        console.log(`✓ Sync phases: Created ${result.createdCount}, Updated ${result.updatedCount}, Deleted ${result.deletedCount}`);
       }
     } catch (error) {
-      console.error("❌ Error updating phases:", error);
+      console.error("❌ Error syncing phases:", error);
       throw error;
     }
   };
 
-  const validateBeforeSave = () => {
-    const s = campaign?.fundraisingStartDate
-      ? new Date(campaign.fundraisingStartDate)
-      : null;
-    const e = campaign?.fundraisingEndDate
-      ? new Date(campaign.fundraisingEndDate)
-      : null;
-    if (s && e && s > e) {
-      toast.error("Ngày kết thúc phải sau (hoặc bằng) ngày bắt đầu.");
-      return false;
+  const validatePhases = () => {
+    // Check all phases have required fields
+    const allFieldsFilled = phases.every((phase) => {
+      return (
+        phase.phaseName?.trim() &&
+        phase.location?.trim() &&
+        phase.ingredientPurchaseDate?.trim() &&
+        phase.cookingDate?.trim() &&
+        phase.deliveryDate?.trim() &&
+        (phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "") &&
+        (phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "") &&
+        (phase.deliveryBudgetPercentage !== undefined && phase.deliveryBudgetPercentage !== "")
+      );
+    });
+
+    if (!allFieldsFilled) return false;
+
+    if (phases.length === 1) {
+      // Single phase: its budget must equal 100%
+      const phaseBudgetSum =
+        parsePercent(phases[0].ingredientBudgetPercentage || "0") +
+        parsePercent(phases[0].cookingBudgetPercentage || "0") +
+        parsePercent(phases[0].deliveryBudgetPercentage || "0");
+      return Math.abs(phaseBudgetSum - 100) <= 0.5;
+    } else {
+      // Multiple phases: total budget of all phases must equal 100%
+      const totalBudget = phases.reduce((sum, phase) => {
+        return (
+          sum +
+          parsePercent(phase.ingredientBudgetPercentage || "0") +
+          parsePercent(phase.cookingBudgetPercentage || "0") +
+          parsePercent(phase.deliveryBudgetPercentage || "0")
+        );
+      }, 0);
+      return Math.abs(totalBudget - 100) <= 0.5;
+    }
+  };
+
+  const timelineValidation = (() => {
+    const fundStart = campaign?.fundraisingStartDate;
+    const fundEnd = campaign?.fundraisingEndDate;
+
+    if (!fundStart || !fundEnd) {
+      return { isValid: false, errors: [] };
     }
 
-    // Validate phase budgets
+    const errors: string[] = [];
+    
+    // Parse ISO strings without timezone conversion
+    const parseLocalDateTime = (isoString: string): Date => {
+      const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      if (match) {
+        return new Date(
+          parseInt(match[1]),
+          parseInt(match[2]) - 1,
+          parseInt(match[3]),
+          parseInt(match[4]),
+          parseInt(match[5])
+        );
+      }
+      return new Date(isoString);
+    };
+
+    const fundStartDate = parseLocalDateTime(fundStart);
+    const fundEndDate = parseLocalDateTime(fundEnd);
+    const now = new Date();
+    
+    // Set now to start of today for comparison
+    now.setHours(0, 0, 0, 0);
+    const fundStartDateOnly = new Date(fundStartDate);
+    fundStartDateOnly.setHours(0, 0, 0, 0);
+
+    // Check 0: Start date must be in the future (not today or past)
+    if (fundStartDateOnly <= now) {
+      errors.push("Thời gian bắt đầu gây quỹ phải là ngày trong tương lai");
+    }
+
+    // Check 1: Start < End (with hour and minute precision)
+    if (fundEndDate <= fundStartDate) {
+      errors.push("Thời gian kết thúc gây quỹ phải sau thời gian bắt đầu");
+    }
+
+    // Check phases - only validate if all dates are filled
     for (let i = 0; i < phases.length; i++) {
       const phase = phases[i];
-      const p1 = Number(phase.ingredientBudgetPercentage || 0);
-      const p2 = Number(phase.cookingBudgetPercentage || 0);
-      const p3 = Number(phase.deliveryBudgetPercentage || 0);
-      const total = p1 + p2 + p3;
+      if (
+        !phase.ingredientPurchaseDate ||
+        !phase.cookingDate ||
+        !phase.deliveryDate
+      ) {
+        continue;
+      }
 
-      if (p1 >= 0 && p2 >= 0 && p3 >= 0) {
-        // Cho phép sai số nhỏ khi gõ
-        if (Math.abs(total - 100) > 0.01) {
-          toast.error(`Giai đoạn ${i + 1}: Tổng phần trăm phân bổ phải bằng 100%.`);
-          return false;
+      const ingDate = parseLocalDateTime(phase.ingredientPurchaseDate);
+      const cookDate = parseLocalDateTime(phase.cookingDate);
+      const deliveryDate = parseLocalDateTime(phase.deliveryDate);
+
+      // Validate dates are valid
+      if (isNaN(ingDate.getTime()) || isNaN(cookDate.getTime()) || isNaN(deliveryDate.getTime())) {
+        continue;
+      }
+
+      // Check 2: Phase timeline order (ingredient < cooking < delivery)
+      if (cookDate <= ingDate) {
+        errors.push(
+          `Giai đoạn ${i + 1}: Thời gian nấu ăn phải sau thời gian mua nguyên liệu`
+        );
+      }
+      if (deliveryDate <= cookDate) {
+        errors.push(
+          `Giai đoạn ${i + 1}: Thời gian giao hàng phải sau thời gian nấu ăn`
+        );
+      }
+
+      // Check 3: Phase cannot start before fundraising ends
+      if (ingDate <= fundEndDate) {
+        errors.push(
+          `Giai đoạn ${i + 1}: Thời gian thực hiện phải sau ngày kết thúc gây quỹ (không thể cùng ngày)`
+        );
+      }
+
+      // Check 4: Compare with previous phases
+      if (i > 0) {
+        const prevPhase = phases[i - 1];
+        if (
+          prevPhase.ingredientPurchaseDate &&
+          prevPhase.cookingDate &&
+          prevPhase.deliveryDate
+        ) {
+          const prevIngDate = parseLocalDateTime(prevPhase.ingredientPurchaseDate);
+          const prevCookDate = parseLocalDateTime(prevPhase.cookingDate);
+          const prevDeliveryDate = parseLocalDateTime(prevPhase.deliveryDate);
+
+          // Validate previous dates are valid
+          if (isNaN(prevIngDate.getTime()) || isNaN(prevCookDate.getTime()) || isNaN(prevDeliveryDate.getTime())) {
+            continue;
+          }
+
+          // Check 5: Phases cannot overlap
+          if (ingDate < prevDeliveryDate) {
+            errors.push(
+              `Giai đoạn ${i + 1} và Giai đoạn ${i} không được trùng ngày`
+            );
+          }
+
+          // Check 6: Later phase cannot start before earlier phase
+          if (ingDate < prevIngDate) {
+            errors.push(
+              `Giai đoạn ${i + 1} không thể sớm hơn Giai đoạn ${i}`
+            );
+          }
         }
       }
     }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  })();
+
+  const validateBeforeSave = () => {
+    if (!validatePhases()) {
+      toast.error(
+        "Vui lòng điền đầy đủ thông tin các giai đoạn và ngân sách mỗi giai đoạn phải bằng 100%."
+      );
+      return false;
+    }
+
+    if (!timelineValidation.isValid) {
+      timelineValidation.errors.forEach((error) => toast.error(error));
+      return false;
+    }
+
     return true;
   };
 
@@ -319,36 +550,6 @@ export default function EditCampaignPage() {
         fileKey = upload.fileKey;
       }
 
-      // Validate phases
-      for (let i = 0; i < phases.length; i++) {
-        const phase = phases[i];
-        if (!phase.phaseName?.trim()) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu tên giai đoạn`);
-          setSaving(false);
-          return;
-        }
-        if (!phase.location?.trim()) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu địa điểm`);
-          setSaving(false);
-          return;
-        }
-        if (!phase.ingredientPurchaseDate) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày mua nguyên liệu`);
-          setSaving(false);
-          return;
-        }
-        if (!phase.cookingDate) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày nấu ăn`);
-          setSaving(false);
-          return;
-        }
-        if (!phase.deliveryDate) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày giao hàng`);
-          setSaving(false);
-          return;
-        }
-      }
-
       // 1. Update campaign info (without phases and budget percentages)
       const campaignInput: UpdateCampaignInput = {
         title: campaign.title,
@@ -356,12 +557,8 @@ export default function EditCampaignPage() {
         targetAmount: campaign.targetAmount?.toString(),
         categoryId: campaign.category.id,
 
-        fundraisingStartDate: campaign.fundraisingStartDate
-          ? new Date(campaign.fundraisingStartDate).toISOString()
-          : undefined,
-        fundraisingEndDate: campaign.fundraisingEndDate
-          ? new Date(campaign.fundraisingEndDate).toISOString()
-          : undefined,
+        fundraisingStartDate: campaign.fundraisingStartDate,
+        fundraisingEndDate: campaign.fundraisingEndDate,
 
         ...(fileKey && { coverImageFileKey: fileKey }),
       };
@@ -371,19 +568,21 @@ export default function EditCampaignPage() {
         campaignInput
       );
 
+      if (!updated) {
+        toast.error("Không thể cập nhật chiến dịch.");
+        setSaving(false);
+        return;
+      }
+
       // 2. Handle phases separately
       await handlePhasesUpdate(campaign.id);
 
-      if (updated) {
-        toast.success("Cập nhật chiến dịch thành công!");
-        router.push(`/profile/my-campaign/${updated.id}`);
-      } else {
-        toast.error("Không thể cập nhật chiến dịch.");
-      }
+      toast.success("Cập nhật chiến dịch thành công!");
+      router.push(`/profile/my-campaign/${updated.id}`);
     } catch (err) {
       console.error("❌ Error updating campaign:", err);
-      toast.error("Cập nhật thất bại. Vui lòng thử lại!");
-    } finally {
+      const errorMessage = err instanceof Error ? err.message : "Cập nhật thất bại. Vui lòng thử lại!";
+      toast.error(errorMessage);
       setSaving(false);
     }
   };
@@ -504,35 +703,25 @@ export default function EditCampaignPage() {
 
             {/* Timeline gây quỹ */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Ngày bắt đầu gây quỹ
+              <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                Bắt đầu gây quỹ
               </label>
-              <Input
-                type="date"
-                value={isoDateOnly(campaign.fundraisingStartDate)}
-                onChange={(e) =>
-                  handleChange(
-                    "fundraisingStartDate",
-                    new Date(e.target.value).toISOString()
-                  )
+              <DateTimeInput
+                value={campaign.fundraisingStartDate || ""}
+                onChange={(value) =>
+                  handleChange("fundraisingStartDate", value)
                 }
-                className="mt-2"
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Ngày kết thúc gây quỹ
+              <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                Kết thúc gây quỹ
               </label>
-              <Input
-                type="date"
-                value={isoDateOnly(campaign.fundraisingEndDate)}
-                onChange={(e) =>
-                  handleChange(
-                    "fundraisingEndDate",
-                    new Date(e.target.value).toISOString()
-                  )
+              <DateTimeInput
+                value={campaign.fundraisingEndDate || ""}
+                onChange={(value) =>
+                  handleChange("fundraisingEndDate", value)
                 }
-                className="mt-2"
               />
             </div>
 
@@ -594,135 +783,231 @@ export default function EditCampaignPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs text-gray-600">
-                        Ngày & giờ mua nguyên liệu
+                        Mua nguyên liệu
                       </label>
-                      <Input
-                        type="datetime-local"
-                        value={isoToLocalInput(phase.ingredientPurchaseDate)}
-                        onChange={(e) =>
-                          updatePhase(
-                            index,
-                            "ingredientPurchaseDate",
-                            localInputToIso(e.target.value)
-                          )
+                      <DateTimeInput
+                        value={phase.ingredientPurchaseDate}
+                        onChange={(value) =>
+                          updatePhase(index, "ingredientPurchaseDate", value)
                         }
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs text-gray-600">
-                        Ngày & giờ nấu ăn
+                        Nấu ăn
                       </label>
-                      <Input
-                        type="datetime-local"
-                        value={isoToLocalInput(phase.cookingDate)}
-                        onChange={(e) =>
-                          updatePhase(
-                            index,
-                            "cookingDate",
-                            localInputToIso(e.target.value)
-                          )
+                      <DateTimeInput
+                        value={phase.cookingDate}
+                        onChange={(value) =>
+                          updatePhase(index, "cookingDate", value)
                         }
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs text-gray-600">
-                        Ngày & giờ giao hàng
+                        Giao hàng
                       </label>
-                      <Input
-                        type="datetime-local"
-                        value={isoToLocalInput(phase.deliveryDate)}
-                        onChange={(e) =>
-                          updatePhase(
-                            index,
-                            "deliveryDate",
-                            localInputToIso(e.target.value)
-                          )
+                      <DateTimeInput
+                        value={phase.deliveryDate}
+                        onChange={(value) =>
+                          updatePhase(index, "deliveryDate", value)
                         }
                       />
                     </div>
                   </div>
 
-                  <div className="border-t pt-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Info className="w-4 h-4 text-gray-600" />
-                      <span className="text-xs font-semibold text-gray-700">
-                        Phân bổ ngân sách giai đoạn (%)
-                      </span>
+                  {/* Timeline validation errors */}
+                  {getPhaseTimelineErrors(index).length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-xs font-medium text-red-800 mb-1">Lỗi thời gian:</p>
+                      <ul className="text-xs text-red-700 space-y-1">
+                        {getPhaseTimelineErrors(index).map((error, idx) => (
+                          <li key={idx}>• {error}</li>
+                        ))}
+                      </ul>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-600">Nguyên liệu</label>
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            value={phase.ingredientBudgetPercentage}
-                            onChange={(e) =>
+                  )}
+
+                  <div className="border-t pt-4">
+                    <label className="text-sm font-medium text-gray-700 mb-3 block">
+                      Phân bổ ngân sách giai đoạn này (%)
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-600">
+                          Nguyên liệu
+                        </label>
+                        <Input
+                          inputMode="decimal"
+                          placeholder="%"
+                          value={phase.ingredientBudgetPercentage}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (isValidPercentInput(raw)) {
                               updatePhase(
                                 index,
                                 "ingredientBudgetPercentage",
-                                e.target.value
-                              )
+                                raw
+                              );
                             }
-                            placeholder="vd: 60"
-                            className="pr-8"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                        </div>
+                          }}
+                          onBlur={() => {
+                            updatePhase(
+                              index,
+                              "ingredientBudgetPercentage",
+                              normalizePercentOnBlur(
+                                phase.ingredientBudgetPercentage
+                              )
+                            );
+                          }}
+                          className="h-10 text-sm"
+                        />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-600">Nấu ăn</label>
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            value={phase.cookingBudgetPercentage}
-                            onChange={(e) =>
+                      <div>
+                        <label className="text-xs text-gray-600">
+                          Nấu ăn
+                        </label>
+                        <Input
+                          inputMode="decimal"
+                          placeholder="%"
+                          value={phase.cookingBudgetPercentage}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (isValidPercentInput(raw)) {
                               updatePhase(
                                 index,
                                 "cookingBudgetPercentage",
-                                e.target.value
-                              )
+                                raw
+                              );
                             }
-                            placeholder="vd: 25"
-                            className="pr-8"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                        </div>
+                          }}
+                          onBlur={() => {
+                            updatePhase(
+                              index,
+                              "cookingBudgetPercentage",
+                              normalizePercentOnBlur(
+                                phase.cookingBudgetPercentage
+                              )
+                            );
+                          }}
+                          className="h-10 text-sm"
+                        />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-600">Vận chuyển</label>
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            value={phase.deliveryBudgetPercentage}
-                            onChange={(e) =>
+                      <div>
+                        <label className="text-xs text-gray-600">
+                          Giao hàng
+                        </label>
+                        <Input
+                          inputMode="decimal"
+                          placeholder="%"
+                          value={phase.deliveryBudgetPercentage}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (isValidPercentInput(raw)) {
                               updatePhase(
                                 index,
                                 "deliveryBudgetPercentage",
-                                e.target.value
-                              )
+                                raw
+                              );
                             }
-                            placeholder="vd: 15"
-                            className="pr-8"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                        </div>
+                          }}
+                          onBlur={() => {
+                            updatePhase(
+                              index,
+                              "deliveryBudgetPercentage",
+                              normalizePercentOnBlur(
+                                phase.deliveryBudgetPercentage
+                              )
+                            );
+                          }}
+                          className="h-10 text-sm"
+                        />
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Tổng 3 khoản nên bằng <b>100%</b>
+                    <p
+                      className={`text-xs mt-2 ${
+                        Math.abs(
+                          parsePercent(phase.ingredientBudgetPercentage || "0") +
+                          parsePercent(phase.cookingBudgetPercentage || "0") +
+                          parsePercent(phase.deliveryBudgetPercentage || "0") -
+                          100
+                        ) <= 0.5
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      Tổng giai đoạn này: {formatPercent(
+                        parsePercent(phase.ingredientBudgetPercentage || "0") +
+                        parsePercent(phase.cookingBudgetPercentage || "0") +
+                        parsePercent(phase.deliveryBudgetPercentage || "0")
+                      )}%
+                      {phases.length === 1 &&
+                        Math.abs(
+                          parsePercent(phase.ingredientBudgetPercentage || "0") +
+                          parsePercent(phase.cookingBudgetPercentage || "0") +
+                          parsePercent(phase.deliveryBudgetPercentage || "0") -
+                          100
+                        ) > 0.5 && " — Phải bằng 100%"}
                     </p>
                   </div>
                 </div>
               ))}
 
+              {/* Total Budget Summary for Multiple Phases */}
+              {phases.length > 1 && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-medium text-blue-900 mb-2">
+                    Tổng ngân sách của tất cả giai đoạn:
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-blue-600">
+                      {formatPercent(
+                        phases.reduce((sum, phase) => {
+                          return (
+                            sum +
+                            parsePercent(phase.ingredientBudgetPercentage || "0") +
+                            parsePercent(phase.cookingBudgetPercentage || "0") +
+                            parsePercent(phase.deliveryBudgetPercentage || "0")
+                          );
+                        }, 0)
+                      )}
+                      %
+                    </span>
+                    <span className={`text-sm ${Math.abs(
+                        phases.reduce((sum, phase) => {
+                          return (
+                            sum +
+                            parsePercent(phase.ingredientBudgetPercentage || "0") +
+                            parsePercent(phase.cookingBudgetPercentage || "0") +
+                            parsePercent(phase.deliveryBudgetPercentage || "0")
+                          );
+                        }, 0) - 100
+                      ) <= 0.5
+                        ? "text-green-700"
+                        : "text-red-700"}`}
+                    >
+                      {Math.abs(
+                        phases.reduce((sum, phase) => {
+                          return (
+                            sum +
+                            parsePercent(phase.ingredientBudgetPercentage || "0") +
+                            parsePercent(phase.cookingBudgetPercentage || "0") +
+                            parsePercent(phase.deliveryBudgetPercentage || "0")
+                          );
+                        }, 0) - 100
+                      ) <= 0.5
+                        ? "✓ Hợp lệ"
+                        : "✗ Chưa đúng"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="text-center">
                 <Button
                   variant="outline"
                   onClick={addPhase}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 mx-auto"
                 >
                   <Plus className="w-4 h-4" />
                   Thêm giai đoạn {phases.length + 1}

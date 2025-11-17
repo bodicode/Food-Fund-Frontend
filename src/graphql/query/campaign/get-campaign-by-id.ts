@@ -17,6 +17,7 @@ export const GET_CAMPAIGN_BY_ID = gql`
       targetAmount
       donationCount
       receivedAmount
+      extensionCount
       created_at
       
       category {
@@ -40,6 +41,9 @@ export const GET_CAMPAIGN_BY_ID = gql`
         ingredientBudgetPercentage
         cookingBudgetPercentage
         deliveryBudgetPercentage
+        ingredientFundsAmount
+        cookingFundsAmount
+        deliveryFundsAmount
         status
       }
     }

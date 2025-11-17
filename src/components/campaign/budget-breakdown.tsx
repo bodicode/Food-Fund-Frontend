@@ -111,6 +111,9 @@ interface Phase {
   ingredientBudgetPercentage?: string;
   cookingBudgetPercentage?: string;
   deliveryBudgetPercentage?: string;
+  ingredientFundsAmount?: string | null;
+  cookingFundsAmount?: string | null;
+  deliveryFundsAmount?: string | null;
 }
 
 export function BudgetBreakdown({
@@ -121,101 +124,131 @@ export function BudgetBreakdown({
   targetAmount?: number;
 }) {
   if (!phases || phases.length === 0 || !targetAmount) return null;
-  
+
   return (
     <div className="space-y-8">
       {/* Budget by Phase */}
       <div className="space-y-8">
-            {phases.map((phase) => {
-              const ingredientPct = Number(phase.ingredientBudgetPercentage || 0);
-              const cookingPct = Number(phase.cookingBudgetPercentage || 0);
-              const deliveryPct = Number(phase.deliveryBudgetPercentage || 0);
-              const totalPhasePct = ingredientPct + cookingPct + deliveryPct;
-              const totalPhaseAmount = (totalPhasePct / 100) * targetAmount;
+        {phases.map((phase) => {
+          const ingredientPct = Number(phase.ingredientBudgetPercentage || 0);
+          const cookingPct = Number(phase.cookingBudgetPercentage || 0);
+          const deliveryPct = Number(phase.deliveryBudgetPercentage || 0);
+          const totalPhasePct = ingredientPct + cookingPct + deliveryPct;
+          const totalPhaseAmount = (totalPhasePct / 100) * targetAmount;
 
-              if (totalPhasePct === 0) return null;
+          if (totalPhasePct === 0) return null;
 
-              const phaseItems = [
-                ingredientPct > 0 && { title: "Nguyên liệu", amount: (ingredientPct / 100) * targetAmount, percent: ingredientPct },
-                cookingPct > 0 && { title: "Nấu ăn", amount: (cookingPct / 100) * targetAmount, percent: cookingPct },
-                deliveryPct > 0 && { title: "Vận chuyển", amount: (deliveryPct / 100) * targetAmount, percent: deliveryPct },
-              ].filter(Boolean) as Array<{ title: string; amount: number; percent: number }>;
+          const phaseItems = [
+            ingredientPct > 0 && { title: "Nguyên liệu", amount: (ingredientPct / 100) * targetAmount, percent: ingredientPct },
+            cookingPct > 0 && { title: "Nấu ăn", amount: (cookingPct / 100) * targetAmount, percent: cookingPct },
+            deliveryPct > 0 && { title: "Vận chuyển", amount: (deliveryPct / 100) * targetAmount, percent: deliveryPct },
+          ].filter(Boolean) as Array<{ title: string; amount: number; percent: number }>;
 
-              return (
-                <div key={phase.id} className="rounded-xl border p-6 bg-gradient-to-br from-white to-gray-50 shadow-sm hover:shadow-md transition-shadow">
-                  <h4 className="font-bold text-gray-900 mb-6 text-lg">{phase.phaseName}</h4>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-8 items-start">
-                    {/* Mini Donut Chart */}
-                    <div className="flex items-center justify-center">
-                      <DonutChart items={phaseItems} />
-                    </div>
+          return (
+            <div key={phase.id} className="rounded-xl border p-6 bg-gradient-to-br from-white to-gray-50 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="font-bold text-gray-900 mb-6 text-lg">{phase.phaseName}</h4>
 
-                    {/* Budget Details */}
-                    <div className="space-y-4">
-                      <div className="mb-4 pb-3 border-b">
-                        <div className="text-xs text-gray-600 mb-1">Tổng giai đoạn</div>
-                        <div className="text-lg font-bold text-gray-900">{formatCurrency(totalPhaseAmount)}</div>
-                      </div>
-
-                      {ingredientPct > 0 && (
-                        <div className="rounded-lg border p-3 bg-white">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-0.5 h-6 rounded-full bg-[#E77731]" />
-                              <span className="text-sm font-medium text-gray-700">Nguyên liệu</span>
-                            </div>
-                            <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{ingredientPct}%</span>
-                          </div>
-                          <div className="text-sm font-bold text-gray-900 ml-3">
-                            {formatCurrency((ingredientPct / 100) * targetAmount)}
-                          </div>
-                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
-                            <div className="h-1.5 bg-[#E77731] rounded-full" style={{ width: `${ingredientPct}%` }} />
-                          </div>
-                        </div>
-                      )}
-
-                      {cookingPct > 0 && (
-                        <div className="rounded-lg border p-3 bg-white">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-0.5 h-6 rounded-full bg-[#4F46E5]" />
-                              <span className="text-sm font-medium text-gray-700">Nấu ăn</span>
-                            </div>
-                            <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{cookingPct}%</span>
-                          </div>
-                          <div className="text-sm font-bold text-gray-900 ml-3">
-                            {formatCurrency((cookingPct / 100) * targetAmount)}
-                          </div>
-                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
-                            <div className="h-1.5 bg-[#4F46E5] rounded-full" style={{ width: `${cookingPct}%` }} />
-                          </div>
-                        </div>
-                      )}
-
-                      {deliveryPct > 0 && (
-                        <div className="rounded-lg border p-3 bg-white">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-0.5 h-6 rounded-full bg-[#10B981]" />
-                              <span className="text-sm font-medium text-gray-700">Vận chuyển</span>
-                            </div>
-                            <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{deliveryPct}%</span>
-                          </div>
-                          <div className="text-sm font-bold text-gray-900 ml-3">
-                            {formatCurrency((deliveryPct / 100) * targetAmount)}
-                          </div>
-                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
-                            <div className="h-1.5 bg-[#10B981] rounded-full" style={{ width: `${deliveryPct}%` }} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-8 items-start">
+                {/* Mini Donut Chart */}
+                <div className="flex items-center justify-center">
+                  <DonutChart items={phaseItems} />
                 </div>
-              );
-            })}
+
+                {/* Budget Details */}
+                <div className="space-y-4">
+                  <div className="mb-4 pb-3 border-b">
+                    <div className="text-xs text-gray-600 mb-1">Tổng giai đoạn</div>
+                    <div className="text-lg font-bold text-gray-900">{formatCurrency(totalPhaseAmount)}</div>
+                  </div>
+
+                  {ingredientPct > 0 && (
+                    <div className="rounded-lg border p-3 bg-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-0.5 h-6 rounded-full bg-[#E77731]" />
+                          <span className="text-sm font-medium text-gray-700">Nguyên liệu</span>
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{ingredientPct}%</span>
+                      </div>
+                      <div className="space-y-1 ml-3">
+                        <div className="text-sm font-bold text-gray-900">
+                          {phase.ingredientFundsAmount
+                            ? `Đã nhận: ${formatCurrency(Number(phase.ingredientFundsAmount))}`
+                            : `Dự kiến: ${formatCurrency((ingredientPct / 100) * targetAmount)}`
+                          }
+                        </div>
+                        {phase.ingredientFundsAmount && (
+                          <div className="text-xs text-gray-500">
+                            Dự kiến: {formatCurrency((ingredientPct / 100) * targetAmount)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
+                        <div className="h-1.5 bg-[#E77731] rounded-full" style={{ width: `${ingredientPct}%` }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {cookingPct > 0 && (
+                    <div className="rounded-lg border p-3 bg-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-0.5 h-6 rounded-full bg-[#4F46E5]" />
+                          <span className="text-sm font-medium text-gray-700">Nấu ăn</span>
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{cookingPct}%</span>
+                      </div>
+                      <div className="space-y-1 ml-3">
+                        <div className="text-sm font-bold text-gray-900">
+                          {phase.cookingFundsAmount
+                            ? `Đã nhận: ${formatCurrency(Number(phase.cookingFundsAmount))}`
+                            : `Dự kiến: ${formatCurrency((cookingPct / 100) * targetAmount)}`
+                          }
+                        </div>
+                        {phase.cookingFundsAmount && (
+                          <div className="text-xs text-gray-500">
+                            Dự kiến: {formatCurrency((cookingPct / 100) * targetAmount)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
+                        <div className="h-1.5 bg-[#4F46E5] rounded-full" style={{ width: `${cookingPct}%` }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {deliveryPct > 0 && (
+                    <div className="rounded-lg border p-3 bg-white">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-0.5 h-6 rounded-full bg-[#10B981]" />
+                          <span className="text-sm font-medium text-gray-700">Vận chuyển</span>
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{deliveryPct}%</span>
+                      </div>
+                      <div className="space-y-1 ml-3">
+                        <div className="text-sm font-bold text-gray-900">
+                          {phase.deliveryFundsAmount
+                            ? `Đã nhận: ${formatCurrency(Number(phase.deliveryFundsAmount))}`
+                            : `Dự kiến: ${formatCurrency((deliveryPct / 100) * targetAmount)}`
+                          }
+                        </div>
+                        {phase.deliveryFundsAmount && (
+                          <div className="text-xs text-gray-500">
+                            Dự kiến: {formatCurrency((deliveryPct / 100) * targetAmount)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
+                        <div className="h-1.5 bg-[#10B981] rounded-full" style={{ width: `${deliveryPct}%` }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

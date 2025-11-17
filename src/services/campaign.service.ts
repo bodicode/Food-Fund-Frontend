@@ -4,6 +4,7 @@ import { CHANGE_CAMPAIGN_STATUS } from "@/graphql/mutations/campaign/change-camp
 import { CREATE_CAMPAIGN } from "@/graphql/mutations/campaign/create-campaign";
 import { UPDATE_CAMPAIGN } from "@/graphql/mutations/campaign/update-campaign";
 import { DELETE_CAMPAIGN } from "@/graphql/mutations/campaign/delete-campaign";
+import { EXTEND_CAMPAIGN } from "@/graphql/mutations/campaign/extend-campaign";
 import { GET_CAMPAIGNS } from "@/graphql/query/campaign/get-campaign";
 import { GET_CAMPAIGN_BY_ID } from "@/graphql/query/campaign/get-campaign-by-id";
 import { GET_MY_CAMPAIGNS } from "@/graphql/query/campaign/get-my-campaign";
@@ -203,6 +204,30 @@ export const campaignService = {
       return data?.deleteCampaign ?? false;
     } catch (error) {
       console.error("❌ Error deleting campaign:", error);
+      throw error;
+    }
+  },
+
+  async extendCampaign(
+    id: string,
+    extensionDays: number
+  ): Promise<Campaign | null> {
+    try {
+      const { data } = await client.mutate<{
+        extendCampaign: Campaign;
+      }>({
+        mutation: EXTEND_CAMPAIGN,
+        variables: { id, input: { extensionDays } },
+        refetchQueries: [{ query: GET_CAMPAIGN_BY_ID, variables: { id } }],
+      });
+
+      if (!data?.extendCampaign) {
+        throw new Error("Không nhận được dữ liệu phản hồi từ server");
+      }
+
+      return data.extendCampaign;
+    } catch (error) {
+      console.error("❌ Error extending campaign:", error);
       throw error;
     }
   },

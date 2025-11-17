@@ -153,25 +153,53 @@ export default function CreateCampaignStepPreview() {
         }
       }
 
-      const startISO = new Date(form.fundraisingStartDate!).toISOString();
-      const endISO = new Date(form.fundraisingEndDate!).toISOString();
-      if (new Date(startISO) > new Date(endISO)) {
+      // Parse ISO strings without timezone conversion
+      const parseLocalDateTime = (isoString: string): Date => {
+        const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+        if (match) {
+          return new Date(
+            parseInt(match[1]),
+            parseInt(match[2]) - 1,
+            parseInt(match[3]),
+            parseInt(match[4]),
+            parseInt(match[5])
+          );
+        }
+        return new Date(isoString);
+      };
+
+      const startISO = form.fundraisingStartDate!;
+      const endISO = form.fundraisingEndDate!;
+      if (parseLocalDateTime(startISO) > parseLocalDateTime(endISO)) {
         toast.error("Ngày kết thúc phải sau ngày bắt đầu.");
         setLoading(false);
         return;
       }
 
-      // Normalize phases' datetime values to ISO strings to avoid timezone drift
+      // Helper to add 7 hours to ISO string to compensate for UTC conversion
+      const addSevenHours = (isoString: string): string => {
+        if (!isoString) return "";
+        const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+        if (!match) return isoString;
+        
+        const date = new Date(
+          parseInt(match[1]),
+          parseInt(match[2]) - 1,
+          parseInt(match[3]),
+          parseInt(match[4]),
+          parseInt(match[5])
+        );
+        date.setHours(date.getHours() + 7);
+        return date.toISOString();
+      };
+
+      // Add 7 hours to compensate for UTC conversion
       const phasesIso = form.phases!.map((p) => ({
         phaseName: p.phaseName,
         location: p.location,
-        ingredientPurchaseDate: p.ingredientPurchaseDate
-          ? new Date(p.ingredientPurchaseDate).toISOString()
-          : "",
-        cookingDate: p.cookingDate ? new Date(p.cookingDate).toISOString() : "",
-        deliveryDate: p.deliveryDate
-          ? new Date(p.deliveryDate).toISOString()
-          : "",
+        ingredientPurchaseDate: addSevenHours(p.ingredientPurchaseDate || ""),
+        cookingDate: addSevenHours(p.cookingDate || ""),
+        deliveryDate: addSevenHours(p.deliveryDate || ""),
         ingredientBudgetPercentage: p.ingredientBudgetPercentage,
         cookingBudgetPercentage: p.cookingBudgetPercentage,
         deliveryBudgetPercentage: p.deliveryBudgetPercentage,
@@ -183,8 +211,8 @@ export default function CreateCampaignStepPreview() {
         coverImageFileKey: form.coverImageFileKey!,
         targetAmount: String(form.targetAmount!),
         categoryId: form.categoryId!,
-        fundraisingStartDate: startISO,
-        fundraisingEndDate: endISO,
+        fundraisingStartDate: addSevenHours(startISO),
+        fundraisingEndDate: addSevenHours(endISO),
         phases: phasesIso,
       };
 
