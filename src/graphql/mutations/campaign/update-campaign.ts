@@ -16,16 +16,6 @@ export const UPDATE_CAMPAIGN = gql`
       fundraisingStartDate
       fundraisingEndDate
 
-      # Budget percentages
-      cookingBudgetPercentage
-      ingredientBudgetPercentage
-      deliveryBudgetPercentage
-
-      # Legacy funds amounts
-      ingredientFundsAmount
-      cookingFundsAmount
-      deliveryFundsAmount
-
       category {
         id
         title

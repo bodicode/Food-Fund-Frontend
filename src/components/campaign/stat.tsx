@@ -14,8 +14,8 @@ export function Stat({
   return (
     <div>
       <div className={`${tone ?? "text-gray-600"} mb-1`}>{icon}</div>
-      <p className="text-gray-500 text-sm">{label}</p>
-      <p className="font-semibold">{value}</p>
+      <p className="text-gray-500 text-xs md:text-sm">{label}</p>
+      <p className="font-semibold text-xs md:text-base">{value}</p>
     </div>
   );
 }

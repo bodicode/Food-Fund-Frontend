@@ -33,6 +33,18 @@ export interface UpdatePhaseInput {
   deliveryDate?: string;
 }
 
+export interface SyncPhaseInput {
+  id?: string; // If provided, it's an update; if not, it's a create
+  phaseName: string;
+  location: string;
+  ingredientPurchaseDate: string;
+  cookingDate: string;
+  deliveryDate: string;
+  ingredientBudgetPercentage: string;
+  cookingBudgetPercentage: string;
+  deliveryBudgetPercentage: string;
+}
+
 // ==============================
 // MUTATION RESPONSE TYPES
 // ==============================
@@ -53,5 +65,16 @@ export interface DeleteManyCampaignPhasesResponse {
     success: boolean;
     deletedCount: number;
     affectedCampaignIds: string[];
+  };
+}
+
+export interface SyncCampaignPhasesResponse {
+  syncCampaignPhases: {
+    success: boolean;
+    message: string;
+    createdCount: number;
+    updatedCount: number;
+    deletedCount: number;
+    phases: CampaignPhase[];
   };
 }

@@ -113,12 +113,12 @@ export default function CreateCampaignStepGoal() {
       return (
         phase.phaseName?.trim() &&
         phase.location?.trim() &&
-        phase.ingredientPurchaseDate &&
-        phase.cookingDate &&
-        phase.deliveryDate &&
-        phase.ingredientBudgetPercentage &&
-        phase.cookingBudgetPercentage &&
-        phase.deliveryBudgetPercentage
+        phase.ingredientPurchaseDate?.trim() &&
+        phase.cookingDate?.trim() &&
+        phase.deliveryDate?.trim() &&
+        (phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "") &&
+        (phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "") &&
+        (phase.deliveryBudgetPercentage !== undefined && phase.deliveryBudgetPercentage !== "")
       );
     });
 
@@ -130,7 +130,7 @@ export default function CreateCampaignStepGoal() {
         parsePercent(phases[0].ingredientBudgetPercentage || "0") +
         parsePercent(phases[0].cookingBudgetPercentage || "0") +
         parsePercent(phases[0].deliveryBudgetPercentage || "0");
-      return Math.abs(phaseBudgetSum - 100) <= 0.01;
+      return Math.abs(phaseBudgetSum - 100) <= 0.5;
     } else {
       // Multiple phases: total budget of all phases must equal 100%
       const totalBudget = phases.reduce((sum, phase) => {
@@ -141,9 +141,24 @@ export default function CreateCampaignStepGoal() {
           parsePercent(phase.deliveryBudgetPercentage || "0")
         );
       }, 0);
-      return Math.abs(totalBudget - 100) <= 0.01;
+      return Math.abs(totalBudget - 100) <= 0.5;
     }
   })();
+
+  // Parse ISO strings without timezone conversion
+  const parseLocalDateTime = (isoString: string): Date => {
+    const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (match) {
+      return new Date(
+        parseInt(match[1]),
+        parseInt(match[2]) - 1,
+        parseInt(match[3]),
+        parseInt(match[4]),
+        parseInt(match[5])
+      );
+    }
+    return new Date(isoString);
+  };
 
   // Detailed timeline validation (with hour and minute precision)
   const timelineValidation = (() => {
@@ -152,8 +167,8 @@ export default function CreateCampaignStepGoal() {
     }
 
     const errors: string[] = [];
-    const fundStartDate = new Date(fundStart);
-    const fundEndDate = new Date(fundEnd);
+    const fundStartDate = parseLocalDateTime(fundStart);
+    const fundEndDate = parseLocalDateTime(fundEnd);
 
     // Check 1: Start < End (with hour and minute precision)
     if (fundEndDate <= fundStartDate) {
@@ -171,9 +186,9 @@ export default function CreateCampaignStepGoal() {
         continue;
       }
 
-      const ingDate = new Date(phase.ingredientPurchaseDate);
-      const cookDate = new Date(phase.cookingDate);
-      const deliveryDate = new Date(phase.deliveryDate);
+      const ingDate = parseLocalDateTime(phase.ingredientPurchaseDate);
+      const cookDate = parseLocalDateTime(phase.cookingDate);
+      const deliveryDate = parseLocalDateTime(phase.deliveryDate);
 
       // Validate dates are valid
       if (isNaN(ingDate.getTime()) || isNaN(cookDate.getTime()) || isNaN(deliveryDate.getTime())) {
@@ -194,10 +209,10 @@ export default function CreateCampaignStepGoal() {
       }
 
       // Check 3: Phase cannot start before fundraising ends
-      // Ingredient purchase must be >= fundraising end time
-      if (ingDate < fundEndDate) {
+      // Ingredient purchase must be > fundraising end time (must be after, not same day)
+      if (ingDate <= fundEndDate) {
         errors.push(
-          `Giai đoạn ${i + 1}: Thời gian thực hiện không được trước ngày kết thúc gây quỹ`
+          `Giai đoạn ${i + 1}: Thời gian thực hiện phải sau ngày kết thúc gây quỹ (không thể cùng ngày)`
         );
       }
 
@@ -209,9 +224,9 @@ export default function CreateCampaignStepGoal() {
           prevPhase.cookingDate &&
           prevPhase.deliveryDate
         ) {
-          const prevIngDate = new Date(prevPhase.ingredientPurchaseDate);
-          const prevCookDate = new Date(prevPhase.cookingDate);
-          const prevDeliveryDate = new Date(prevPhase.deliveryDate);
+          const prevIngDate = parseLocalDateTime(prevPhase.ingredientPurchaseDate);
+          const prevCookDate = parseLocalDateTime(prevPhase.cookingDate);
+          const prevDeliveryDate = parseLocalDateTime(prevPhase.deliveryDate);
 
           // Validate previous dates are valid
           if (isNaN(prevIngDate.getTime()) || isNaN(prevCookDate.getTime()) || isNaN(prevDeliveryDate.getTime())) {
@@ -268,7 +283,7 @@ export default function CreateCampaignStepGoal() {
         return;
       }
       if (!timelineOrderOk) {
-        toast.error("Thứ tự thời gian chưa hợp lý.");
+        timelineValidation.errors.forEach((error) => toast.error(error));
         return;
       }
     }
@@ -515,11 +530,11 @@ export default function CreateCampaignStepGoal() {
                           </div>
                         </div>
                         <p
-                          className={`text-xs mt-1 ${phaseBudgetValid ? "text-gray-600" : "text-red-600"
+                          className={`text-xs mt-1 ${Math.abs(phaseBudgetSum - 100) <= 0.5 ? "text-green-600" : "text-red-600"
                             }`}
                         >
                           Tổng giai đoạn này: {formatPercent(phaseBudgetSum)}%
-                          {phases.length === 1 && !phaseBudgetValid && " — Phải bằng 100%"}
+                          {phases.length === 1 && Math.abs(phaseBudgetSum - 100) > 0.5 && " — Phải bằng 100%"}
                         </p>
                       </div>
 
@@ -584,7 +599,19 @@ export default function CreateCampaignStepGoal() {
                       )}
                       %
                     </span>
-                    <span className="text-sm text-blue-700">
+                    <span className={`text-sm ${Math.abs(
+                        phases.reduce((sum, phase) => {
+                          return (
+                            sum +
+                            parsePercent(phase.ingredientBudgetPercentage || "0") +
+                            parsePercent(phase.cookingBudgetPercentage || "0") +
+                            parsePercent(phase.deliveryBudgetPercentage || "0")
+                          );
+                        }, 0) - 100
+                      ) <= 0.5
+                        ? "text-green-700"
+                        : "text-red-700"}`}
+                    >
                       {Math.abs(
                         phases.reduce((sum, phase) => {
                           return (
@@ -594,7 +621,7 @@ export default function CreateCampaignStepGoal() {
                             parsePercent(phase.deliveryBudgetPercentage || "0")
                           );
                         }, 0) - 100
-                      ) <= 0.01
+                      ) <= 0.5
                         ? "✓ Hợp lệ"
                         : "✗ Chưa đúng"}
                     </span>

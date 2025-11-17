@@ -49,6 +49,8 @@ import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 import { Info, Plus } from "lucide-react";
 import { CreateOperationRequestDialog } from "@/components/campaign/create-operation-request-dialog";
 import { OperationRequestList } from "@/components/campaign/operation-request-list";
+import { ShareDialog } from "@/components/campaign/share-dialog";
+import { ExtendCampaignDialog } from "@/components/campaign/extend-campaign-dialog";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -56,20 +58,19 @@ export default function MyCampaignDetailPage() {
   const dispatch = useDispatch();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("story");
   const [isCreatePostDialogOpen, setIsCreatePostDialogOpen] = useState(false);
   const [refreshPosts, setRefreshPosts] = useState(0);
   const [isCreateOperationRequestDialogOpen, setIsCreateOperationRequestDialogOpen] = useState(false);
   const [refreshOperationRequests, setRefreshOperationRequests] = useState(0);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
 
-  // Get current user from Redux store
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const currentUserId = currentUser?.id;
 
   useEffect(() => {
-    // Try to restore session from localStorage/cookies
     dispatch(restoreSession());
 
     if (!id) return;
@@ -110,7 +111,6 @@ export default function MyCampaignDetailPage() {
   );
   const status = statusConfig[campaign.status];
 
-  // Calculate total budget percentages from all phases
   const totalIngredientPct = campaign.phases?.reduce(
     (sum, phase) => sum + toNumber(phase.ingredientBudgetPercentage, 0),
     0
@@ -133,18 +133,32 @@ export default function MyCampaignDetailPage() {
     cookingAmt > 0 ||
     deliveryAmt > 0;
 
-  const handleShare = async () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
+  // Check if campaign can be extended
+  const daysRemaining = parseInt(timeLeft) || 0;
+  const fundingProgress = progress || 0;
+  const canExtend =
+    campaign.status === "ACTIVE" &&
+    (daysRemaining <= 7 || fundingProgress < 70);
+
+  const handleExtendCampaign = async (days: number) => {
+    if (!campaign) return;
+
     try {
-      if (navigator.share) {
-        await navigator.share({ title: campaign.title, url });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
+      const updated = await campaignService.extendCampaign(campaign.id, days);
+      if (updated) {
+        toast.success("Kéo dài thời gian gây quỹ thành công!", {
+          description: `Chiến dịch đã được kéo dài thêm ${days} ngày.`,
+        });
+        // Refresh campaign data
+        const data = await campaignService.getCampaignById(campaign.id);
+        if (data) {
+          setCampaign(data);
+        }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      toast.error("Kéo dài thất bại!", {
+        description: error instanceof Error ? error.message : "Đã xảy ra lỗi.",
+      });
     }
   };
 
@@ -201,25 +215,21 @@ export default function MyCampaignDetailPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="secondary"
-                onClick={handleShare}
+                onClick={() => setIsShareDialogOpen(true)}
                 className="backdrop-blur bg-white/80"
               >
-                {copied ? (
-                  <Copy className="w-4 h-4 mr-2" />
-                ) : (
-                  <Share2 className="w-4 h-4 mr-2" />
-                )}
-                {copied ? "Đã sao chép" : "Chia sẻ"}
+                <Share2 className="w-4 h-4 mr-2" />
+                Chia sẻ
               </Button>
-              <Button
-                onClick={() =>
-                  router.push(`/campaign/${campaign.id}/donations`)
-                }
-                variant="outline"
-                className="bg-white/80 backdrop-blur border-white/70"
-              >
-                Xem quyên góp
-              </Button>
+              {canExtend && (
+                <Button
+                  onClick={() => setIsExtendDialogOpen(true)}
+                  className="backdrop-blur bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <CalendarDays className="w-4 h-4 mr-2" />
+                  Kéo dài thời gian
+                </Button>
+              )}
               {(campaign.status === "REJECTED" || campaign.status === "PENDING") && (
                 <Button
                   variant="destructive"
@@ -246,32 +256,32 @@ export default function MyCampaignDetailPage() {
 
           <ProgressBar value={progress} />
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center mt-5">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6 text-center mt-5">
             <Stat
-              icon={<DollarSign className="mx-auto w-5 h-5" />}
+              icon={<DollarSign className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Đã nhận"
               value={formatCurrency(raised)}
               tone="text-green-600"
             />
             <Stat
-              icon={<GoalIcon className="mx-auto w-5 h-5" />}
+              icon={<GoalIcon className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Mục tiêu"
               value={formatCurrency(goal)}
               tone="text-yellow-600"
             />
             <Stat
-              icon={<Users className="mx-auto w-5 h-5" />}
+              icon={<Users className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Lượt đóng góp"
               value={String(campaign.donationCount ?? 0)}
               tone="text-blue-600"
             />
             <Stat
-              icon={<CalendarDays className="mx-auto w-5 h-5" />}
+              icon={<CalendarDays className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Ngày bắt đầu"
               value={formatDate(campaign.fundraisingStartDate)}
             />
             <Stat
-              icon={<CalendarDays className="mx-auto w-5 h-5" />}
+              icon={<CalendarDays className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Ngày kết thúc"
               value={formatDate(campaign.fundraisingEndDate)}
             />
@@ -286,9 +296,9 @@ export default function MyCampaignDetailPage() {
             <div className="flex flex-wrap items-center gap-3 mb-5 text-sm text-gray-600">
               {campaign.phases && campaign.phases.length > 0 && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
-                  <MapPin className="w-4 h-4" /> 
-                  {campaign.phases.length === 1 
-                    ? campaign.phases[0].location 
+                  <MapPin className="w-4 h-4" />
+                  {campaign.phases.length === 1
+                    ? campaign.phases[0].location
                     : `${campaign.phases.length} địa điểm`}
                 </span>
               )}
@@ -299,12 +309,12 @@ export default function MyCampaignDetailPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-              <TabsList className="grid w-full grid-cols-5 mb-6">
-                <TabsTrigger value="story">Câu chuyện</TabsTrigger>
-                <TabsTrigger value="posts">Bài viết</TabsTrigger>
-                <TabsTrigger value="donations">Danh sách ủng hộ</TabsTrigger>
-                <TabsTrigger value="expenses">Chứng từ chi phí</TabsTrigger>
-                <TabsTrigger value="operations">Giải ngân</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6 h-auto">
+                <TabsTrigger value="story" className="text-xs md:text-sm">Câu chuyện</TabsTrigger>
+                <TabsTrigger value="posts" className="text-xs md:text-sm">Bài viết</TabsTrigger>
+                <TabsTrigger value="donations" className="text-xs md:text-sm">Danh sách ủng hộ</TabsTrigger>
+                <TabsTrigger value="expenses" className="text-xs md:text-sm">Chứng từ chi phí</TabsTrigger>
+                <TabsTrigger value="operations" className="text-xs md:text-sm">Giải ngân</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -367,8 +377,8 @@ export default function MyCampaignDetailPage() {
                   </Button>
                 </div>
                 <div className="bg-white rounded-2xl border p-6">
-                  <OperationRequestList 
-                    campaignId={campaign.id} 
+                  <OperationRequestList
+                    campaignId={campaign.id}
                     refreshKey={refreshOperationRequests}
                   />
                 </div>
@@ -406,6 +416,7 @@ export default function MyCampaignDetailPage() {
               targetAmount={goal}
               raisedAmount={raised}
               daysLeft={timeLeft}
+              fundraisingEndDate={campaign.fundraisingEndDate}
             />
 
             <OrganizerCard
@@ -424,56 +435,75 @@ export default function MyCampaignDetailPage() {
                   Lộ trình thực hiện chiến dịch từ đầu đến cuối
                 </p>
               </div>
-              <Timeline
-                items={[
-                  {
-                    label: "Tạo chiến dịch",
-                    date: formatDateTime(campaign.created_at),
-                    status: "completed",
-                  },
-                  {
-                    label: "Bắt đầu gây quỹ",
-                    date: formatDateTime(campaign.fundraisingStartDate),
-                    status:
-                      campaign.fundraisingEndDate &&
-                        new Date(campaign.fundraisingEndDate) <= new Date()
-                        ? "completed"
-                        : campaign.fundraisingStartDate &&
-                          campaign.fundraisingEndDate &&
-                          new Date(campaign.fundraisingStartDate) <=
-                          new Date() &&
-                          new Date() < new Date(campaign.fundraisingEndDate)
-                          ? "current"
-                          : "upcoming",
-                  },
-                  {
-                    label: "Kết thúc gây quỹ",
-                    date: formatDateTime(campaign.fundraisingEndDate),
-                    status:
-                      campaign.fundraisingEndDate &&
-                        new Date(campaign.fundraisingEndDate) <= new Date()
-                        ? "current"
-                        : "upcoming",
-                  },
-                  ...(campaign.phases || []).flatMap((phase) => [
-                    {
-                      label: `${phase.phaseName} - Mua nguyên liệu`,
-                      date: formatDateTime(phase.ingredientPurchaseDate),
-                      status: (phase.ingredientPurchaseDate && new Date(phase.ingredientPurchaseDate) <= new Date() ? "completed" : "upcoming") as "completed" | "upcoming",
-                    },
-                    {
-                      label: `${phase.phaseName} - Nấu ăn`,
-                      date: formatDateTime(phase.cookingDate),
-                      status: (phase.cookingDate && new Date(phase.cookingDate) <= new Date() ? "completed" : "upcoming") as "completed" | "upcoming",
-                    },
-                    {
-                      label: `${phase.phaseName} - Giao hàng`,
-                      date: formatDateTime(phase.deliveryDate),
-                      status: (phase.deliveryDate && new Date(phase.deliveryDate) <= new Date() ? "completed" : "upcoming") as "completed" | "upcoming",
-                    },
-                  ]),
-                ]}
-              />
+              {(() => {
+                // Helper to parse ISO string without timezone conversion
+                const parseLocalDateTime = (isoString?: string): Date | null => {
+                  if (!isoString) return null;
+                  const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+                  if (match) {
+                    return new Date(
+                      parseInt(match[1]),
+                      parseInt(match[2]) - 1,
+                      parseInt(match[3]),
+                      parseInt(match[4]),
+                      parseInt(match[5])
+                    );
+                  }
+                  return new Date(isoString);
+                };
+
+                const now = new Date();
+                const fundStart = parseLocalDateTime(campaign.fundraisingStartDate);
+                const fundEnd = parseLocalDateTime(campaign.fundraisingEndDate);
+
+                return (
+                  <Timeline
+                    items={[
+                      {
+                        label: "Tạo chiến dịch",
+                        date: formatDateTime(campaign.created_at),
+                        status: "completed",
+                      },
+                      {
+                        label: "Bắt đầu gây quỹ",
+                        date: formatDateTime(campaign.fundraisingStartDate),
+                        status:
+                          fundEnd && fundEnd <= now
+                            ? "completed"
+                            : fundStart && fundEnd && fundStart <= now && now < fundEnd
+                              ? "current"
+                              : "upcoming",
+                      },
+                      {
+                        label: "Kết thúc gây quỹ",
+                        date: formatDateTime(campaign.fundraisingEndDate),
+                        status:
+                          fundEnd && fundEnd <= now
+                            ? "current"
+                            : "upcoming",
+                      },
+                      ...(campaign.phases || []).flatMap((phase) => [
+                        {
+                          label: `${phase.phaseName} - Mua nguyên liệu`,
+                          date: formatDateTime(phase.ingredientPurchaseDate),
+                          status: (phase.ingredientPurchaseDate && parseLocalDateTime(phase.ingredientPurchaseDate) && parseLocalDateTime(phase.ingredientPurchaseDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                        },
+                        {
+                          label: `${phase.phaseName} - Nấu ăn`,
+                          date: formatDateTime(phase.cookingDate),
+                          status: (phase.cookingDate && parseLocalDateTime(phase.cookingDate) && parseLocalDateTime(phase.cookingDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                        },
+                        {
+                          label: `${phase.phaseName} - Giao hàng`,
+                          date: formatDateTime(phase.deliveryDate),
+                          status: (phase.deliveryDate && parseLocalDateTime(phase.deliveryDate) && parseLocalDateTime(phase.deliveryDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                        },
+                      ]),
+                    ]}
+                  />
+                );
+              })()}
+            
             </div>
           </aside>
         </div>
@@ -502,6 +532,25 @@ export default function MyCampaignDetailPage() {
         campaignPhases={campaign.phases || []}
         onSuccess={() => setRefreshOperationRequests((prev) => prev + 1)}
       />
+
+      {/* Share Dialog */}
+      <ShareDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        campaignTitle={campaign.title}
+        campaignUrl={typeof window !== "undefined" ? window.location.href : ""}
+        campaignDescription={campaign.description}
+      />
+
+      {/* Extend Campaign Dialog */}
+      {campaign.fundraisingEndDate && (
+        <ExtendCampaignDialog
+          isOpen={isExtendDialogOpen}
+          onClose={() => setIsExtendDialogOpen(false)}
+          onConfirm={handleExtendCampaign}
+          currentEndDate={campaign.fundraisingEndDate}
+        />
+      )}
     </div>
   );
 }

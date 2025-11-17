@@ -4,15 +4,18 @@ import { ADD_CAMPAIGN_PHASE } from "@/graphql/mutations/phase/add-campaign-phase
 import { UPDATE_CAMPAIGN_PHASE } from "@/graphql/mutations/phase/update-campaign-phase";
 import { DELETE_CAMPAIGN_PHASE } from "@/graphql/mutations/phase/delete-campaign-phase";
 import { DELETE_MANY_CAMPAIGN_PHASES } from "@/graphql/mutations/phase/delete-many-campaign-phases";
+import { SYNC_CAMPAIGN_PHASES } from "@/graphql/mutations/campaign/sync-phases";
 import client from "@/lib/apollo-client";
 import {
   CampaignPhase,
   CreatePhaseInput,
   UpdatePhaseInput,
+  SyncPhaseInput,
   AddCampaignPhaseResponse,
   UpdateCampaignPhaseResponse,
   DeleteCampaignPhaseResponse,
   DeleteManyCampaignPhasesResponse,
+  SyncCampaignPhasesResponse,
 } from "@/types/api/phase";
 
 export const phaseService = {
@@ -78,6 +81,30 @@ export const phaseService = {
       return data?.deleteManyCampaignPhases || null;
     } catch (error) {
       console.error("❌ Error deleting many campaign phases:", error);
+      throw error;
+    }
+  },
+
+  async syncCampaignPhases(
+    campaignId: string,
+    phases: SyncPhaseInput[]
+  ): Promise<{
+    success: boolean;
+    message: string;
+    createdCount: number;
+    updatedCount: number;
+    deletedCount: number;
+    phases: CampaignPhase[];
+  } | null> {
+    try {
+      const { data } = await client.mutate<SyncCampaignPhasesResponse>({
+        mutation: SYNC_CAMPAIGN_PHASES,
+        variables: { campaignId, phases },
+      });
+
+      return data?.syncCampaignPhases || null;
+    } catch (error) {
+      console.error("❌ Error syncing campaign phases:", error);
       throw error;
     }
   },

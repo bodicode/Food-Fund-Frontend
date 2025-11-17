@@ -30,13 +30,15 @@ export function DateTimeInput({
   // Parse ISO string to individual fields
   useEffect(() => {
     if (value) {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        setDay(String(date.getDate()).padStart(2, "0"));
-        setMonth(String(date.getMonth() + 1).padStart(2, "0"));
-        setYear(String(date.getFullYear()));
-        setHour(String(date.getHours()).padStart(2, "0"));
-        setMinute(String(date.getMinutes()).padStart(2, "0"));
+      // Parse ISO string without timezone conversion
+      // Format: YYYY-MM-DDTHH:mm:ss or YYYY-MM-DDTHH:mm:ssZ
+      const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      if (match) {
+        setYear(match[1]);
+        setMonth(match[2]);
+        setDay(match[3]);
+        setHour(match[4]);
+        setMinute(match[5]);
       }
     }
   }, [value]);
@@ -65,10 +67,10 @@ export function DateTimeInput({
       minuteNum >= 0 &&
       minuteNum <= 59
     ) {
-      const date = new Date(yearNum, monthNum - 1, dayNum, hourNum, minuteNum);
-      if (!isNaN(date.getTime())) {
-        onChange(date.toISOString());
-      }
+      // Format as ISO string without timezone conversion
+      // This preserves the local time as-is
+      const isoString = `${yearNum}-${String(monthNum).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}T${String(hourNum).padStart(2, "0")}:${String(minuteNum).padStart(2, "0")}:00`;
+      onChange(isoString);
     }
   };
 
@@ -154,27 +156,27 @@ export function DateTimeInput({
   };
 
   const handleDayBlur = () => {
-    if (day.length === 1) {
-      setDay("0" + day);
-    }
+    const newDay = day.length === 1 ? "0" + day : day;
+    setDay(newDay);
+    updateISOString(newDay, month, year, hour, minute);
   };
 
   const handleMonthBlur = () => {
-    if (month.length === 1) {
-      setMonth("0" + month);
-    }
+    const newMonth = month.length === 1 ? "0" + month : month;
+    setMonth(newMonth);
+    updateISOString(day, newMonth, year, hour, minute);
   };
 
   const handleHourBlur = () => {
-    if (hour.length === 1) {
-      setHour("0" + hour);
-    }
+    const newHour = hour.length === 1 ? "0" + hour : hour;
+    setHour(newHour);
+    updateISOString(day, month, year, newHour, minute);
   };
 
   const handleMinuteBlur = () => {
-    if (minute.length === 1) {
-      setMinute("0" + minute);
-    }
+    const newMinute = minute.length === 1 ? "0" + minute : minute;
+    setMinute(newMinute);
+    updateISOString(day, month, year, hour, newMinute);
   };
 
   const handleKeyDown = (

@@ -39,14 +39,16 @@ import { DonationList } from "@/components/campaign/donation-list";
 import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 import { MealBatchList } from "@/components/campaign/meal-batch-list";
 
+import { ShareDialog } from "@/components/campaign/share-dialog";
+
 export default function CampaignDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const dispatch = useDispatch();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("story");
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   // Get current user from Redux store
   const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -90,22 +92,22 @@ export default function CampaignDetailPage() {
     typeof campaign.daysRemaining === "number"
       ? campaign.daysRemaining
       : (() => {
-          const now = new Date();
-          const end = campaign.fundraisingEndDate
-            ? new Date(campaign.fundraisingEndDate)
-            : null;
-          const start = campaign.fundraisingStartDate
-            ? new Date(campaign.fundraisingStartDate)
-            : null;
-          if (!end) return "Không xác định";
-          if (start && now < start) {
-            const days = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            return `Chưa bắt đầu (còn ${days} ngày)`;
-          }
-          if (now > end) return "Đã kết thúc";
-          const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          return diff;
-        })();
+        const now = new Date();
+        const end = campaign.fundraisingEndDate
+          ? new Date(campaign.fundraisingEndDate)
+          : null;
+        const start = campaign.fundraisingStartDate
+          ? new Date(campaign.fundraisingStartDate)
+          : null;
+        if (!end) return "Không xác định";
+        if (start && now < start) {
+          const days = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          return `Chưa bắt đầu (còn ${days} ngày)`;
+        }
+        if (now > end) return "Đã kết thúc";
+        const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return diff;
+      })();
 
   // Calculate total budget percentages from all phases
   const totalIngredientPct = campaign.phases?.reduce(
@@ -132,19 +134,8 @@ export default function CampaignDetailPage() {
 
   const handleDirection = () => router.push(`/map/${campaign.id}`);
 
-  const handleShare = async () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: campaign.title, url });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+  const handleShare = () => {
+    setIsShareDialogOpen(true);
   };
 
   // ===== Timeline status helpers =====
@@ -162,7 +153,6 @@ export default function CampaignDetailPage() {
     return t <= now ? ("completed" as const) : ("upcoming" as const);
   };
 
-  // Calculate fundraising period status
   const isBeforeStart = start && now < start;
   const isAfterEnd = end && now >= end;
   const isDuringFundraising = start && end && now >= start && now < end;
@@ -170,8 +160,8 @@ export default function CampaignDetailPage() {
   const fundraisingStartStatus = (() => {
     if (!start) return "upcoming";
     if (isBeforeStart) return "upcoming";
-    if (isDuringFundraising) return "current"; // Show "Đang diễn ra" during fundraising
-    return "completed"; // Only completed after fundraising ends
+    if (isDuringFundraising) return "current";
+    return "completed";
   })();
 
   const fundraisingEndStatus = (() => {
@@ -216,21 +206,8 @@ export default function CampaignDetailPage() {
                 onClick={handleShare}
                 className="backdrop-blur bg-white/80"
               >
-                {copied ? (
-                  <Copy className="w-4 h-4 mr-2" />
-                ) : (
-                  <Share2 className="w-4 h-4 mr-2" />
-                )}
-                {copied ? "Đã sao chép" : "Chia sẻ"}
-              </Button>
-              <Button
-                onClick={() =>
-                  router.push(`/campaign/${campaign.id}/donations`)
-                }
-                variant="outline"
-                className="bg-white/80 backdrop-blur border-white/70"
-              >
-                Xem quyên góp
+                <Share2 className="w-4 h-4 mr-2" />
+                Chia sẻ
               </Button>
             </div>
           </div>
@@ -249,41 +226,39 @@ export default function CampaignDetailPage() {
 
           <ProgressBar value={progress} />
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center mt-5">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6 text-center mt-5">
             <Stat
-              icon={<DollarSign className="mx-auto w-5 h-5" />}
+              icon={<DollarSign className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Đã nhận"
               value={formatCurrency(raised)}
               tone="text-green-600"
             />
             <Stat
-              icon={<GoalIcon className="mx-auto w-5 h-5" />}
+              icon={<GoalIcon className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Mục tiêu"
               value={formatCurrency(goal)}
               tone="text-yellow-600"
             />
             <Stat
-              icon={<Users className="mx-auto w-5 h-5" />}
+              icon={<Users className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Lượt đóng góp"
               value={String(campaign.donationCount ?? 0)}
               tone="text-blue-600"
             />
             <Stat
-              icon={<CalendarDays className="mx-auto w-5 h-5" />}
+              icon={<CalendarDays className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Ngày bắt đầu"
               value={formatDate(campaign.fundraisingStartDate)}
             />
             <Stat
-              icon={<CalendarDays className="mx-auto w-5 h-5" />}
+              icon={<CalendarDays className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Ngày kết thúc"
               value={formatDate(campaign.fundraisingEndDate)}
             />
           </div>
         </div>
 
-        {/* BODY */}
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10 items-start">
-          {/* LEFT */}
           <div>
             <h1 className="text-2xl md:text-3xl mb-4 font-bold text-color drop-shadow">
               {campaign.title}
@@ -308,12 +283,12 @@ export default function CampaignDetailPage() {
               onValueChange={setActiveTab}
               className="mb-8"
             >
-              <TabsList className="grid w-full grid-cols-5 mb-6">
-                <TabsTrigger value="story">Câu chuyện</TabsTrigger>
-                <TabsTrigger value="posts">Bài viết</TabsTrigger>
-                <TabsTrigger value="meals">Thức ăn</TabsTrigger>
-                <TabsTrigger value="donations">Danh sách ủng hộ</TabsTrigger>
-                <TabsTrigger value="expenses">Chứng từ chi phí</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6 h-auto">
+                <TabsTrigger value="story" className="text-xs md:text-sm">Câu chuyện</TabsTrigger>
+                <TabsTrigger value="posts" className="text-xs md:text-sm">Bài viết</TabsTrigger>
+                <TabsTrigger value="meals" className="text-xs md:text-sm">Thức ăn</TabsTrigger>
+                <TabsTrigger value="donations" className="text-xs md:text-sm">Danh sách ủng hộ</TabsTrigger>
+                <TabsTrigger value="expenses" className="text-xs md:text-sm">Chứng từ chi phí</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -380,7 +355,6 @@ export default function CampaignDetailPage() {
             )}
           </div>
 
-          {/* RIGHT (STICKY) */}
           <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
               campaignId={campaign.id}
@@ -395,16 +369,9 @@ export default function CampaignDetailPage() {
               targetAmount={goal}
               raisedAmount={raised}
               daysLeft={timeLeft}
+              fundraisingEndDate={campaign.fundraisingEndDate}
             />
 
-            {/* <QRCard />
-
-            <OrganizerCard
-              name={campaign.creator?.full_name}
-              email={campaign.creator?.email}
-              phone={campaign.creator?.phone_number}
-            /> */}
-            {/* TIMELINE */}
             <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-color mb-1">
@@ -457,6 +424,15 @@ export default function CampaignDetailPage() {
           </aside>
         </div>
       </div>
+
+      {/* Share Dialog */}
+      <ShareDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        campaignTitle={campaign.title}
+        campaignUrl={typeof window !== "undefined" ? window.location.href : ""}
+        campaignDescription={campaign.description}
+      />
     </motion.div>
   );
 }

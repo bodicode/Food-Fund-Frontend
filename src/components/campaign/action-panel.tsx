@@ -38,6 +38,7 @@ interface ActionPanelProps {
   organizationName?: string;
   organizationLogo?: string;
   onViewStatement?: () => void;
+  fundraisingEndDate?: string;
 }
 
 export function ActionPanel({
@@ -55,12 +56,24 @@ export function ActionPanel({
   organizationName = "Tổ chức thiện nguyện",
   organizationLogo = "/images/avatar.webp",
   onViewStatement,
+  fundraisingEndDate,
 }: ActionPanelProps) {
   const router = useRouter();
   const progress =
     targetAmount > 0 ? Math.min((raisedAmount / targetAmount) * 100, 100) : 0;
 
-  const isDonationEnabled = campaignStatus === "ACTIVE";
+  const isCampaignEnded = fundraisingEndDate && new Date(fundraisingEndDate) <= new Date();
+  const isDonationEnabled = campaignStatus === "ACTIVE" && !isCampaignEnded;
+
+  const getDonationButtonText = () => {
+    if (campaignStatus === "PROCESSING") {
+      return "Đang trong quá trình vận hành";
+    }
+    if (isCampaignEnded) {
+      return "Chiến dịch đã kết thúc";
+    }
+    return isDonationEnabled ? "Ủng hộ" : "Chiến dịch chưa đến ngày";
+  };
 
   const handleDonate = () => {
     if (!isDonationEnabled) return;
@@ -183,7 +196,7 @@ export function ActionPanel({
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
           >
-            {isDonationEnabled ? "Ủng hộ" : "Chiến dịch chưa đến ngày"}
+            {getDonationButtonText()}
           </Button>
         )}
 
