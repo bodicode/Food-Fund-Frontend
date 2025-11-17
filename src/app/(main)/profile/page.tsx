@@ -11,12 +11,14 @@ import {
   History as HistoryIcon,
   LogOut,
   Building2,
+  Wallet as WalletIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ProfileTab } from "@/components/profile/tabs/profile-tab";
 import { CampaignsTab } from "@/components/profile/tabs/campaign-tab";
 import { HistoryTab } from "@/components/profile/tabs/history-tab";
+import { WalletTab } from "@/components/profile/tabs/wallet-tab";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { graphQLAuthService } from "@/services/auth.service";
 import { translateMessage } from "@/lib/translator";
@@ -24,7 +26,7 @@ import { UserProfile } from "@/types/api/user";
 import { userService } from "@/services/user.service";
 import { OrganizationTab } from "@/components/profile/tabs/organization-tab";
 
-type TabKey = "profile" | "campaigns" | "history";
+type TabKey = "profile" | "campaigns" | "history" | "wallet";
 
 const SidebarContent = ({
   profile,
@@ -39,6 +41,9 @@ const SidebarContent = ({
 }) => {
   const navItems = [
     { key: "profile", label: "Hồ sơ cá nhân", icon: UserIcon },
+    ...(profile?.role === "FUNDRAISER"
+      ? [{ key: "wallet", label: "Ví của tôi", icon: WalletIcon }]
+      : []),
     { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
     { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
@@ -69,11 +74,10 @@ const SidebarContent = ({
           <Button
             key={tab.key}
             variant="ghost"
-            className={`justify-start items-center gap-3 px-3 text-base ${
-              activeTab === tab.key
+            className={`justify-start items-center gap-3 px-3 text-base ${activeTab === tab.key
                 ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
                 : "hover:bg-gray-100 text-gray-700"
-            }`}
+              }`}
             onClick={() => onNavigate(tab.key as TabKey)}
           >
             <tab.icon className="w-5 h-5" />
@@ -127,17 +131,23 @@ export default function ProfilePage() {
       profile: { component: <ProfileTab />, title: "Hồ sơ cá nhân" },
       organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
       campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
+      ...(profile?.role === "FUNDRAISER"
+        ? { wallet: { component: <WalletTab />, title: "Ví của tôi" } }
+        : {}),
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
     }),
-    []
+    [profile?.role]
   );
 
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab") as TabKey | null;
     if (tabFromUrl && TABS[tabFromUrl]) {
       setActiveTab(tabFromUrl);
+    } else if (tabFromUrl === "wallet" && profile?.role !== "FUNDRAISER") {
+      // Redirect to profile if trying to access wallet without FUNDRAISER role
+      router.push("/profile?tab=profile");
     }
-  }, [searchParams, TABS]);
+  }, [searchParams, TABS, profile?.role, router]);
 
   const handleNavigate = (key: TabKey) => {
     setActiveTab(key);
@@ -185,7 +195,7 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:hidden flex justify-between items-center px-4 col-span-1">
           <h1 className="text-xl font-bold text-[#ad4e28]">
-            {TABS[activeTab].title}
+            {TABS[activeTab]?.title}
           </h1>
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
@@ -212,7 +222,7 @@ export default function ProfilePage() {
 
         <main className="md:col-span-8 lg:col-span-9">
           <div className="bg-white min-h-[60vh]">
-            {TABS[activeTab].component}
+            {TABS[activeTab]?.component}
           </div>
         </main>
       </div>

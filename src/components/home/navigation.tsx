@@ -318,7 +318,7 @@ export function Navigation() {
                 <DropdownMenuContent align="start" className="w-52">
                   {user.role === USER_ROLES.ADMIN && (
                     <DropdownMenuItem
-                      onClick={() => router.push("/admin/users")}
+                      onClick={() => router.push("/admin")}
                       className="cursor-pointer text-sm py-3"
                     >
                       Dashboard
