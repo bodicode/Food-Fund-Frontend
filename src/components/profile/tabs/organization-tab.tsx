@@ -11,6 +11,7 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date-utils";
 import { Building2, Globe, MapPin, Phone, Eye } from "lucide-react";
+import { STATUS_CONFIG } from "@/constants/status";
 
 export function OrganizationTab() {
   const router = useRouter();
@@ -64,16 +65,12 @@ export function OrganizationTab() {
 
             <Badge
               className={`text-xs px-3 py-1 font-medium ${
-                org.status === "PENDING"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : org.status === "VERIFIED"
-                  ? "bg-green-100 text-green-700"
-                  : org.status === "REJECTED"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-gray-100 text-gray-600"
+                STATUS_CONFIG[org.status as keyof typeof STATUS_CONFIG]?.color ||
+                "bg-gray-100 text-gray-600"
               }`}
             >
-              {org.status}
+              {STATUS_CONFIG[org.status as keyof typeof STATUS_CONFIG]?.label ||
+                org.status}
             </Badge>
           </CardHeader>
 

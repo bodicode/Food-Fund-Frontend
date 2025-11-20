@@ -377,7 +377,6 @@ export default function CreateCampaignStepGoal() {
                   parsePercent(phase.ingredientBudgetPercentage || "0") +
                   parsePercent(phase.cookingBudgetPercentage || "0") +
                   parsePercent(phase.deliveryBudgetPercentage || "0");
-                const phaseBudgetValid = Math.abs(phaseBudgetSum - 100) <= 0.01;
 
                 return (
                   <div

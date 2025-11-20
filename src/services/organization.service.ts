@@ -10,6 +10,7 @@ import { GET_MY_ORGANIZATION_REQUESTS } from "@/graphql/query/organization/get-m
 import { GET_MY_ORGANIZATION } from "@/graphql/query/organization/get-my-organization";
 import { LIST_ACTIVE_ORGANIZATIONS } from "@/graphql/query/organization/list-active-organizations";
 import { GET_ORGANIZATION_JOIN_REQUESTS } from "@/graphql/query/organization/get-organization-join-requests";
+import { GET_ORGANIZATION_BY_ID } from "@/graphql/query/organization/get-organization-by-id";
 import client from "@/lib/apollo-client";
 import {
   ApproveJoinRequestResponse,
@@ -207,5 +208,21 @@ export const organizationService = {
     }
 
     return data.removeStaffMember.removedMember;
+  },
+
+  async getOrganizationById(id: string): Promise<Organization> {
+    const { data } = await client.query<{
+      getOrganizationById: Organization;
+    }>({
+      query: GET_ORGANIZATION_BY_ID,
+      variables: { getOrganizationByIdId: id },
+      fetchPolicy: "network-only",
+    });
+
+    if (!data?.getOrganizationById) {
+      throw new Error("Organization not found");
+    }
+
+    return data.getOrganizationById;
   },
 };

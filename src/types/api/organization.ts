@@ -7,7 +7,11 @@ export interface CreateOrganizationInput {
   phone_number: string;
   representative_identity_number: string;
   representative_name: string;
-  website: string;
+  website: string | null;
+  bank_account_name: string;
+  bank_account_number: string;
+  bank_name: string;
+  bank_short_name: string;
 }
 
 export interface Representative {
@@ -52,6 +56,14 @@ export interface Organization {
   active_members?: number;
   total_members?: number;
   members?: OrganizationMembership[];
+  activity_field?: string;
+  email?: string;
+  representative_name?: string;
+  representative_identity_number?: string;
+  bank_account_name?: string;
+  bank_account_number?: string;
+  bank_name?: string;
+  bank_short_name?: string;
 }
 
 export interface CreateOrganizationResponse {

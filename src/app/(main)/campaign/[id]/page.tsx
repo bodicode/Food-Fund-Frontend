@@ -23,7 +23,6 @@ import {
   GoalIcon,
   Info,
   Share2,
-  Copy,
 } from "lucide-react";
 
 import { ProgressBar } from "@/components/campaign/progress-bar";

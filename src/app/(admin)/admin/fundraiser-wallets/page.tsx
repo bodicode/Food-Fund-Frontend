@@ -53,12 +53,14 @@ export default function FundraiserWalletsPage() {
 
   useEffect(() => {
     loadWallets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletPage]);
 
   useEffect(() => {
     if (selectedWalletUserId) {
       loadWalletTransactions(selectedWalletUserId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWalletUserId, transactionPage]);
 
   return (

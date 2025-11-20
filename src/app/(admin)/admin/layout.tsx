@@ -200,6 +200,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-[#0f172a] transition-colors">
+      {/* SIDEBAR DESKTOP */}
       <aside className="z-50 hidden lg:flex w-64 bg-white dark:bg-[#1e293b] flex-col fixed h-screen border-r border-gray-200 dark:border-gray-700 shadow-lg transition-colors overflow-hidden">
         <Image
           onClick={(e) => {
@@ -210,7 +211,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           alt="FoodFund"
           width={250}
           height={110}
-          className="object-cover mb-2 w-[360px] h-[70px] mx-auto lg:mx-0 lg:mb-0"
+          className="object-cover mb-2 w-[360px] h-[70px] mx-auto lg:mx-0 lg:mb-0 cursor-pointer"
         />
 
         <SidebarNav />
@@ -232,9 +233,12 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
         </div>
       </aside>
 
+      {/* MAIN AREA */}
       <div className="flex-1 flex flex-col lg:ml-64 min-h-screen">
+        {/* HEADER */}
         <header className="h-16 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6 fixed top-0 right-0 left-0 lg:left-64 z-50 transition-colors backdrop-blur-sm bg-white/95 dark:bg-[#1e293b]/95">
           <div className="flex items-center gap-2">
+            {/* MOBILE SIDEBAR */}
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
                 <Button
@@ -280,6 +284,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Về trang chủ */}
             <Button
               size="icon"
               variant="ghost"
@@ -293,6 +298,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               <Home className="w-5 h-5" />
             </Button>
 
+            {/* Toggle theme */}
             <Button
               size="icon"
               variant="ghost"
@@ -319,6 +325,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
             <div className="hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-700 mx-1" />
 
+            {/* Logout nhanh */}
             <Button
               size="icon"
               variant="ghost"
@@ -336,8 +343,10 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </div>
         </header>
 
-        <main className="relative z-0 flex-1 overflow-x-auto overflow-y-auto bg-white dark:bg-slate-900">
-          <div className="p-4 lg:p-6">
+        {/* MAIN CONTENT (scroll dọc) */}
+        <main className="relative z-0 flex-1 overflow-y-auto bg-white dark:bg-slate-900">
+          {/* padding + chừa khoảng cho header */}
+          <div className="pt-20 p-4 lg:p-6">
             <ThemeTransition>{children}</ThemeTransition>
           </div>
         </main>

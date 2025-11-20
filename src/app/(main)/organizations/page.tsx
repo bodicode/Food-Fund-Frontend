@@ -184,7 +184,7 @@ export default function OrganizationsPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#b55631]" />
             <Input
               type="text"
-              placeholder="🔍 Tìm kiếm tổ chức theo tên, mô tả, địa chỉ..."
+              placeholder="Tìm kiếm tổ chức theo tên, mô tả, địa chỉ..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 pr-4 py-6 text-base rounded-xl border-2 border-gray-200 focus:border-[#b55631] shadow-md focus:shadow-lg transition-all duration-300"

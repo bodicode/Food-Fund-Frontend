@@ -14,6 +14,13 @@ export const CREATE_ORGANIZATION = gql`
         status
         description
         created_at
+        activity_field
+        representative_name
+        representative_identity_number
+        bank_account_name
+        bank_account_number
+        bank_name
+        bank_short_name
         representative {
           id
           full_name

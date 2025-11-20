@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { UploadCloud, Info, Plus, Trash2, MapPin } from "lucide-react";
+import { UploadCloud, Plus, Trash2, MapPin } from "lucide-react";
 
 import { campaignService } from "@/services/campaign.service";
 import { categoryService } from "@/services/category.service";
@@ -240,11 +240,7 @@ export default function EditCampaignPage() {
     title: cat.title,
   });
 
-  const targetAmountNumber = useMemo(() => {
-    const raw = campaign?.targetAmount ?? "0";
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : 0;
-  }, [campaign?.targetAmount]);
+
 
   // Parse ISO strings without timezone conversion
   const parseLocalDateTime = (isoString: string): Date => {
