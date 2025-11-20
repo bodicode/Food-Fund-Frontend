@@ -22,7 +22,6 @@ import {
   CalendarDays,
   GoalIcon,
   Share2,
-  Copy,
   Trash2,
 } from "lucide-react";
 

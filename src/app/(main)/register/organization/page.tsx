@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Building2,
   HeartHandshake,
@@ -13,9 +14,10 @@ import {
   FileText,
   CheckCircle2,
   Sparkles,
-  Camera,
-  X,
   Shield,
+  HelpCircle,
+  Search,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,12 +31,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 import { organizationService } from "@/services/organization.service";
+import { bankService, type BankInfo } from "@/services/bank.service";
 import type { CreateOrganizationInput } from "@/types/api/organization";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
-import Image from "next/image";
+import { formatVietnamesePhone, getPhoneErrorMessage } from "@/lib/utils/phone-utils";
+import { IDCardUploadSection } from "@/components/organization/id-card-upload-section";
+import { OrganizationFormFields } from "@/components/organization/organization-form-fields";
+import { BankAccountSection } from "@/components/organization/bank-account-section";
 
 type FormKeys =
   | "name"
@@ -45,9 +59,14 @@ type FormKeys =
   | "representative_name"
   | "representative_identity_number"
   | "website"
-  | "description";
+  | "description"
+  | "bank_account_name"
+  | "bank_account_number"
+  | "bank_name"
+  | "bank_short_name";
 
 export default function OrgRegisterPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +77,33 @@ export default function OrgRegisterPage() {
     new Set()
   );
 
+  // Bank lookup states
+  const [banks, setBanks] = useState<BankInfo[]>([]);
+  const [bankSearchQuery, setBankSearchQuery] = useState("");
+  const [isLoadingBanks, setIsLoadingBanks] = useState(false);
+  const [isBankLookupDialogOpen, setIsBankLookupDialogOpen] = useState(false);
+  const [isVerifyingBank, setIsVerifyingBank] = useState(false);
+  const [bankVerificationError, setBankVerificationError] = useState<string | null>(null);
+  const [bankVerificationSuccess, setBankVerificationSuccess] = useState<string | null>(null);
+  const [isBankAccountLocked, setIsBankAccountLocked] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load banks on mount
+  useEffect(() => {
+    const loadBanks = async () => {
+      setIsLoadingBanks(true);
+      try {
+        const bankList = await bankService.getAllBanks();
+        setBanks(bankList);
+      } catch (err) {
+        console.error("Error loading banks:", err);
+      } finally {
+        setIsLoadingBanks(false);
+      }
+    };
+    loadBanks();
+  }, []);
 
   const [form, setForm] = useState<Record<FormKeys, string>>({
     name: "",
@@ -70,11 +115,13 @@ export default function OrgRegisterPage() {
     representative_identity_number: "",
     website: "",
     description: "",
+    bank_account_name: "",
+    bank_account_number: "",
+    bank_name: "",
+    bank_short_name: "",
   });
 
-  const [touched, setTouched] = useState<Partial<Record<FormKeys, boolean>>>(
-    {}
-  );
+  const [touched, setTouched] = useState<Partial<Record<FormKeys, boolean>>>({});
   const [errors, setErrors] = useState<Partial<Record<FormKeys, string>>>({});
 
   const refs = useRef<
@@ -89,6 +136,10 @@ export default function OrgRegisterPage() {
     representative_identity_number: null,
     website: null,
     description: null,
+    bank_account_name: null,
+    bank_account_number: null,
+    bank_name: null,
+    bank_short_name: null,
   });
 
   const labels: Record<FormKeys, string> = useMemo(
@@ -102,44 +153,93 @@ export default function OrgRegisterPage() {
       representative_identity_number: "CMND/CCCD người đại diện",
       website: "Website",
       description: "Mô tả tổ chức",
+      bank_account_name: "Tên chủ tài khoản",
+      bank_account_number: "Số tài khoản",
+      bank_name: "Tên ngân hàng",
+      bank_short_name: "Mã ngân hàng",
     }),
     []
   );
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target as { name: FormKeys; value: string };
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const handleChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value: initialValue } = e.target as { name: FormKeys; value: string };
+      let value = initialValue;
 
-    if (touched[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: value.trim()
-          ? ""
-          : `Vui lòng nhập ${labels[name].toLowerCase()}.`,
-      }));
-    }
-  };
+      // Format phone number if it's phone_number field
+      if (name === "phone_number") {
+        // Auto-add +84 when user starts typing a digit
+        if (value && !value.startsWith("+") && !value.startsWith("8") && !value.startsWith("0")) {
+          const firstChar = value.charAt(0);
+          if (/\d/.test(firstChar)) {
+            value = "+84" + value;
+          }
+        }
+        value = formatVietnamesePhone(value);
+      }
+
+      setForm((prev) => ({ ...prev, [name]: value }));
+
+      // Only validate if field has been touched - use state directly to avoid dependency
+      setTouched((prevTouched) => {
+        if (!prevTouched[name]) return prevTouched;
+
+        let error = "";
+        if (!value.trim()) {
+          error = `Vui lòng nhập ${labels[name].toLowerCase()}.`;
+        } else if (name === "phone_number") {
+          error = getPhoneErrorMessage(value) || "";
+        }
+
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: error,
+        }));
+
+        return prevTouched;
+      });
+    },
+    [labels]
+  );
 
   const handleBlur = (
     e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target as { name: FormKeys; value: string };
     setTouched((prev) => ({ ...prev, [name]: true }));
+
+    const optionalFields = ["website"];
+    let error = "";
+
+    if (!value.trim()) {
+      if (!optionalFields.includes(name)) {
+        error = `Vui lòng nhập ${labels[name].toLowerCase()}.`;
+      }
+    } else if (name === "phone_number") {
+      error = getPhoneErrorMessage(value) || "";
+    }
+
     setErrors((prev) => ({
       ...prev,
-      [name]: value.trim()
-        ? ""
-        : `Vui lòng nhập ${labels[name].toLowerCase()}.`,
+      [name]: error,
     }));
   };
 
   const validateAll = (): Partial<Record<FormKeys, string>> => {
     const next: Partial<Record<FormKeys, string>> = {};
+    const optionalFields = ["website"]; // Fields that are not required
+
     (Object.keys(form) as FormKeys[]).forEach((k) => {
-      if (!form[k].trim())
-        next[k] = `Vui lòng nhập ${labels[k].toLowerCase()}.`;
+      if (!form[k].trim()) {
+        if (!optionalFields.includes(k)) {
+          next[k] = `Vui lòng nhập ${labels[k].toLowerCase()}.`;
+        }
+      } else if (k === "phone_number") {
+        const phoneError = getPhoneErrorMessage(form[k]);
+        if (phoneError) {
+          next[k] = phoneError;
+        }
+      }
     });
     return next;
   };
@@ -153,11 +253,64 @@ export default function OrgRegisterPage() {
       representative_identity_number: trim(form.representative_identity_number),
       activity_field: trim(form.activity_field),
       address: trim(form.address),
-      phone_number: trim(form.phone_number),
-      website: trim(form.website),
+      phone_number: formatVietnamesePhone(trim(form.phone_number)),
+      website: trim(form.website) || null,
       description: trim(form.description),
+      bank_account_name: trim(form.bank_account_name),
+      bank_account_number: trim(form.bank_account_number),
+      bank_name: trim(form.bank_name),
+      bank_short_name: trim(form.bank_short_name),
     };
   };
+
+  const handleVerifyBankAccount = async () => {
+    setBankVerificationError(null);
+    setBankVerificationSuccess(null);
+
+    if (!form.bank_short_name.trim() || !form.bank_account_number.trim()) {
+      setBankVerificationError("Vui lòng nhập mã ngân hàng và số tài khoản");
+      return;
+    }
+
+    setIsVerifyingBank(true);
+    try {
+      const result = await bankService.lookupBankAccount(
+        form.bank_short_name.trim(),
+        form.bank_account_number.trim()
+      );
+
+      if (result && result.accountName) {
+        // Auto-fill account name from API response
+        setForm((prev) => ({
+          ...prev,
+          bank_account_name: result.accountName,
+        }));
+        setIsBankAccountLocked(true);
+        setBankVerificationSuccess(
+          `✓ Xác nhận thành công! Tên tài khoản: ${result.accountName}`
+        );
+        toast.success("Xác nhận tài khoản ngân hàng thành công!");
+      } else {
+        setBankVerificationError(
+          "Không tìm thấy tài khoản. Vui lòng kiểm tra lại mã ngân hàng và số tài khoản."
+        );
+        toast.error("Không tìm thấy tài khoản ngân hàng");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Có lỗi xảy ra khi xác nhận tài khoản";
+      setBankVerificationError(errorMessage);
+      toast.error(errorMessage);
+      console.error("Error verifying bank account:", err);
+    } finally {
+      setIsVerifyingBank(false);
+    }
+  };
+
+  const filteredBanks = banks.filter((bank) =>
+    `${bank.name} ${bank.code} ${bank.shortName}`
+      .toLowerCase()
+      .includes(bankSearchQuery.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -200,28 +353,37 @@ export default function OrgRegisterPage() {
       setLoading(true);
       const res = await organizationService.createOrganization(input);
 
-      if (res.success) toast.success(res.message || "Tạo tổ chức thành công!");
-      else {
+      if (res.success) {
+        toast.success(res.message || "Yêu cầu tạo tổ chức thành công!");
+
+        // Reset form
+        setForm({
+          name: "",
+          activity_field: "",
+          address: "",
+          phone_number: "",
+          email: "",
+          representative_name: "",
+          representative_identity_number: "",
+          website: "",
+          description: "",
+          bank_account_name: "",
+          bank_account_number: "",
+          bank_name: "",
+          bank_short_name: "",
+        });
+        setErrors({});
+        setTouched({});
+        setSubmitted(true);
+
+        // Redirect after a short delay to show success message
+        setTimeout(() => {
+          router.push("/profile?tab=organization");
+        }, 1500);
+      } else {
         toast.error(res.message || "Tạo tổ chức thất bại");
         return;
       }
-
-      setSubmitted(true);
-      setForm({
-        name: "",
-        activity_field: "",
-        address: "",
-        phone_number: "",
-        email: "",
-        representative_name: "",
-        representative_identity_number: "",
-        website: "",
-        description: "",
-      });
-      setErrors({});
-      setTouched({});
-
-      setTimeout(() => setSubmitted(false), 3000);
     } catch (err) {
       if (err instanceof Error) {
         toast.error(err.message);
@@ -245,10 +407,9 @@ export default function OrgRegisterPage() {
   };
 
   const textAreaClass = (key: FormKeys) =>
-    `pl-11 min-h-32 border-2 resize-none focus-visible:ring-orange-200 ${
-      errors[key]
-        ? "border-red-400 focus:border-red-500"
-        : "focus:border-orange-500"
+    `pl-11 min-h-32 border-2 resize-none focus-visible:ring-orange-200 ${errors[key]
+      ? "border-red-400 focus:border-red-500"
+      : "focus:border-orange-500"
     }`;
 
   const ErrorLine = ({ keyName }: { keyName: FormKeys }) =>
@@ -466,108 +627,16 @@ export default function OrgRegisterPage() {
                     </div>
                   )}
 
-                  {/* ID Card Upload - Moved to top */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">
-                      Tải ảnh CCCD/CMND để tự động điền thông tin
-                      <span className="text-orange-600 font-normal ml-2">
-                        (Khuyến nghị)
-                      </span>
-                    </Label>
-
-                    {!imagePreview ? (
-                      <div className="relative">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          disabled={loading || isProcessingImage}
-                        />
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          className="border-2 border-dashed border-orange-300 hover:border-orange-400 rounded-xl p-8 text-center cursor-pointer transition-colors group bg-orange-50/50"
-                        >
-                          <div className="flex flex-col items-center gap-3">
-                            <div className="p-4 bg-orange-100 rounded-full group-hover:bg-orange-200 transition-colors">
-                              <Camera className="w-10 h-10 text-orange-600" />
-                            </div>
-                            <div>
-                              <p className="text-base font-semibold text-gray-800">
-                                Chụp ảnh hoặc tải lên CCCD/CMND
-                              </p>
-                              <p className="text-sm text-gray-600 mt-1">
-                                Hệ thống sẽ tự động điền thông tin cho bạn
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                PNG, JPG tối đa 5MB
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <div className="border-2 border-orange-200 rounded-xl p-4 bg-orange-50">
-                          <div className="flex items-start gap-4">
-                            <div className="relative">
-                              <Image
-                                src={imagePreview}
-                                alt="ID Card Preview"
-                                width={128}
-                                height={80}
-                                className="w-32 h-20 object-cover rounded-lg border"
-                              />
-                              {isProcessingImage && (
-                                <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700">
-                                    {uploadedImage?.name}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {isProcessingImage
-                                      ? "Đang xử lý và điền thông tin..."
-                                      : "Đã xử lý thành công"}
-                                  </p>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={handleRemoveImage}
-                                  disabled={isProcessingImage}
-                                  className="text-gray-500 hover:text-red-500"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Helper message when no image uploaded */}
-                  {!imagePreview && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                      <p className="text-blue-700 text-sm font-medium">
-                        📸 Vui lòng tải lên ảnh CCCD/CMND để bắt đầu điền thông
-                        tin
-                      </p>
-                      <p className="text-blue-600 text-xs mt-1">
-                        Hệ thống sẽ tự động điền thông tin cơ bản từ CCCD/CMND
-                        của bạn
-                      </p>
-                    </div>
-                  )}
+                  {/* ID Card Upload Section */}
+                  <IDCardUploadSection
+                    imagePreview={imagePreview}
+                    uploadedImage={uploadedImage}
+                    isProcessingImage={isProcessingImage}
+                    loading={loading}
+                    onFileChange={handleImageUpload}
+                    onRemoveImage={handleRemoveImage}
+                    fileInputRef={fileInputRef}
+                  />
 
                   {/* Helper message when fields are auto-filled */}
                   {autoFilledFields.size > 0 && (
@@ -587,8 +656,58 @@ export default function OrgRegisterPage() {
                     </div>
                   )}
 
+                  {/* Organization Form Fields */}
+                  <OrganizationFormFields
+                    form={form}
+                    errors={errors}
+                    autoFilledFields={autoFilledFields}
+                    loading={loading}
+                    imagePreview={imagePreview}
+                    onFormChange={handleChange}
+                    onFormBlur={handleBlur}
+                    fieldClass={fieldClass as (key: string) => string}
+                    textAreaClass={textAreaClass as (key: string) => string}
+                    ErrorLine={ErrorLine as (props: { keyName: string }) => React.JSX.Element | null}
+                    refs={refs as React.MutableRefObject<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>}
+                  />
+
+                  {/* Bank Account Section */}
+                  <BankAccountSection
+                    form={form}
+                    errors={errors}
+                    banks={banks}
+                    bankSearchQuery={bankSearchQuery}
+                    isLoadingBanks={isLoadingBanks}
+                    isVerifyingBank={isVerifyingBank}
+                    isBankAccountLocked={isBankAccountLocked}
+                    isBankLookupDialogOpen={isBankLookupDialogOpen}
+                    bankVerificationError={bankVerificationError}
+                    bankVerificationSuccess={bankVerificationSuccess}
+                    loading={loading}
+                    imagePreview={imagePreview}
+                    onFormChange={handleChange}
+                    onFormBlur={handleBlur}
+                    onBankSearchChange={setBankSearchQuery}
+                    onBankSelect={(bank) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        bank_short_name: bank.code,
+                        bank_name: bank.name,
+                      }));
+                      setIsBankLookupDialogOpen(false);
+                      setBankSearchQuery("");
+                      toast.success(`Đã chọn ${bank.name}`);
+                    }}
+                    onBankLookupDialogChange={setIsBankLookupDialogOpen}
+                    onVerifyBank={handleVerifyBankAccount}
+                    fieldClass={fieldClass as (key: string) => string}
+                    ErrorLine={ErrorLine as (props: { keyName: string }) => React.JSX.Element | null}
+                    refs={refs as React.MutableRefObject<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>}
+                    filteredBanks={filteredBanks}
+                  />
+
                   {/* Form fields - disabled until image processing is complete */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ display: "none" }}>
                     {/* Tên tổ chức */}
                     <div className="md:col-span-2 space-y-2">
                       <Label
@@ -657,17 +776,21 @@ export default function OrgRegisterPage() {
                         <Input
                           id="phone_number"
                           name="phone_number"
+                          type="tel"
                           ref={(el) => {
                             refs.current.phone_number = el;
                           }}
                           value={form.phone_number}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          placeholder="+84 123 456 789"
+                          placeholder="+84901234567"
                           className={fieldClass("phone_number")}
                           disabled={loading || !imagePreview}
                         />
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Nhập số điện thoại Việt Nam (+84 theo sau 9 chữ số). Ví dụ: +84901234567
+                      </p>
                       <ErrorLine keyName="phone_number" />
                     </div>
 
@@ -789,21 +912,21 @@ export default function OrgRegisterPage() {
                         {autoFilledFields.has(
                           "representative_identity_number"
                         ) && (
-                          <div className="flex items-center gap-1 text-green-600">
-                            <Shield className="w-3 h-3" />
-                            <span className="text-xs font-normal">
-                              Tự động điền
-                            </span>
-                          </div>
-                        )}
+                            <div className="flex items-center gap-1 text-green-600">
+                              <Shield className="w-3 h-3" />
+                              <span className="text-xs font-normal">
+                                Tự động điền
+                              </span>
+                            </div>
+                          )}
                       </Label>
                       <div className="relative group">
                         <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
                         {autoFilledFields.has(
                           "representative_identity_number"
                         ) && (
-                          <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
-                        )}
+                            <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                          )}
                         <Input
                           id="representative_identity_number"
                           name="representative_identity_number"
@@ -832,7 +955,7 @@ export default function OrgRegisterPage() {
                         htmlFor="website"
                         className="text-sm font-semibold text-gray-700"
                       >
-                        Website <span className="text-red-500">*</span>
+                        Website <span className="text-gray-500 font-normal">(Tùy chọn)</span>
                       </Label>
                       <div className="relative group">
                         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
@@ -850,6 +973,7 @@ export default function OrgRegisterPage() {
                           disabled={loading || !imagePreview}
                         />
                       </div>
+                      <p className="text-xs text-gray-500">Nếu không có website, bạn có thể bỏ trống trường này</p>
                       <ErrorLine keyName="website" />
                     </div>
 
@@ -878,6 +1002,254 @@ export default function OrgRegisterPage() {
                         />
                       </div>
                       <ErrorLine keyName="description" />
+                    </div>
+
+                    {/* Bank Information Section */}
+                    <div className="md:col-span-2 pt-4">
+                      {/* Instructions */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                        <p className="text-sm font-semibold text-amber-900 mb-2">📋 Hướng dẫn:</p>
+                        <ol className="text-sm text-amber-800 space-y-1 ml-4 list-decimal">
+                          <li>Nhập số tài khoản ngân hàng của bạn</li>
+                          <li>Bấm vào dấu <strong>?</strong> ở ô &quot;Mã ngân hàng&quot; để tìm mã và tên ngân hàng</li>
+                          <li>Sau khi chọn ngân hàng, bấm nút <strong>Check</strong> để xác nhận</li>
+                          <li>Tên chủ tài khoản sẽ được điền tự động</li>
+                        </ol>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-200 rounded-xl p-6 space-y-6">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <CreditCard className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Thông tin Tài khoản Ngân hàng</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">Để nhận tiền ủng hộ từ cộng đồng</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Số tài khoản */}
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="bank_account_number"
+                              className="text-sm font-semibold text-gray-700"
+                            >
+                              Số tài khoản <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                              <Input
+                                id="bank_account_number"
+                                name="bank_account_number"
+                                ref={(el) => {
+                                  refs.current.bank_account_number = el;
+                                }}
+                                value={form.bank_account_number}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                placeholder="1234567890123"
+                                className={fieldClass("bank_account_number")}
+                                disabled={loading || !imagePreview}
+                              />
+                            </div>
+                            <ErrorLine keyName="bank_account_number" />
+                          </div>
+
+                          {/* Mã ngân hàng + Help Dialog */}
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="bank_short_name"
+                              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                            >
+                              Mã ngân hàng <span className="text-red-500">*</span>
+                              <Dialog open={isBankLookupDialogOpen} onOpenChange={setIsBankLookupDialogOpen}>
+                                <DialogTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="p-1 hover:bg-blue-100 rounded-full transition-colors"
+                                    title="Tìm mã ngân hàng của bạn"
+                                  >
+                                    <HelpCircle className="w-4 h-4 text-blue-600" />
+                                  </button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0 gap-0 overflow-hidden" onWheel={(e) => e.stopPropagation()}>
+                                  <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
+                                    <DialogTitle>Danh sách Ngân hàng</DialogTitle>
+                                    <DialogDescription>
+                                      Tìm kiếm và chọn ngân hàng của bạn
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4 overscroll-contain">
+                                    <div className="relative">
+                                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                      <Input
+                                        placeholder="Tìm kiếm ngân hàng..."
+                                        value={bankSearchQuery}
+                                        onChange={(e) => setBankSearchQuery(e.target.value)}
+                                        className="pl-10"
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      {isLoadingBanks ? (
+                                        <div className="flex justify-center py-8">
+                                          <Loader className="w-6 h-6 animate-spin text-blue-600" />
+                                        </div>
+                                      ) : filteredBanks.length > 0 ? (
+                                        filteredBanks.map((bank) => (
+                                          <button
+                                            key={bank.id}
+                                            type="button"
+                                            onClick={() => {
+                                              setForm((prev) => ({
+                                                ...prev,
+                                                bank_short_name: bank.code,
+                                                bank_name: bank.name,
+                                              }));
+                                              setIsBankLookupDialogOpen(false);
+                                              setBankSearchQuery("");
+                                              toast.success(`Đã chọn ${bank.name}`);
+                                            }}
+                                            className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                          >
+                                            <div className="flex-1">
+                                              <p className="font-medium text-sm text-gray-900">{bank.name}</p>
+                                              <p className="text-xs text-gray-500">{bank.code}</p>
+                                            </div>
+                                          </button>
+                                        ))
+                                      ) : (
+                                        <p className="text-center text-gray-500 py-8">Không tìm thấy ngân hàng</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </Label>
+                            <div className="flex gap-2">
+                              <div className="relative group flex-1">
+                                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                <Input
+                                  id="bank_short_name"
+                                  name="bank_short_name"
+                                  ref={(el) => {
+                                    refs.current.bank_short_name = el;
+                                  }}
+                                  value={form.bank_short_name}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  placeholder="VCB"
+                                  className={fieldClass("bank_short_name")}
+                                  disabled={loading || !imagePreview}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                onClick={handleVerifyBankAccount}
+                                disabled={isVerifyingBank || !form.bank_account_number || !form.bank_short_name || isBankAccountLocked}
+                                className="self-end bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-all disabled:opacity-50 h-12"
+                              >
+                                {isVerifyingBank ? (
+                                  <Loader className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  "Check"
+                                )}
+                              </Button>
+                            </div>
+                            <ErrorLine keyName="bank_short_name" />
+                          </div>
+
+                          {/* Tên ngân hàng */}
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="bank_name"
+                              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                            >
+                              Tên ngân hàng <span className="text-red-500">*</span>
+                              <Dialog open={isBankLookupDialogOpen} onOpenChange={setIsBankLookupDialogOpen}>
+                                <DialogTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="p-1 hover:bg-blue-100 rounded-full transition-colors"
+                                    title="Xem danh sách ngân hàng"
+                                  >
+                                    <HelpCircle className="w-4 h-4 text-blue-600" />
+                                  </button>
+                                </DialogTrigger>
+                              </Dialog>
+                            </Label>
+                            <div className="relative group">
+                              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                              <Input
+                                id="bank_name"
+                                name="bank_name"
+                                ref={(el) => {
+                                  refs.current.bank_name = el;
+                                }}
+                                value={form.bank_name}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                placeholder="Ngân hàng TMCP Ngoại Thương Việt Nam"
+                                className={fieldClass("bank_name")}
+                                disabled={loading || !imagePreview}
+                              />
+                            </div>
+                            <ErrorLine keyName="bank_name" />
+                          </div>
+
+                          {/* Tên chủ tài khoản - Read Only */}
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor="bank_account_name"
+                              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                            >
+                              Tên chủ tài khoản <span className="text-red-500">*</span>
+                              {form.bank_account_name && (
+                                <div className="flex items-center gap-1 text-green-600">
+                                  <Shield className="w-3 h-3" />
+                                  <span className="text-xs font-normal">Đã xác nhận</span>
+                                </div>
+                              )}
+                            </Label>
+                            <div className="relative group">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                              {form.bank_account_name && (
+                                <Shield className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                              )}
+                              <Input
+                                id="bank_account_name"
+                                name="bank_account_name"
+                                ref={(el) => {
+                                  refs.current.bank_account_name = el;
+                                }}
+                                value={form.bank_account_name}
+                                placeholder="Sẽ được điền tự động sau khi check"
+                                className={`${fieldClass("bank_account_name")} bg-gray-100 border-gray-300 text-gray-700 cursor-not-allowed`}
+                                disabled={true}
+                                readOnly={true}
+                              />
+                            </div>
+                            <ErrorLine keyName="bank_account_name" />
+                          </div>
+                        </div>
+
+                        {/* Bank Verification Messages */}
+                        {bankVerificationError && (
+                          <div className="flex gap-3 p-3 bg-red-50 border border-red-200 rounded-lg md:col-span-2">
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-red-700">{bankVerificationError}</p>
+                          </div>
+                        )}
+
+                        {bankVerificationSuccess && (
+                          <div className="flex gap-3 p-3 bg-green-50 border border-green-200 rounded-lg md:col-span-2">
+                            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <p className="text-sm text-green-700 font-medium">{bankVerificationSuccess}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

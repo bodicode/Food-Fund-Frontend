@@ -46,9 +46,7 @@ export default function OrganizationRequestsPage() {
     async (order: "asc" | "desc" = sortOrder) => {
       try {
         setLoading(true);
-        const data = await organizationService.getAllOrganizationRequests(
-          order
-        );
+        const data = await organizationService.getAllOrganizationRequests(order);
         setRaw(data);
       } catch (e) {
         console.error(e);
@@ -74,15 +72,14 @@ export default function OrganizationRequestsPage() {
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((r) => {
-        const rep = r.representative;
         return (
           r.name.toLowerCase().includes(q) ||
           r.address.toLowerCase().includes(q) ||
           (r.website || "").toLowerCase().includes(q) ||
-          (rep?.full_name || "").toLowerCase().includes(q) ||
-          (rep?.email || "").toLowerCase().includes(q) ||
-          (rep?.user_name || "").toLowerCase().includes(q) ||
-          (r.phone_number || "").toLowerCase().includes(q)
+          (r.representative_name || "").toLowerCase().includes(q) ||
+          (r.email || "").toLowerCase().includes(q) ||
+          (r.phone_number || "").toLowerCase().includes(q) ||
+          (r.activity_field || "").toLowerCase().includes(q)
         );
       });
     }
@@ -141,7 +138,7 @@ export default function OrganizationRequestsPage() {
   };
 
   return (
-    <div>
+    <div className="w-full">
       <div className="mb-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Yêu cầu tạo Tổ chức
@@ -203,48 +200,53 @@ export default function OrganizationRequestsPage() {
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              {[
-                "ID",
-                "Tổ chức",
-                "Thông tin đại diện",
-                "Liên hệ",
-                "Địa chỉ",
-                "Website",
-                "Trạng thái",
-                "Ngày tạo",
-                "Thao tác",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="sticky top-0 z-10 text-left text-gray-700 dark:text-gray-200 text-sm font-semibold whitespace-nowrap px-4 py-3 bg-gray-200 dark:bg-[#334155] shadow-sm"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      {/* Bảng scroll ngang */}
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="border-collapse w-full" style={{ minWidth: '1800px' }}>
+            <thead>
+              <tr>
+                {[
+                  "ID",
+                  "Tổ chức",
+                  "Lĩnh vực",
+                  "Thông tin đại diện",
+                  "Liên hệ",
+                  "Địa chỉ",
+                  "Website",
+                  "CMND/CCCD",
+                  "Tài khoản ngân hàng",
+                  "Trạng thái",
+                  "Ngày tạo",
+                  "Thao tác",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="sticky top-0 z-10 text-left text-gray-700 dark:text-gray-200 text-sm font-semibold whitespace-nowrap px-4 py-3 bg-gray-200 dark:bg-[#334155] shadow-sm"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-6 text-sm">
-                  Đang tải...
-                </td>
-              </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={9}
-                  className="px-4 py-10 text-center text-sm text-gray-500"
-                >
-                  Không có yêu cầu nào phù hợp.
-                </td>
-              </tr>
-            ) : (
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={12} className="px-4 py-6 text-sm">
+                    Đang tải...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={12}
+                    className="px-4 py-10 text-center text-sm text-gray-500"
+                  >
+                    Không có yêu cầu nào phù hợp.
+                  </td>
+                </tr>
+              ) : (
               filtered.map((r, idx) => {
                 const cfg = getStatusCfg(r.status);
                 const Icon = cfg.icon;
@@ -263,9 +265,9 @@ export default function OrganizationRequestsPage() {
                       {r.id}
                     </td>
 
-                    <td className="px-4 py-3 text-sm">
+                    <td className="px-4 py-3 text-sm min-w-[200px]">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-nowrap">
+                        <span className="font-semibold whitespace-nowrap">
                           {r.name}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
@@ -274,33 +276,37 @@ export default function OrganizationRequestsPage() {
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    <td className="px-4 py-3 text-sm min-w-[120px]">
+                      <span className="whitespace-nowrap">{r.activity_field || "-"}</span>
+                    </td>
+
+                    <td className="px-4 py-3 text-sm min-w-[180px]">
                       <div className="leading-tight">
-                        <div className="font-medium">
-                          {r.representative?.full_name || "Người đại diện"}
+                        <div className="font-medium whitespace-nowrap">
+                          {r.representative_name || "Người đại diện"}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {r.representative?.email || "Email"}
+                        <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {r.email || "Email"}
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span>{r.phone_number || "-"}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          @{r.representative?.user_name || "username"}
-                        </span>
-                      </div>
+                    <td className="px-4 py-3 text-sm min-w-[140px]">
+                      <span className="whitespace-nowrap">
+                        {r.phone_number || "-"}
+                      </span>
                     </td>
 
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      <span className="line-clamp-1" title={r.address}>
+                    <td className="px-4 py-3 text-sm min-w-[180px]">
+                      <span
+                        className="line-clamp-1 whitespace-nowrap"
+                        title={r.address}
+                      >
                         {r.address}
                       </span>
                     </td>
 
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    <td className="px-4 py-3 text-sm min-w-[140px]">
                       {r.website ? (
                         <a
                           href={
@@ -310,7 +316,7 @@ export default function OrganizationRequestsPage() {
                           }
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-sky-600 hover:underline"
+                          className="inline-flex items-center gap-1 text-sky-600 hover:underline whitespace-nowrap"
                         >
                           {r.website}
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -318,6 +324,23 @@ export default function OrganizationRequestsPage() {
                       ) : (
                         "-"
                       )}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm min-w-[120px]">
+                      <span className="whitespace-nowrap" title={r.representative_identity_number}>
+                        {r.representative_identity_number || "-"}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3 text-sm min-w-[180px]">
+                      <div className="flex flex-col">
+                        <span className="text-xs whitespace-nowrap" title={r.bank_account_number}>
+                          {r.bank_account_number || "-"}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {r.bank_short_name || "-"}
+                        </span>
+                      </div>
                     </td>
 
                     <td className="px-4 py-3 text-sm whitespace-nowrap">
@@ -336,8 +359,8 @@ export default function OrganizationRequestsPage() {
                       {new Date(r.created_at).toLocaleDateString("vi-VN")}
                     </td>
 
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                    <td className="px-4 py-3 text-sm min-w-[140px]">
+                      <div className="flex items-center gap-2 whitespace-nowrap">
                         <Link href={`/admin/org-requests/${r.id}`}>
                           <Button variant="outline" size="sm" className="h-8">
                             Xem
@@ -355,7 +378,10 @@ export default function OrganizationRequestsPage() {
                                 <MoreHorizontal className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-40"
+                            >
                               <DropdownMenuItem
                                 className="text-green-600 focus:text-green-700"
                                 onClick={() => onApprove(r.id)}
@@ -386,9 +412,10 @@ export default function OrganizationRequestsPage() {
                   </tr>
                 );
               })
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">

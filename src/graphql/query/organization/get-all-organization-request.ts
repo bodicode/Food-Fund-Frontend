@@ -11,16 +11,15 @@ export const GET_ALL_ORGANIZATION_REQUESTS = gql`
       website
       status
       created_at
-      representative {
-        id
-        full_name
-        user_name
-        email
-        avatar_url
-        bio
-        role
-        is_active
-      }
+      activity_field
+      email
+      representative_name
+      representative_identity_number
+      representative_id
+      bank_account_name
+      bank_account_number
+      bank_name
+      bank_short_name
     }
   }
 `;
