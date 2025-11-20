@@ -37,12 +37,19 @@ export const bankService = {
     account: string
   ): Promise<BankAccountInfo | null> {
     try {
+      const apiKey = process.env.NEXT_PUBLIC_BANK_LOOKUP_API_KEY;
+      const apiSecret = process.env.NEXT_PUBLIC_BANK_LOOKUP_API_SECRET;
+
+      if (!apiKey || !apiSecret) {
+        throw new Error("Bank lookup API credentials not configured");
+      }
+
       const response = await fetch("https://api.banklookup.net", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": "f98b46af-dc78-4cdb-8af8-a76684dc6511key",
-          "x-api-secret": "494fe9b4-9cd0-4126-b11b-d77b0dbd84f9secret",
+          "x-api-key": apiKey,
+          "x-api-secret": apiSecret,
         },
         body: JSON.stringify({
           bank,
