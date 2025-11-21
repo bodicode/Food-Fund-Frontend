@@ -63,14 +63,29 @@ export function ActionPanel({
     targetAmount > 0 ? Math.min((raisedAmount / targetAmount) * 100, 100) : 0;
 
   const isCampaignEnded = fundraisingEndDate && new Date(fundraisingEndDate) <= new Date();
-  const isDonationEnabled = campaignStatus === "ACTIVE" && !isCampaignEnded;
+  const fundingProgress = targetAmount > 0 ? (raisedAmount / targetAmount) * 100 : 0;
+  const isFundingComplete = fundingProgress >= 100;
+  const isDonationEnabled = campaignStatus === "ACTIVE" && !isCampaignEnded && !isFundingComplete;
 
   const getDonationButtonText = () => {
+    // Handle PROCESSING status
     if (campaignStatus === "PROCESSING") {
+      // If funding is complete and campaign hasn't ended yet
+      if (isFundingComplete && !isCampaignEnded) {
+        return "Chiến dịch đã nhận đủ số tiền gây quỹ";
+      }
+      // If campaign has ended
+      if (isCampaignEnded) {
+        return "Đang trong quá trình vận hành";
+      }
       return "Đang trong quá trình vận hành";
     }
+    
+    if (isFundingComplete && !isCampaignEnded) {
+      return "Chiến dịch đã nhận đủ số tiền gây quỹ";
+    }
     if (isCampaignEnded) {
-      return "Chiến dịch đã kết thúc";
+      return "Đang trong quá trình vận hành";
     }
     return isDonationEnabled ? "Ủng hộ" : "Chiến dịch chưa đến ngày";
   };

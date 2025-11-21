@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Building2,
   ShoppingCart,
+  Award,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </NavLink>
       <NavLink href="/admin/fundraiser-wallets" icon={DollarSign}>
         Ví người gây quỹ
+      </NavLink>
+      <NavLink href="/admin/badges" icon={Award}>
+        Huy hiệu
       </NavLink>
 
       <div className="pt-4">

@@ -1,3 +1,14 @@
+export type Badge = {
+  id: string;
+  name: string;
+  description: string;
+  icon_url: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type UserProfile = {
   address?: string | null;
   avatar_url: string;
@@ -11,6 +22,7 @@ export type UserProfile = {
   role: string;
   updated_at: string;
   user_name: string;
+  badge?: Badge | null;
 };
 
 export type UpdateMyProfileInput = {

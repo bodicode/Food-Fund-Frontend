@@ -5,7 +5,6 @@ export const GET_MY_PROFILE = gql`
     getMyProfile {
       message
       userProfile {
-        address
         avatar_url
         bio
         created_at
@@ -14,9 +13,18 @@ export const GET_MY_PROFILE = gql`
         id
         is_active
         phone_number
-        role
         updated_at
         user_name
+        badge {
+          created_at
+          description
+          icon_url
+          id
+          is_active
+          name
+          sort_order
+          updated_at
+        }
       }
     }
   }
