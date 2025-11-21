@@ -87,6 +87,7 @@ export default function CampaignDetailPage() {
     typeof campaign.fundingProgress === "number"
       ? Math.round(campaign.fundingProgress)
       : Math.min(Math.round((raised / (goal || 1)) * 100), 100);
+  const isFundingComplete = progress >= 100;
   const timeLeft =
     typeof campaign.daysRemaining === "number"
       ? campaign.daysRemaining
@@ -392,6 +393,15 @@ export default function CampaignDetailPage() {
                     date: formatDateTime(campaign.fundraisingStartDate),
                     status: fundraisingStartStatus,
                   },
+                  ...(isFundingComplete
+                    ? [
+                      {
+                        label: "Đã nhận đủ số tiền gây quỹ",
+                        date: "Đã hoàn thành",
+                        status: "completed" as const,
+                      },
+                    ]
+                    : []),
                   {
                     label: "Kết thúc gây quỹ",
                     date: formatDateTime(campaign.fundraisingEndDate),
