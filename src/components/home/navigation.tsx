@@ -8,6 +8,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { Button } from "@/components/ui/button";
+import { NotificationPopover } from "@/components/notification/notification-popover";
 import {
   Dialog,
   DialogContent,
@@ -309,12 +310,14 @@ export function Navigation() {
                 Đăng nhập
               </Link>
             ) : (
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <span className="cursor-pointer hover:opacity-80 py-1">
-                    {user.name}
-                  </span>
-                </DropdownMenuTrigger>
+              <>
+                <NotificationPopover />
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <span className="cursor-pointer hover:opacity-80 py-1">
+                      {user.name}
+                    </span>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-52">
                   {user.role === USER_ROLES.ADMIN && (
                     <DropdownMenuItem
@@ -343,7 +346,8 @@ export function Navigation() {
                     Đăng xuất
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
+                </DropdownMenu>
+              </>
             )}
           </div>
         </div>
