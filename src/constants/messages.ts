@@ -25,6 +25,9 @@ export const ERROR_MESSAGES = {
   INVALID_CODE_REQUEST_AGAIN: "Mã xác nhận không đúng. Vui lòng thử lại.",
   SESSION_EXPIRED: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
   ACTIVE_CAMPAIGN_EXISTS: "Bạn hiện đang có một chiến dịch đang hoạt động. Vui lòng hoàn thành chiến dịch này trước khi tạo chiến dịch mới.",
+  EXCEEDS_DELIVERY_BUDGET: "Số tiền yêu cầu vượt quá ngân sách vận chuyển được phân bổ cho giai đoạn này.",
+  EXCEEDS_COOKING_BUDGET: "Số tiền yêu cầu vượt quá ngân sách nấu ăn được phân bổ cho giai đoạn này.",
+  EXCEEDS_INGREDIENT_BUDGET: "Số tiền yêu cầu vượt quá ngân sách nguyên liệu được phân bổ cho giai đoạn này.",
 } as const;
 
 // Message patterns for matching
@@ -38,4 +41,7 @@ export const MESSAGE_PATTERNS = {
   ORGANIZATION_REQUEST: "Organization request has been submitted successfully. Waiting for admin approval.",
   JOIN_REQUEST: "Join request to as Delivery Staff (food distribution) has been submitted successfully. Waiting for approval.",
   ACTIVE_CAMPAIGN_EXISTS: "FundraiserHasActiveCampaignException",
+  EXCEEDS_DELIVERY_BUDGET: "exceeds allocated delivery budget",
+  EXCEEDS_COOKING_BUDGET: "exceeds allocated cooking budget",
+  EXCEEDS_INGREDIENT_BUDGET: "exceeds allocated ingredient budget",
 } as const;

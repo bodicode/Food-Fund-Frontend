@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { operationRequestService } from "@/services/operation-request.service";
 import { OperationRequest, OperationRequestStats } from "@/types/api/operation-request";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,8 +30,10 @@ import {
   Clock,
   TrendingUp,
   ExternalLink,
+  Send,
 } from "lucide-react";
 import { UpdateOperationRequestDialog } from "@/components/admin/update-operation-request-dialog";
+import { CreateDisbursementDialog } from "@/components/admin/create-disbursement-dialog";
 
 const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
@@ -42,6 +45,7 @@ const statusLabels: Record<string, { label: string; color: string; icon: React.E
   PENDING: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800", icon: Clock },
   APPROVED: { label: "Đã duyệt", color: "bg-green-100 text-green-800", icon: CheckCircle },
   REJECTED: { label: "Từ chối", color: "bg-red-100 text-red-800", icon: XCircle },
+  DISBURSED: { label: "Đã giải ngân", color: "bg-blue-100 text-blue-800", icon: Send },
 };
 
 export default function OperationRequestsPage() {
@@ -53,6 +57,9 @@ export default function OperationRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedRequest, setSelectedRequest] = useState<OperationRequest | null>(null);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isDisbursementDialogOpen, setIsDisbursementDialogOpen] = useState(false);
+  const [selectedRequestForDisbursement, setSelectedRequestForDisbursement] =
+    useState<OperationRequest | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -97,6 +104,17 @@ export default function OperationRequestsPage() {
     fetchData();
     setIsUpdateDialogOpen(false);
     setSelectedRequest(null);
+  };
+
+  const handleDisbursementClick = (request: OperationRequest) => {
+    setSelectedRequestForDisbursement(request);
+    setIsDisbursementDialogOpen(true);
+  };
+
+  const handleDisbursementSuccess = () => {
+    fetchData();
+    setIsDisbursementDialogOpen(false);
+    setSelectedRequestForDisbursement(null);
   };
 
   return (
@@ -189,6 +207,7 @@ export default function OperationRequestsPage() {
               <SelectItem value="PENDING">Chờ duyệt</SelectItem>
               <SelectItem value="APPROVED">Đã duyệt</SelectItem>
               <SelectItem value="REJECTED">Từ chối</SelectItem>
+              <SelectItem value="DISBURSED">Đã giải ngân</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -232,13 +251,15 @@ export default function OperationRequestsPage() {
                         <Badge variant="secondary" className="text-xs">
                           {expenseTypeLabels[request.expenseType]}
                         </Badge>
-                        {request.campaignPhase.campaign && (
+                        {request.campaignPhase?.campaign && (
                           <button
-                            onClick={() =>
-                              router.push(
-                                `/admin/campaigns/${request.campaignPhase.campaign?.id}`
-                              )
-                            }
+                            onClick={() => {
+                              const slug = createCampaignSlug(
+                                request.campaignPhase.campaign!.title,
+                                request.campaignPhase.campaign!.id
+                              );
+                              router.push(`/admin/campaigns/${slug}`);
+                            }}
                             className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium"
                           >
                             • {request.campaignPhase.campaign.title}
@@ -263,7 +284,7 @@ export default function OperationRequestsPage() {
 
                     <div className="flex items-center gap-2 text-gray-600">
                       <User className="h-4 w-4 text-blue-600" />
-                      <span>{request.user.full_name}</span>
+                      <span>{request?.user?.full_name}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-600">
@@ -271,14 +292,24 @@ export default function OperationRequestsPage() {
                       <span>{formatDateTime(request.created_at)}</span>
                     </div>
 
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() => handleUpdateClick(request)}
-                        className="btn-color"
-                      >
-                        Xử lý
-                      </Button>
+                    <div className="flex justify-end gap-2">
+                      {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleDisbursementClick(request)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Giải ngân
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => handleUpdateClick(request)}
+                          className="btn-color"
+                        >
+                          Xử lý
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -298,6 +329,22 @@ export default function OperationRequestsPage() {
           }}
           request={selectedRequest}
           onSuccess={handleUpdateSuccess}
+        />
+      )}
+
+      {/* Disbursement Dialog */}
+      {selectedRequestForDisbursement && (
+        <CreateDisbursementDialog
+          isOpen={isDisbursementDialogOpen}
+          onClose={() => {
+            setIsDisbursementDialogOpen(false);
+            setSelectedRequestForDisbursement(null);
+          }}
+          requestId={selectedRequestForDisbursement.id}
+          requestType="operation"
+          amount={String(selectedRequestForDisbursement.totalCost)}
+          campaignPhaseId={selectedRequestForDisbursement.campaignPhase.id}
+          onSuccess={handleDisbursementSuccess}
         />
       )}
     </div>

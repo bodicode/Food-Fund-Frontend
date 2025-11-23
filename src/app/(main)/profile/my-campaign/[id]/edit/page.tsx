@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { UploadCloud, Plus, Trash2, MapPin } from "lucide-react";
@@ -35,6 +35,7 @@ import {
   parsePercent,
 } from "@/lib/utils/percent-utils";
 import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
+import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
 
 type CampaignCategory = Campaign["category"];
 
@@ -57,8 +58,17 @@ export default function EditCampaignPage() {
 
     const fetchData = async () => {
       try {
+        // Get actual campaign ID from sessionStorage
+        const slug = id as string;
+        const campaignId = getCampaignIdFromSlug(slug);
+        
+        if (!campaignId) {
+          setLoading(false);
+          return;
+        }
+        
         const [campaignData, categoryData] = await Promise.all([
-          campaignService.getCampaignById(id as string),
+          campaignService.getCampaignById(campaignId),
           categoryService.getCategories(),
         ]);
         setCampaign(campaignData);
@@ -344,11 +354,8 @@ export default function EditCampaignPage() {
         deliveryBudgetPercentage: phase.deliveryBudgetPercentage || "0",
       }));
 
-      const result = await phaseService.syncCampaignPhases(campaignId, syncPhases);
+      await phaseService.syncCampaignPhases(campaignId, syncPhases);
       
-      if (result) {
-        console.log(`✓ Sync phases: Created ${result.createdCount}, Updated ${result.updatedCount}, Deleted ${result.deletedCount}`);
-      }
     } catch (error) {
       console.error("❌ Error syncing phases:", error);
       throw error;
@@ -574,7 +581,8 @@ export default function EditCampaignPage() {
       await handlePhasesUpdate(campaign.id);
 
       toast.success("Cập nhật chiến dịch thành công!");
-      router.push(`/profile/my-campaign/${updated.id}`);
+      const slug = createCampaignSlug(updated.title, updated.id);
+      router.push(`/profile/my-campaign/${slug}`);
     } catch (err) {
       console.error("❌ Error updating campaign:", err);
       const errorMessage = err instanceof Error ? err.message : "Cập nhật thất bại. Vui lòng thử lại!";

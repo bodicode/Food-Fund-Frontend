@@ -17,6 +17,7 @@ import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { DonationResponse } from "@/types/api/donation";
 import { formatCurrency } from "@/lib/utils/currency-utils";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 
 const SUGGESTED_AMOUNTS = [50000, 100000, 200000, 500000];
 
@@ -246,7 +247,11 @@ export default function DonationPage() {
                         <div className="flex gap-3">
                             <Button
                                 variant="outline"
-                                onClick={() => router.push(`/campaign/${campaignId}`)}
+                                onClick={() => {
+                                  if (!campaignId) return;
+                                  const slug = campaign?.title ? createCampaignSlug(campaign.title, campaignId as string) : campaignId;
+                                  router.push(`/campaign/${slug}`);
+                                }}
                                 className="flex-1"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />

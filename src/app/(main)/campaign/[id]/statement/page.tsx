@@ -6,6 +6,7 @@ import { donationStatementService } from "@/services/donation-statement.service"
 import { CampaignDonationStatement } from "@/types/api/donation-statement";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { translatePaymentStatus, getStatusColorClass } from "@/lib/utils/status-utils";
+import { getCampaignIdFromSlug } from "@/lib/utils/slug-utils";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, FileText, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
@@ -15,7 +16,7 @@ import { vi } from "date-fns/locale";
 export default function CampaignStatementPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const slug = params.id as string;
 
   const [statement, setStatement] = useState<CampaignDonationStatement | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,15 @@ export default function CampaignStatementPage() {
     const fetchStatement = async () => {
       try {
         setLoading(true);
+        // Get actual campaign ID from sessionStorage
+        const campaignId = getCampaignIdFromSlug(slug);
+        
+        if (!campaignId) {
+          setError("Không tìm thấy chiến dịch");
+          setLoading(false);
+          return;
+        }
+        
         const data = await donationStatementService.getCampaignDonationStatement(campaignId);
         setStatement(data);
       } catch (err) {
@@ -35,10 +45,10 @@ export default function CampaignStatementPage() {
       }
     };
 
-    if (campaignId) {
+    if (slug) {
       fetchStatement();
     }
-  }, [campaignId]);
+  }, [slug]);
 
   const formatDateTime = (dateTime: string) => {
     try {
@@ -126,7 +136,7 @@ export default function CampaignStatementPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-color-base rounded-xl shadow-sm border p-5">
             <div className="flex items-center gap-3 mb-2">
               <div className="bg-green-100 p-2 rounded-lg">
@@ -148,22 +158,6 @@ export default function CampaignStatementPage() {
             </div>
             <p className="text-2xl font-bold text-blue-600">
               {statement.totalDonations}
-            </p>
-          </div>
-
-          <div className="bg-color-base rounded-xl shadow-sm border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-[#E77731]/10 p-2 rounded-lg">
-                <DollarSign className="w-5 h-5 text-[#E77731]" />
-              </div>
-              <p className="text-sm text-gray-600">Trung bình/giao dịch</p>
-            </div>
-            <p className="text-2xl font-bold text-[#E77731]">
-              {formatCurrency(
-                statement.totalDonations > 0
-                  ? statement.totalReceived / statement.totalDonations
-                  : 0
-              )}
             </p>
           </div>
         </div>

@@ -75,6 +75,23 @@ export const translateError = (err: unknown): string => {
       return err;
     }
 
+    // Handle Error object with message property
+    if (err instanceof Error) {
+      const errorMessage = err.message || "";
+      // Operation request budget errors
+      if (errorMessage.includes(MESSAGE_PATTERNS.EXCEEDS_DELIVERY_BUDGET)) {
+        return ERROR_MESSAGES.EXCEEDS_DELIVERY_BUDGET;
+      }
+      if (errorMessage.includes(MESSAGE_PATTERNS.EXCEEDS_COOKING_BUDGET)) {
+        return ERROR_MESSAGES.EXCEEDS_COOKING_BUDGET;
+      }
+      if (errorMessage.includes(MESSAGE_PATTERNS.EXCEEDS_INGREDIENT_BUDGET)) {
+        return ERROR_MESSAGES.EXCEEDS_INGREDIENT_BUDGET;
+      }
+
+      return errorMessage;
+    }
+
     const errorObj = err as ErrorWithGraphQL;
 
     const gqlError =
@@ -90,9 +107,20 @@ export const translateError = (err: unknown): string => {
       gqlError?.extensions?.context?.cognitoError ??
       "";
 
+    // Operation request budget errors - check first before other errors
+    if (errorMessage.includes(MESSAGE_PATTERNS.EXCEEDS_DELIVERY_BUDGET)) {
+      return ERROR_MESSAGES.EXCEEDS_DELIVERY_BUDGET;
+    }
+    if (errorMessage.includes(MESSAGE_PATTERNS.EXCEEDS_COOKING_BUDGET)) {
+      return ERROR_MESSAGES.EXCEEDS_COOKING_BUDGET;
+    }
+    if (errorMessage.includes(MESSAGE_PATTERNS.EXCEEDS_INGREDIENT_BUDGET)) {
+      return ERROR_MESSAGES.EXCEEDS_INGREDIENT_BUDGET;
+    }
+
     // Campaign errors - check both errorMessage and cognitoError
-    if (errorMessage.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS) || 
-        cognitoError.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS)) {
+    if (errorMessage.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS) ||
+      cognitoError.includes(MESSAGE_PATTERNS.ACTIVE_CAMPAIGN_EXISTS)) {
       return ERROR_MESSAGES.ACTIVE_CAMPAIGN_EXISTS;
     }
 

@@ -14,6 +14,7 @@ import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Map, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createCampaignSlug, getCampaignIdFromSlug } from "@/lib/utils/slug-utils";
 
 delete (
   L.Icon.Default.prototype as unknown as {
@@ -70,7 +71,16 @@ export default function CampaignMapPage() {
 
     (async () => {
       try {
-        const data = await campaignService.getCampaignById(id as string);
+        // Get actual campaign ID from sessionStorage
+        const slug = id as string;
+        const campaignId = getCampaignIdFromSlug(slug);
+        
+        if (!campaignId) {
+          setLoading(false);
+          return;
+        }
+        
+        const data = await campaignService.getCampaignById(campaignId);
         setCampaign(data);
 
         if (data?.phases && data.phases.length > 0) {
@@ -243,7 +253,10 @@ export default function CampaignMapPage() {
             </button>
           )}
           <button
-            onClick={() => router.push(`/campaign/${campaign.id}`)}
+            onClick={() => {
+              const slug = campaign?.title ? createCampaignSlug(campaign.title, campaign.id) : campaign.id;
+              router.push(`/campaign/${slug}`);
+            }}
             className="flex-1 bg-gradient-to-r from-[#ad4e28] to-[#8b3e20] text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
           >
             Xem chi tiết
@@ -288,7 +301,10 @@ export default function CampaignMapPage() {
                     </div>
                     
                     <button
-                      onClick={() => router.push(`/campaign/${campaign?.id}`)}
+                      onClick={() => {
+                        const slug = campaign?.title ? createCampaignSlug(campaign.title, campaign.id) : campaign.id;
+                        router.push(`/campaign/${slug}`);
+                      }}
                       className="w-full mt-2 bg-[#ad4e28] text-white py-2 px-4 rounded-lg text-sm font-semibold hover:opacity-90 transition"
                     >
                       Xem chi tiết chiến dịch

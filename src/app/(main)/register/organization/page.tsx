@@ -121,8 +121,22 @@ export default function OrgRegisterPage() {
     bank_short_name: "",
   });
 
-  const [touched, setTouched] = useState<Partial<Record<FormKeys, boolean>>>({});
   const [errors, setErrors] = useState<Partial<Record<FormKeys, string>>>({});
+  const [, setTouched] = useState<Record<FormKeys, boolean>>({
+    name: false,
+    activity_field: false,
+    address: false,
+    phone_number: false,
+    email: false,
+    representative_name: false,
+    representative_identity_number: false,
+    website: false,
+    description: false,
+    bank_account_name: false,
+    bank_account_number: false,
+    bank_name: false,
+    bank_short_name: false,
+  });
 
   const refs = useRef<
     Record<FormKeys, HTMLInputElement | HTMLTextAreaElement | null>
@@ -328,6 +342,10 @@ export default function OrgRegisterPage() {
       representative_identity_number: true,
       website: true,
       description: true,
+      bank_account_name: true,
+      bank_account_number: true,
+      bank_name: true,
+      bank_short_name: true,
     });
 
     const hasError = Object.values(nextErrors).some((v) => v && v.length > 0);
@@ -373,7 +391,21 @@ export default function OrgRegisterPage() {
           bank_short_name: "",
         });
         setErrors({});
-        setTouched({});
+        setTouched({
+          name: false,
+          activity_field: false,
+          address: false,
+          phone_number: false,
+          email: false,
+          representative_name: false,
+          representative_identity_number: false,
+          website: false,
+          description: false,
+          bank_account_name: false,
+          bank_account_number: false,
+          bank_name: false,
+          bank_short_name: false,
+        });
         setSubmitted(true);
 
         // Redirect after a short delay to show success message

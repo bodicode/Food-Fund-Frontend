@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge as BadgeUI } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { translateRole } from "@/lib/translator";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { UserProfile } from "@/types/api/user";

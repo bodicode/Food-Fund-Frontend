@@ -11,6 +11,7 @@ import Image from "next/image";
 import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import { CampaignPosts } from "@/components/campaign/campaign-posts";
 import { DonationList } from "@/components/campaign/donation-list";
 import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 import { MealBatchList } from "@/components/campaign/meal-batch-list";
+import { DisbursementList } from "@/components/campaign/disbursement-list";
 
 import { ShareDialog } from "@/components/campaign/share-dialog";
 
@@ -59,7 +61,16 @@ export default function CampaignDetailPage() {
 
     if (!id) return;
     (async () => {
-      const data = await campaignService.getCampaignById(id as string);
+      // Get actual ID from sessionStorage
+      const slug = id as string;
+      const actualId = getCampaignIdFromSlug(slug);
+      
+      if (!actualId) {
+        setLoading(false);
+        return;
+      }
+      
+      const data = await campaignService.getCampaignById(actualId);
       setCampaign(data);
       setLoading(false);
     })();
@@ -132,7 +143,10 @@ export default function CampaignDetailPage() {
     cookingAmt > 0 ||
     deliveryAmt > 0;
 
-  const handleDirection = () => router.push(`/map/${campaign.id}`);
+  const handleDirection = () => {
+    const slug = createCampaignSlug(campaign.title, campaign.id);
+    router.push(`/map/${slug}`);
+  };
 
   const handleShare = () => {
     setIsShareDialogOpen(true);
@@ -158,6 +172,7 @@ export default function CampaignDetailPage() {
   const isDuringFundraising = start && end && now >= start && now < end;
 
   const fundraisingStartStatus = (() => {
+    if (isFundingComplete) return "completed";
     if (!start) return "upcoming";
     if (isBeforeStart) return "upcoming";
     if (isDuringFundraising) return "current";
@@ -283,12 +298,13 @@ export default function CampaignDetailPage() {
               onValueChange={setActiveTab}
               className="mb-8"
             >
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6 h-auto">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 mb-6 h-auto">
                 <TabsTrigger value="story" className="text-xs md:text-sm">Câu chuyện</TabsTrigger>
                 <TabsTrigger value="posts" className="text-xs md:text-sm">Bài viết</TabsTrigger>
                 <TabsTrigger value="meals" className="text-xs md:text-sm">Thức ăn</TabsTrigger>
-                <TabsTrigger value="donations" className="text-xs md:text-sm">Danh sách ủng hộ</TabsTrigger>
-                <TabsTrigger value="expenses" className="text-xs md:text-sm">Chứng từ chi phí</TabsTrigger>
+                <TabsTrigger value="donations" className="text-xs md:text-sm">Ủng hộ</TabsTrigger>
+                <TabsTrigger value="disbursements" className="text-xs md:text-sm">Giải ngân</TabsTrigger>
+                <TabsTrigger value="expenses" className="text-xs md:text-sm">Chi phí</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -329,6 +345,27 @@ export default function CampaignDetailPage() {
                 </div>
               </TabsContent>
 
+              <TabsContent value="disbursements">
+                <div className="bg-white rounded-2xl border p-6">
+                  {campaign.phases && campaign.phases.length > 0 ? (
+                    <div className="space-y-6">
+                      {campaign.phases.map((phase) => (
+                        <div key={phase.id}>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            Giai đoạn: {phase.phaseName}
+                          </h3>
+                          <DisbursementList campaignPhaseId={phase.id} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">
+                      Chiến dịch này chưa có giai đoạn nào
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+
               <TabsContent value="expenses">
                 <div className="bg-white rounded-2xl border p-6">
                   <ExpenseProofList campaignId={campaign.id} />
@@ -358,18 +395,21 @@ export default function CampaignDetailPage() {
           <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
               campaignId={campaign.id}
+              campaignTitle={campaign.title}
               campaignStatus={campaign.status}
               organizationName={campaign.creator?.full_name}
               canEdit={campaign.status === "PENDING"}
-              onEdit={() =>
-                router.push(`/profile/my-campaign/${campaign.id}/edit`)
-              }
+              onEdit={() => {
+                const slug = createCampaignSlug(campaign.title, campaign.id);
+                router.push(`/profile/my-campaign/${slug}/edit`);
+              }}
               goal={formatCurrency(goal)}
               onDirection={handleDirection}
               targetAmount={goal}
               raisedAmount={raised}
               daysLeft={timeLeft}
               fundraisingEndDate={campaign.fundraisingEndDate}
+              campaignFundingProgress={campaign.fundingProgress}
             />
 
             <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">

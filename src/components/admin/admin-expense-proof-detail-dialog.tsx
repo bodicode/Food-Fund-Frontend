@@ -6,6 +6,7 @@ import { expenseProofService } from "@/services/expense-proof.service";
 import { ExpenseProof, ExpenseProofStatus } from "@/types/api/expense-proof";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -185,8 +186,14 @@ export function AdminExpenseProofDetailDialog({
 
                       <button
                         onClick={() => {
-                          router.push(`/admin/campaigns/${expenseProof?.request?.campaignPhase.campaign.id}`);
-                          onClose();
+                          if (expenseProof?.request?.campaignPhase.campaign.title && expenseProof?.request?.campaignPhase.campaign.id) {
+                            const slug = createCampaignSlug(
+                              expenseProof.request.campaignPhase.campaign.title,
+                              expenseProof.request.campaignPhase.campaign.id
+                            );
+                            router.push(`/admin/campaigns/${slug}`);
+                            onClose();
+                          }
                         }}
                         className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:underline flex items-center gap-2 group"
                       >

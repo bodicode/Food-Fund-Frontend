@@ -15,6 +15,7 @@ import {
 } from "@/lib/utils/status-utils";
 import Link from "next/link";
 import { MyCampaignStatsSection } from "../my-campaign-stats";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 
 const LoadingSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -72,7 +73,10 @@ const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
 
   return (
     <div
-      onClick={() => router.push(`/profile/my-campaign/${campaign.id}`)}
+      onClick={() => {
+        const slug = createCampaignSlug(campaign.title, campaign.id);
+        router.push(`/profile/my-campaign/${slug}`);
+      }}
       className="bg-white shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group"
     >
       <div className="relative w-full h-40">

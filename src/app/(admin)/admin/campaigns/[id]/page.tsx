@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { statusConfig } from "@/lib/translator";
 import { formatDate } from "@/lib/utils/date-utils";
+import { getCampaignIdFromSlug } from "@/lib/utils/slug-utils";
 
 export default function AdminCampaignDetailPage() {
   const { id } = useParams();
@@ -37,7 +38,17 @@ export default function AdminCampaignDetailPage() {
 
     const fetchData = async () => {
       try {
-        const data = await campaignService.getCampaignById(id as string);
+        // Get actual campaign ID from sessionStorage
+        const slug = id as string;
+        const campaignId = getCampaignIdFromSlug(slug);
+        
+        if (!campaignId) {
+          toast.error("Không tìm thấy chiến dịch.");
+          setLoading(false);
+          return;
+        }
+        
+        const data = await campaignService.getCampaignById(campaignId);
         if (!data) throw new Error("Không tìm thấy chiến dịch.");
         setCampaign(data);
       } catch (error) {
@@ -112,8 +123,9 @@ export default function AdminCampaignDetailPage() {
     );
 
   const progress =
-    (Number(campaign.receivedAmount) / Number(campaign.targetAmount)) * 100 ||
-    0;
+    campaign.fundingProgress !== undefined
+      ? campaign.fundingProgress
+      : (Number(campaign.receivedAmount) / Number(campaign.targetAmount)) * 100 || 0;
 
   return (
     <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0f172a] dark:via-[#0f172a] dark:to-[#1e293b] transition-colors">

@@ -7,6 +7,7 @@ import { campaignService } from "@/services/campaign.service";
 import { Category } from "@/types/api/category";
 import { Campaign, CampaignParams } from "@/types/api/campaign";
 import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -291,7 +292,11 @@ export default function AdminCampaignsPage() {
           {campaigns.map((campaign) => (
             <Card
               key={campaign.id}
-              className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+              className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer"
+              onClick={() => {
+                const slug = createCampaignSlug(campaign.title, campaign.id);
+                router.push(`/admin/campaigns/${slug}`);
+              }}
             >
               <div className="relative overflow-hidden">
                 <Image
@@ -325,10 +330,10 @@ export default function AdminCampaignsPage() {
                   <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-500">Tiến độ</span>
                     <span className="font-semibold text-primary">
-                      {getProgressPercentage(
+                      {(campaign.fundingProgress || getProgressPercentage(
                         campaign.receivedAmount,
                         campaign.targetAmount
-                      ).toFixed(1)}
+                      )).toFixed(1)}
                       %
                     </span>
                   </div>
@@ -336,7 +341,7 @@ export default function AdminCampaignsPage() {
                     <div
                       className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
                       style={{
-                        width: `${getProgressPercentage(
+                        width: `${campaign.fundingProgress || getProgressPercentage(
                           campaign.receivedAmount,
                           campaign.targetAmount
                         )}%`,
@@ -371,14 +376,15 @@ export default function AdminCampaignsPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex-1 hover:bg-gray-50"
-                    onClick={() =>
-                      router.push(`/admin/campaigns/${campaign.id}`)
-                    }
+                    onClick={() => {
+                      const slug = createCampaignSlug(campaign.title, campaign.id);
+                      router.push(`/admin/campaigns/${slug}`);
+                    }}
                   >
                     <Eye className="w-4 h-4 mr-2" /> Xem chi tiết
                   </Button>
@@ -427,9 +433,10 @@ export default function AdminCampaignsPage() {
                       )}
                       <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() =>
-                          router.push(`/admin/campaigns/${campaign.id}`)
-                        }
+                        onClick={() => {
+                          const slug = createCampaignSlug(campaign.title, campaign.id);
+                          router.push(`/admin/campaigns/${slug}`);
+                        }}
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Xem chi tiết

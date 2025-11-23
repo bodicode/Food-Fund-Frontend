@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AlarmClock } from "@/components/animate-ui/icons/alarm-clock";
 import { Clock12 } from "@/components/animate-ui/icons/clock-12";
 import { MapPin } from "@/components/animate-ui/icons/map-pin";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -156,7 +157,8 @@ export function CampaignCard({
 
   const handleClick = () => {
     if (isPending) return;
-    router.push(`/campaign/${id}`);
+    const slug = createCampaignSlug(title, id);
+    router.push(`/campaign/${slug}`);
   };
 
   return (

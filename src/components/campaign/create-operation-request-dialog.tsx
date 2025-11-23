@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { operationRequestService } from "@/services/operation-request.service";
+import { translateError } from "@/lib/translator";
 import { Loader } from "@/components/animate-ui/icons/loader";
 
 interface CreateOperationRequestDialogProps {
@@ -100,9 +101,8 @@ export function CreateOperationRequestDialog({
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error("Tạo yêu cầu thất bại", {
-        description: error instanceof Error ? error.message : "Đã xảy ra lỗi",
-      });
+      const errorMessage = translateError(error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

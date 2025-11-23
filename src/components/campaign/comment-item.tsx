@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Comment } from "@/types/api/post-interaction";
 import { postService } from "@/services/post.service";
 import { toast } from "sonner";
@@ -40,10 +40,18 @@ export function CommentItem({
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
-  const [showReplies, setShowReplies] = useState(false);
+  const [showReplies, setShowReplies] = useState(comment.replies && comment.replies.length > 0);
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auth guard for login required actions
   const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+
+  // Auto-focus reply textarea when replying
+  useEffect(() => {
+    if (isReplying && replyTextareaRef.current) {
+      replyTextareaRef.current.focus();
+    }
+  }, [isReplying]);
 
   // Check if current user owns this comment
   const isOwner = currentUserId && (currentUserId === comment.userId);
@@ -62,7 +70,9 @@ export function CommentItem({
     }
   };
 
-  const handleSubmitReply = async () => {
+  const handleSubmitReply = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+
     if (!replyContent.trim()) {
       toast.error("Vui lòng nhập nội dung trả lời");
       return;
@@ -144,7 +154,7 @@ export function CommentItem({
                 className="min-h-[60px]"
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveEdit}>
+                <Button size="sm" onClick={handleSaveEdit} className="btn-color">
                   Lưu
                 </Button>
                 <Button
@@ -187,8 +197,9 @@ export function CommentItem({
           )}
 
           {isReplying && (
-            <div className="mt-3 flex gap-2">
+            <form onSubmit={handleSubmitReply} className="mt-3 flex gap-2">
               <Textarea
+                ref={replyTextareaRef}
                 placeholder="Viết câu trả lời..."
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
@@ -197,8 +208,8 @@ export function CommentItem({
               />
               <div className="flex flex-col gap-2">
                 <Button
+                  type="submit"
                   size="sm"
-                  onClick={handleSubmitReply}
                   disabled={isSubmittingReply || !replyContent.trim()}
                 >
                   {isSubmittingReply ? (
@@ -208,6 +219,7 @@ export function CommentItem({
                   )}
                 </Button>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={() => {
@@ -219,12 +231,12 @@ export function CommentItem({
                   Hủy
                 </Button>
               </div>
-            </div>
+            </form>
           )}
 
           {showReplies && comment.replies && comment.replies.length > 0 && (
             <div className="mt-3 space-y-3">
-              {comment.replies.map((reply) => (
+              {comment.replies.slice(0, 1).map((reply) => (
                 <CommentItem
                   key={reply.id}
                   comment={reply as Comment}
@@ -236,6 +248,14 @@ export function CommentItem({
                   isReply={true}
                 />
               ))}
+              {comment.replies.length > 1 && (
+                <button
+                  onClick={() => setShowReplies(true)}
+                  className="text-xs text-gray-600 hover:text-blue-600 ml-6"
+                >
+                  Xem thêm {comment.replies.length - 1} câu trả lời
+                </button>
+              )}
             </div>
           )}
         </div>
