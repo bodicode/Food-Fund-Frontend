@@ -17,7 +17,6 @@ import {
   Tag,
   ChevronDown,
   Building2,
-  ShoppingCart,
   Award,
 } from "lucide-react";
 import Link from "next/link";
@@ -111,11 +110,8 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/expense-proofs" icon={FileText}>
         Chứng từ chi phí
       </NavLink>
-      <NavLink href="/admin/ingredient-requests" icon={ShoppingCart}>
-        Yêu cầu nguyên liệu
-      </NavLink>
       <NavLink href="/admin/operation-requests" icon={DollarSign}>
-        Giải ngân
+        Yêu cầu Giải ngân
       </NavLink>
       <NavLink href="/admin/fundraiser-wallets" icon={DollarSign}>
         Ví người gây quỹ

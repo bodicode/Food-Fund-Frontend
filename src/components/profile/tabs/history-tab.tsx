@@ -7,7 +7,6 @@ import { MyDonationsData } from "@/types/api/donation";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
 import { getStatusColorClass, translateTransactionStatus } from "@/lib/utils/status-utils";
-import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

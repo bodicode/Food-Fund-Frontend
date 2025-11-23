@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { operationRequestService } from "@/services/operation-request.service";
+import { ingredientRequestService } from "@/services/ingredient-request.service";
 import { OperationRequest, OperationRequestStats } from "@/types/api/operation-request";
+import { IngredientRequest } from "@/types/api/ingredient-request";
 import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +33,12 @@ import {
   TrendingUp,
   ExternalLink,
   Send,
+  ShoppingCart,
+  Eye,
 } from "lucide-react";
 import { UpdateOperationRequestDialog } from "@/components/admin/update-operation-request-dialog";
 import { CreateDisbursementDialog } from "@/components/admin/create-disbursement-dialog";
+import { AdminIngredientRequestDetailDialog } from "@/components/admin";
 
 const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
@@ -50,44 +55,80 @@ const statusLabels: Record<string, { label: string; color: string; icon: React.E
 
 export default function OperationRequestsPage() {
   const router = useRouter();
-  const [requests, setRequests] = useState<OperationRequest[]>([]);
-  const [stats, setStats] = useState<OperationRequestStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [selectedRequest, setSelectedRequest] = useState<OperationRequest | null>(null);
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [isDisbursementDialogOpen, setIsDisbursementDialogOpen] = useState(false);
-  const [selectedRequestForDisbursement, setSelectedRequestForDisbursement] =
+  const [activeTab, setActiveTab] = useState<"operation" | "ingredient">("operation");
+  
+  // Operation requests state
+  const [operationRequests, setOperationRequests] = useState<OperationRequest[]>([]);
+  const [operationStats, setOperationStats] = useState<OperationRequestStats | null>(null);
+  const [operationLoading, setOperationLoading] = useState(true);
+  const [operationSearchTerm, setOperationSearchTerm] = useState("");
+  const [operationStatusFilter, setOperationStatusFilter] = useState<string>("ALL");
+  const [selectedOperationRequest, setSelectedOperationRequest] = useState<OperationRequest | null>(null);
+  const [isOperationUpdateDialogOpen, setIsOperationUpdateDialogOpen] = useState(false);
+  const [isOperationDisbursementDialogOpen, setIsOperationDisbursementDialogOpen] = useState(false);
+  const [selectedOperationForDisbursement, setSelectedOperationForDisbursement] =
     useState<OperationRequest | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  // Ingredient requests state
+  const [ingredientRequests, setIngredientRequests] = useState<IngredientRequest[]>([]);
+  const [ingredientLoading, setIngredientLoading] = useState(true);
+  const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
+  const [ingredientStatusFilter, setIngredientStatusFilter] = useState<string>("ALL");
+  const [selectedIngredientRequestId, setSelectedIngredientRequestId] = useState<string | null>(null);
+  const [isIngredientDisbursementDialogOpen, setIsIngredientDisbursementDialogOpen] = useState(false);
+  const [selectedIngredientForDisbursement, setSelectedIngredientForDisbursement] =
+    useState<IngredientRequest | null>(null);
+
+  const fetchOperationData = async () => {
+    setOperationLoading(true);
     try {
       const [requestsData, statsData] = await Promise.all([
         operationRequestService.getOperationRequests({
-          status: statusFilter === "ALL" ? null : statusFilter,
+          status: operationStatusFilter === "ALL" ? null : operationStatusFilter,
           limit: 100,
           offset: 0,
         }),
         operationRequestService.getOperationRequestStats(),
       ]);
-      setRequests(requestsData);
-      setStats(statsData);
+      setOperationRequests(requestsData);
+      setOperationStats(statsData);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching operation data:", error);
     } finally {
-      setLoading(false);
+      setOperationLoading(false);
+    }
+  };
+
+  const fetchIngredientData = async () => {
+    setIngredientLoading(true);
+    try {
+      const data = await ingredientRequestService.getIngredientRequests({
+        filter: {
+          status: ingredientStatusFilter === "ALL" ? null : (ingredientStatusFilter as "PENDING" | "APPROVED" | "REJECTED" | "DISBURSED"),
+        },
+        limit: 100,
+        offset: 0,
+      });
+      setIngredientRequests(data);
+    } catch (error) {
+      console.error("Error fetching ingredient data:", error);
+    } finally {
+      setIngredientLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchOperationData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [operationStatusFilter]);
 
-  const filteredRequests = requests.filter((request) => {
-    const searchLower = searchTerm.toLowerCase();
+  useEffect(() => {
+    fetchIngredientData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ingredientStatusFilter]);
+
+  const filteredOperationRequests = operationRequests.filter((request) => {
+    const searchLower = operationSearchTerm.toLowerCase();
     return (
       request.title.toLowerCase().includes(searchLower) ||
       request.user.full_name.toLowerCase().includes(searchLower) ||
@@ -95,26 +136,49 @@ export default function OperationRequestsPage() {
     );
   });
 
-  const handleUpdateClick = (request: OperationRequest) => {
-    setSelectedRequest(request);
-    setIsUpdateDialogOpen(true);
+  const filteredIngredientRequests = ingredientRequests.filter((request) => {
+    const searchLower = ingredientSearchTerm.toLowerCase();
+    return (
+      request.campaignPhase.phaseName.toLowerCase().includes(searchLower) ||
+      request.kitchenStaff?.full_name.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const handleOperationUpdateClick = (request: OperationRequest) => {
+    setSelectedOperationRequest(request);
+    setIsOperationUpdateDialogOpen(true);
   };
 
-  const handleUpdateSuccess = () => {
-    fetchData();
-    setIsUpdateDialogOpen(false);
-    setSelectedRequest(null);
+  const handleOperationUpdateSuccess = () => {
+    fetchOperationData();
+    setIsOperationUpdateDialogOpen(false);
+    setSelectedOperationRequest(null);
   };
 
-  const handleDisbursementClick = (request: OperationRequest) => {
-    setSelectedRequestForDisbursement(request);
-    setIsDisbursementDialogOpen(true);
+  const handleOperationDisbursementClick = (request: OperationRequest) => {
+    setSelectedOperationForDisbursement(request);
+    setIsOperationDisbursementDialogOpen(true);
   };
 
-  const handleDisbursementSuccess = () => {
-    fetchData();
-    setIsDisbursementDialogOpen(false);
-    setSelectedRequestForDisbursement(null);
+  const handleOperationDisbursementSuccess = () => {
+    fetchOperationData();
+    setIsOperationDisbursementDialogOpen(false);
+    setSelectedOperationForDisbursement(null);
+  };
+
+  const handleIngredientDisbursementClick = (request: IngredientRequest) => {
+    setSelectedIngredientForDisbursement(request);
+    setIsIngredientDisbursementDialogOpen(true);
+  };
+
+  const handleIngredientDisbursementSuccess = () => {
+    fetchIngredientData();
+    setIsIngredientDisbursementDialogOpen(false);
+    setSelectedIngredientForDisbursement(null);
+  };
+
+  const handleIngredientRequestUpdated = () => {
+    fetchIngredientData();
   };
 
   return (
@@ -122,26 +186,60 @@ export default function OperationRequestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý giải ngân</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý giải ngân & Nguyên liệu</h1>
           <p className="text-gray-600 mt-1">
-            Duyệt và quản lý các yêu cầu giải ngân từ người gây quỹ
+            Duyệt và quản lý các yêu cầu giải ngân và nguyên liệu
           </p>
         </div>
-        <Button onClick={fetchData} variant="outline" className="gap-2">
+        <Button 
+          onClick={() => activeTab === "operation" ? fetchOperationData() : fetchIngredientData()} 
+          variant="outline" 
+          className="gap-2"
+        >
           <RefreshCw className="h-4 w-4" />
           Làm mới
         </Button>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-2 border-b">
+        <button
+          onClick={() => setActiveTab("operation")}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            activeTab === "operation"
+              ? "border-[#E77731] text-[#E77731]"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Yêu cầu giải ngân
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab("ingredient")}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            activeTab === "ingredient"
+              ? "border-[#E77731] text-[#E77731]"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Yêu cầu nguyên liệu
+          </div>
+        </button>
+      </div>
+
       {/* Stats Cards */}
-      {stats && (
+      {activeTab === "operation" && operationStats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-lg border p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Tổng yêu cầu</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {stats.totalRequests}
+                  {operationStats.totalRequests}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-blue-600" />
@@ -153,7 +251,7 @@ export default function OperationRequestsPage() {
               <div>
                 <p className="text-sm text-gray-600">Chờ duyệt</p>
                 <p className="text-2xl font-bold text-yellow-600 mt-1">
-                  {stats.pendingCount}
+                  {operationStats.pendingCount}
                 </p>
               </div>
               <Clock className="h-8 w-8 text-yellow-600" />
@@ -165,7 +263,7 @@ export default function OperationRequestsPage() {
               <div>
                 <p className="text-sm text-gray-600">Đã duyệt</p>
                 <p className="text-2xl font-bold text-green-600 mt-1">
-                  {stats.approvedCount}
+                  {operationStats.approvedCount}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
@@ -177,7 +275,7 @@ export default function OperationRequestsPage() {
               <div>
                 <p className="text-sm text-gray-600">Từ chối</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">
-                  {stats.rejectedCount}
+                  {operationStats.rejectedCount}
                 </p>
               </div>
               <XCircle className="h-8 w-8 text-red-600" />
@@ -192,13 +290,16 @@ export default function OperationRequestsPage() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Tìm kiếm theo tiêu đề, người tạo, chiến dịch..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={activeTab === "operation" ? "Tìm kiếm theo tiêu đề, người tạo, chiến dịch..." : "Tìm kiếm theo giai đoạn, người bếp..."}
+              value={activeTab === "operation" ? operationSearchTerm : ingredientSearchTerm}
+              onChange={(e) => activeTab === "operation" ? setOperationSearchTerm(e.target.value) : setIngredientSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select 
+            value={activeTab === "operation" ? operationStatusFilter : ingredientStatusFilter} 
+            onValueChange={(val) => activeTab === "operation" ? setOperationStatusFilter(val) : setIngredientStatusFilter(val)}
+          >
             <SelectTrigger className="w-full md:w-[200px]">
               <SelectValue placeholder="Lọc theo trạng thái" />
             </SelectTrigger>
@@ -207,144 +308,267 @@ export default function OperationRequestsPage() {
               <SelectItem value="PENDING">Chờ duyệt</SelectItem>
               <SelectItem value="APPROVED">Đã duyệt</SelectItem>
               <SelectItem value="REJECTED">Từ chối</SelectItem>
-              <SelectItem value="DISBURSED">Đã giải ngân</SelectItem>
+              {activeTab === "operation" && <SelectItem value="DISBURSED">Đã giải ngân</SelectItem>}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Requests List */}
-      <div className="bg-white rounded-lg border shadow-sm">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader animate loop className="h-8 w-8 text-color" />
-          </div>
-        ) : filteredRequests.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-            <p className="text-gray-500 font-medium">Không tìm thấy yêu cầu nào</p>
-          </div>
-        ) : (
-          <div className="divide-y">
-            {filteredRequests.map((request) => {
-              const status = statusLabels[request.status] || {
-                label: request.status,
-                color: "bg-gray-100 text-gray-800",
-                icon: Package,
-              };
-              const StatusIcon = status.icon;
+      {activeTab === "operation" ? (
+        <div className="bg-white rounded-lg border shadow-sm">
+          {operationLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader animate loop className="h-8 w-8 text-color" />
+            </div>
+          ) : filteredOperationRequests.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+              <p className="text-gray-500 font-medium">Không tìm thấy yêu cầu nào</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {filteredOperationRequests.map((request) => {
+                const status = statusLabels[request.status] || {
+                  label: request.status,
+                  color: "bg-gray-100 text-gray-800",
+                  icon: Package,
+                };
+                const StatusIcon = status.icon;
 
-              return (
-                <div
-                  key={request.id}
-                  className="p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {request.title}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <Badge variant="outline" className="text-xs">
-                          {request.campaignPhase.phaseName}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {expenseTypeLabels[request.expenseType]}
-                        </Badge>
-                        {request.campaignPhase?.campaign && (
-                          <button
-                            onClick={() => {
-                              const slug = createCampaignSlug(
-                                request.campaignPhase.campaign!.title,
-                                request.campaignPhase.campaign!.id
-                              );
-                              router.push(`/admin/campaigns/${slug}`);
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium"
+                return (
+                  <div
+                    key={request.id}
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {request.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <Badge variant="outline" className="text-xs">
+                            {request.campaignPhase.phaseName}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {expenseTypeLabels[request.expenseType]}
+                          </Badge>
+                          {request.campaignPhase?.campaign && (
+                            <button
+                              onClick={() => {
+                                const slug = createCampaignSlug(
+                                  request.campaignPhase.campaign!.title,
+                                  request.campaignPhase.campaign!.id
+                                );
+                                router.push(`/admin/campaigns/${slug}`);
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium"
+                            >
+                              • {request.campaignPhase.campaign.title}
+                              <ExternalLink className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <Badge className={`${status.color} border-0 gap-1`}>
+                        <StatusIcon className="h-3 w-3" />
+                        {status.label}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm mb-3">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span className="font-semibold text-gray-900">
+                          {formatCurrency(parseFloat(request.totalCost))}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span>{request?.user?.full_name}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Calendar className="h-4 w-4 text-orange-600" />
+                        <span>{formatDateTime(request.created_at)}</span>
+                      </div>
+
+                      <div className="flex justify-end gap-2">
+                        {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleOperationDisbursementClick(request)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
-                            • {request.campaignPhase.campaign.title}
-                            <ExternalLink className="h-3 w-3" />
-                          </button>
+                            Giải ngân
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => handleOperationUpdateClick(request)}
+                            className="btn-color"
+                          >
+                            Xử lý
+                          </Button>
                         )}
                       </div>
                     </div>
-                    <Badge className={`${status.color} border-0 gap-1`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {status.label}
-                    </Badge>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg border shadow-sm">
+          {ingredientLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader animate loop className="h-8 w-8 text-color" />
+            </div>
+          ) : filteredIngredientRequests.length === 0 ? (
+            <div className="text-center py-12">
+              <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+              <p className="text-gray-500 font-medium">Không tìm thấy yêu cầu nào</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {filteredIngredientRequests.map((request) => {
+                const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+                  PENDING: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800", icon: Clock },
+                  APPROVED: { label: "Đã duyệt", color: "bg-green-100 text-green-800", icon: CheckCircle },
+                  REJECTED: { label: "Từ chối", color: "bg-red-100 text-red-800", icon: XCircle },
+                  DISBURSED: { label: "Đã giải ngân", color: "bg-blue-100 text-blue-800", icon: Send },
+                };
+                const status = statusConfig[request.status] || {
+                  label: request.status,
+                  color: "bg-gray-100 text-gray-800",
+                  icon: Package,
+                };
+                const StatusIcon = status.icon;
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm mb-3">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <span className="font-semibold text-gray-900">
-                        {formatCurrency(parseFloat(request.totalCost))}
-                      </span>
+                return (
+                  <div
+                    key={request.id}
+                    className="p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {request.campaignPhase.phaseName}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <Badge variant="outline" className="text-xs">
+                            {request.kitchenStaff?.full_name}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Badge className={`${status.color} border-0 gap-1`}>
+                        <StatusIcon className="h-3 w-3" />
+                        {status.label}
+                      </Badge>
                     </div>
 
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <User className="h-4 w-4 text-blue-600" />
-                      <span>{request?.user?.full_name}</span>
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm mb-3">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span className="font-semibold text-gray-900">
+                          {formatCurrency(request.totalCost)}
+                        </span>
+                      </div>
 
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="h-4 w-4 text-orange-600" />
-                      <span>{formatDateTime(request.created_at)}</span>
-                    </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span>{request?.kitchenStaff?.full_name}</span>
+                      </div>
 
-                    <div className="flex justify-end gap-2">
-                      {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleDisbursementClick(request)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          Giải ngân
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpdateClick(request)}
-                          className="btn-color"
-                        >
-                          Xử lý
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Calendar className="h-4 w-4 text-orange-600" />
+                        <span>{formatDateTime(request.created_at)}</span>
+                      </div>
+
+                      <div className="flex justify-end gap-2">
+                        {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleIngredientDisbursementClick(request)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            Giải ngân
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedIngredientRequestId(request.id)}
+                            className="gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Xem & Duyệt
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Update Dialog */}
-      {selectedRequest && (
+      {/* Operation Update Dialog */}
+      {selectedOperationRequest && (
         <UpdateOperationRequestDialog
-          isOpen={isUpdateDialogOpen}
+          isOpen={isOperationUpdateDialogOpen}
           onClose={() => {
-            setIsUpdateDialogOpen(false);
-            setSelectedRequest(null);
+            setIsOperationUpdateDialogOpen(false);
+            setSelectedOperationRequest(null);
           }}
-          request={selectedRequest}
-          onSuccess={handleUpdateSuccess}
+          request={selectedOperationRequest}
+          onSuccess={handleOperationUpdateSuccess}
         />
       )}
 
-      {/* Disbursement Dialog */}
-      {selectedRequestForDisbursement && (
+      {/* Operation Disbursement Dialog */}
+      {selectedOperationForDisbursement && (
         <CreateDisbursementDialog
-          isOpen={isDisbursementDialogOpen}
+          isOpen={isOperationDisbursementDialogOpen}
           onClose={() => {
-            setIsDisbursementDialogOpen(false);
-            setSelectedRequestForDisbursement(null);
+            setIsOperationDisbursementDialogOpen(false);
+            setSelectedOperationForDisbursement(null);
           }}
-          requestId={selectedRequestForDisbursement.id}
+          requestId={selectedOperationForDisbursement.id}
           requestType="operation"
-          amount={String(selectedRequestForDisbursement.totalCost)}
-          campaignPhaseId={selectedRequestForDisbursement.campaignPhase.id}
-          onSuccess={handleDisbursementSuccess}
+          amount={String(selectedOperationForDisbursement.totalCost)}
+          campaignPhaseId={selectedOperationForDisbursement.campaignPhase.id}
+          onSuccess={handleOperationDisbursementSuccess}
+        />
+      )}
+
+      {/* Ingredient Detail Dialog */}
+      {selectedIngredientRequestId && (
+        <AdminIngredientRequestDetailDialog
+          isOpen={!!selectedIngredientRequestId}
+          onClose={() => setSelectedIngredientRequestId(null)}
+          requestId={selectedIngredientRequestId}
+          onUpdated={handleIngredientRequestUpdated}
+        />
+      )}
+
+      {/* Ingredient Disbursement Dialog */}
+      {selectedIngredientForDisbursement && (
+        <CreateDisbursementDialog
+          isOpen={isIngredientDisbursementDialogOpen}
+          onClose={() => {
+            setIsIngredientDisbursementDialogOpen(false);
+            setSelectedIngredientForDisbursement(null);
+          }}
+          requestId={selectedIngredientForDisbursement.id}
+          requestType="ingredient"
+          amount={String(selectedIngredientForDisbursement.totalCost)}
+          campaignPhaseId={selectedIngredientForDisbursement.campaignPhase.id}
+          onSuccess={handleIngredientDisbursementSuccess}
         />
       )}
     </div>
