@@ -22,12 +22,16 @@ class OperationRequestService {
     input: CreateOperationRequestInput
   ): Promise<OperationRequest | null> {
     try {
-      const { data } = await client.mutate<CreateOperationRequestResponse>({
+      const { data, error } = await client.mutate<CreateOperationRequestResponse>({
         mutation: CREATE_OPERATION_REQUEST,
         variables: { input },
       });
 
-      return data?.createOperationRequest || null;
+      if (!data?.createOperationRequest) {
+        return Promise.reject(error);
+      }
+
+      return data.createOperationRequest;
     } catch (error) {
       console.error("Error creating operation request:", error);
       throw error;
@@ -70,12 +74,16 @@ class OperationRequestService {
     input: UpdateOperationRequestStatusInput
   ): Promise<boolean> {
     try {
-      const { data } = await client.mutate<UpdateOperationRequestStatusResponse>({
+      const { data, error } = await client.mutate<UpdateOperationRequestStatusResponse>({
         mutation: UPDATE_OPERATION_REQUEST_STATUS,
         variables: { input },
       });
 
-      return !!data?.updateOperationRequestStatus;
+      if (!data?.updateOperationRequestStatus) {
+        return Promise.reject(error);
+      }
+
+      return !!data.updateOperationRequestStatus;
     } catch (error) {
       console.error("Error updating operation request status:", error);
       throw error;

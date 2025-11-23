@@ -139,7 +139,7 @@ export function OperationRequestDetailDialog({
                 <div className="flex-1">
                   <p className="text-sm text-gray-600 mb-1">Người tạo</p>
                   <p className="font-medium text-gray-900">
-                    {request.user.full_name}
+                    {request?.user?.full_name}
                   </p>
                 </div>
               </div>

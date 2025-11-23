@@ -1,8 +1,4 @@
-// ==============================
-// INGREDIENT REQUEST TYPES
-// ==============================
-
-export type IngredientRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type IngredientRequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "DISBURSED";
 
 export interface IngredientRequestItem {
   id: string;

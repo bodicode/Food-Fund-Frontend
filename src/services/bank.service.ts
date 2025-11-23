@@ -58,9 +58,6 @@ export const bankService = {
       });
 
       const data = await response.json();
-      
-      console.log("Bank lookup response:", data);
-
       // Check API response code first (API returns 200 but code can be 422)
       if (data.code === 422 || !data.success) {
         throw new Error(
@@ -73,7 +70,7 @@ export const bankService = {
       // Check if data exists and has results
       if (data.data) {
         const accountData = Array.isArray(data.data) ? data.data[0] : data.data;
-        
+
         if (accountData && accountData.ownerName) {
           return {
             accountNumber: accountData.account || account,

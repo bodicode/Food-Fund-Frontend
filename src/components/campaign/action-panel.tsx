@@ -15,22 +15,25 @@ import { Progress } from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 
 interface ActionPanelProps {
   campaignId?: string;
+  campaignTitle?: string;
   campaignStatus?:
-    | "PENDING"
-    | "APPROVED"
-    | "ACTIVE"
-    | "REJECTED"
-    | "CANCELLED"
-    | "COMPLETED"
-    | "PROCESSING";
+  | "PENDING"
+  | "APPROVED"
+  | "ACTIVE"
+  | "REJECTED"
+  | "CANCELLED"
+  | "COMPLETED"
+  | "PROCESSING";
   canEdit: boolean;
   onEdit: () => void;
   onDirection?: () => void;
   targetAmount?: number;
   raisedAmount?: number;
+  campaignFundingProgress?: number;
   daysLeft?: number | string;
   location?: string;
   goal?: string;
@@ -43,12 +46,14 @@ interface ActionPanelProps {
 
 export function ActionPanel({
   campaignId,
+  campaignTitle,
   campaignStatus,
   canEdit,
   onEdit,
   onDirection,
   targetAmount = 0,
   raisedAmount = 0,
+  campaignFundingProgress,
   daysLeft = 0,
   location,
   goal,
@@ -59,12 +64,10 @@ export function ActionPanel({
   fundraisingEndDate,
 }: ActionPanelProps) {
   const router = useRouter();
-  const progress =
-    targetAmount > 0 ? Math.min((raisedAmount / targetAmount) * 100, 100) : 0;
+  const progress = campaignFundingProgress ?? 0;
 
   const isCampaignEnded = fundraisingEndDate && new Date(fundraisingEndDate) <= new Date();
-  const fundingProgress = targetAmount > 0 ? (raisedAmount / targetAmount) * 100 : 0;
-  const isFundingComplete = fundingProgress >= 100;
+  const isFundingComplete = progress >= 100;
   const isDonationEnabled = campaignStatus === "ACTIVE" && !isCampaignEnded && !isFundingComplete;
 
   const getDonationButtonText = () => {
@@ -80,7 +83,7 @@ export function ActionPanel({
       }
       return "Đang trong quá trình vận hành";
     }
-    
+
     if (isFundingComplete && !isCampaignEnded) {
       return "Chiến dịch đã nhận đủ số tiền gây quỹ";
     }
@@ -104,7 +107,8 @@ export function ActionPanel({
     if (onViewStatement) {
       onViewStatement();
     } else if (campaignId) {
-      router.push(`/campaign/${campaignId}/statement`);
+      const slug = campaignTitle ? createCampaignSlug(campaignTitle, campaignId) : campaignId;
+      router.push(`/campaign/${slug}/statement`);
     }
   };
 
@@ -207,8 +211,8 @@ export function ActionPanel({
             onClick={handleDonate}
             disabled={!isDonationEnabled}
             className={`flex-1 font-semibold transition-all ${isDonationEnabled
-                ? "bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white hover:opacity-90"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white hover:opacity-90"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
           >
             {getDonationButtonText()}

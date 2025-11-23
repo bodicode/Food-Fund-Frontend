@@ -13,6 +13,7 @@ export const GET_MY_PROFILE = gql`
         id
         is_active
         phone_number
+        role
         updated_at
         user_name
         badge {

@@ -27,8 +27,10 @@ import {
   Filter,
   User,
   Calendar,
+  Send,
 } from "lucide-react";
 import { AdminIngredientRequestDetailDialog } from "@/components/admin";
+import { CreateDisbursementDialog } from "@/components/admin/create-disbursement-dialog";
 
 const statusConfig: Record<
   IngredientRequestStatus,
@@ -49,6 +51,11 @@ const statusConfig: Record<
     color: "bg-red-100 text-red-800",
     icon: XCircle,
   },
+  DISBURSED: {
+    label: "Đã giải ngân",
+    color: "bg-blue-100 text-blue-800",
+    icon: Send,
+  },
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -60,6 +67,9 @@ export default function AdminIngredientRequestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<IngredientRequestStatus | "ALL">("ALL");
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [isDisbursementDialogOpen, setIsDisbursementDialogOpen] = useState(false);
+  const [selectedRequestForDisbursement, setSelectedRequestForDisbursement] =
+    useState<IngredientRequest | null>(null);
 
   const fetchAllRequests = React.useCallback(async () => {
     setLoading(true);
@@ -107,6 +117,17 @@ export default function AdminIngredientRequestsPage() {
 
   const handleRequestUpdated = () => {
     fetchAllRequests();
+  };
+
+  const handleDisbursementClick = (request: IngredientRequest) => {
+    setSelectedRequestForDisbursement(request);
+    setIsDisbursementDialogOpen(true);
+  };
+
+  const handleDisbursementSuccess = () => {
+    fetchAllRequests();
+    setIsDisbursementDialogOpen(false);
+    setSelectedRequestForDisbursement(null);
   };
 
   const stats = {
@@ -274,7 +295,7 @@ export default function AdminIngredientRequestsPage() {
                           <div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">Người bếp</div>
                             <div className="font-medium text-gray-900 dark:text-white">
-                              {request.kitchenStaff.full_name}
+                              {request?.kitchenStaff?.full_name}
                             </div>
                           </div>
                         </div>
@@ -298,15 +319,27 @@ export default function AdminIngredientRequestsPage() {
                       </div>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedRequestId(request.id)}
-                      className="gap-2 ml-4"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Xem & Duyệt
-                    </Button>
+                    <div className="flex gap-2 ml-4">
+                      {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleDisbursementClick(request)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Giải ngân
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedRequestId(request.id)}
+                          className="gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Xem & Duyệt
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -332,6 +365,22 @@ export default function AdminIngredientRequestsPage() {
           onClose={() => setSelectedRequestId(null)}
           requestId={selectedRequestId}
           onUpdated={handleRequestUpdated}
+        />
+      )}
+
+      {/* Disbursement Dialog */}
+      {selectedRequestForDisbursement && (
+        <CreateDisbursementDialog
+          isOpen={isDisbursementDialogOpen}
+          onClose={() => {
+            setIsDisbursementDialogOpen(false);
+            setSelectedRequestForDisbursement(null);
+          }}
+          requestId={selectedRequestForDisbursement.id}
+          requestType="ingredient"
+          amount={String(selectedRequestForDisbursement.totalCost)}
+          campaignPhaseId={selectedRequestForDisbursement.campaignPhase.id}
+          onSuccess={handleDisbursementSuccess}
         />
       )}
     </div>

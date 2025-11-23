@@ -105,12 +105,10 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
 
   const handleCommentAdded = () => {
     setCommentCount(commentCount + 1);
-    onPostUpdate?.();
   };
 
   const handleCommentDeleted = () => {
     setCommentCount(Math.max(0, commentCount - 1));
-    onPostUpdate?.();
   };
 
   const handleUpdatePost = async () => {

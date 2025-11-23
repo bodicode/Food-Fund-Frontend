@@ -6,6 +6,7 @@ import { ingredientRequestService } from "@/services/ingredient-request.service"
 import { IngredientRequest, IngredientRequestStatus } from "@/types/api/ingredient-request";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, ExternalLink, Send } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdminIngredientRequestDetailDialogProps {
@@ -62,6 +63,11 @@ const statusConfig: Record<
         label: "Từ chối",
         color: "bg-red-100 text-red-800",
         icon: XCircle,
+    },
+    DISBURSED: {
+        label: "Đã giải ngân",
+        color: "bg-blue-100 text-blue-800",
+        icon: Send,
     },
 };
 
@@ -180,8 +186,14 @@ export function AdminIngredientRequestDetailDialog({
                                             <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Chiến dịch</div>
                                             <button
                                                 onClick={() => {
-                                                    router.push(`/admin/campaigns/${request.campaignPhase.campaign?.id}`);
-                                                    onClose();
+                                                    if (request.campaignPhase.campaign?.title && request.campaignPhase.campaign?.id) {
+                                                        const slug = createCampaignSlug(
+                                                            request.campaignPhase.campaign.title,
+                                                            request.campaignPhase.campaign.id
+                                                        );
+                                                        router.push(`/admin/campaigns/${slug}`);
+                                                        onClose();
+                                                    }
                                                 }}
                                                 className="font-bold text-[#ad4e28] dark:text-orange-500 mt-1 text-lg hover:underline flex items-center gap-2 group"
                                             >
@@ -197,7 +209,7 @@ export function AdminIngredientRequestDetailDialog({
                                     <div>
                                         <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Người bếp</div>
                                         <div className="font-bold text-gray-900 dark:text-white mt-1">
-                                            {request.kitchenStaff.full_name}
+                                            {request?.kitchenStaff?.full_name}
                                         </div>
                                     </div>
                                 </div>

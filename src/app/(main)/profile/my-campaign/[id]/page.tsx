@@ -50,6 +50,7 @@ import { CreateOperationRequestDialog } from "@/components/campaign/create-opera
 import { OperationRequestList } from "@/components/campaign/operation-request-list";
 import { ShareDialog } from "@/components/campaign/share-dialog";
 import { ExtendCampaignDialog } from "@/components/campaign/extend-campaign-dialog";
+import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -75,7 +76,16 @@ export default function MyCampaignDetailPage() {
     if (!id) return;
     (async () => {
       try {
-        const data = await campaignService.getCampaignById(id as string);
+        // Get actual campaign ID from sessionStorage
+        const slug = id as string;
+        const campaignId = getCampaignIdFromSlug(slug);
+        
+        if (!campaignId) {
+          setLoading(false);
+          return;
+        }
+        
+        const data = await campaignService.getCampaignById(campaignId);
         setCampaign(data);
       } catch (err) {
         console.error("Error fetching campaign:", err);
@@ -103,7 +113,7 @@ export default function MyCampaignDetailPage() {
 
   const raised = toNumber(campaign.receivedAmount, 0);
   const goal = Math.max(toNumber(campaign.targetAmount, 0), 1);
-  const progress = calcProgress(campaign.receivedAmount, campaign.targetAmount);
+  const progress = campaign.fundingProgress !== undefined ? campaign.fundingProgress : calcProgress(campaign.receivedAmount, campaign.targetAmount);
   const timeLeft = calcDaysLeft(
     campaign.fundraisingEndDate,
     campaign.fundraisingStartDate
@@ -405,15 +415,18 @@ export default function MyCampaignDetailPage() {
           <aside className="space-y-6 sticky top-28 h-fit self-start">
             <ActionPanel
               campaignId={campaign.id}
+              campaignTitle={campaign.title}
               campaignStatus={campaign.status}
-              organizationName={campaign.creator.full_name}
+              organizationName={campaign?.creator?.full_name}
               canEdit={campaign.status === "PENDING"}
-              onEdit={() =>
-                router.push(`/profile/my-campaign/${campaign.id}/edit`)
-              }
+              onEdit={() => {
+                const slug = createCampaignSlug(campaign.title, campaign.id);
+                router.push(`/profile/my-campaign/${slug}/edit`);
+              }}
               goal={formatCurrency(goal)}
               targetAmount={goal}
               raisedAmount={raised}
+              campaignFundingProgress={campaign.fundingProgress}
               daysLeft={timeLeft}
               fundraisingEndDate={campaign.fundraisingEndDate}
             />
@@ -467,11 +480,13 @@ export default function MyCampaignDetailPage() {
                         label: "Bắt đầu gây quỹ",
                         date: formatDateTime(campaign.fundraisingStartDate),
                         status:
-                          fundEnd && fundEnd <= now
+                          Math.round(progress) >= 100
                             ? "completed"
-                            : fundStart && fundEnd && fundStart <= now && now < fundEnd
-                              ? "current"
-                              : "upcoming",
+                            : fundEnd && fundEnd <= now
+                              ? "completed"
+                              : fundStart && fundEnd && fundStart <= now && now < fundEnd
+                                ? "current"
+                                : "upcoming",
                       },
                       {
                         label: "Kết thúc gây quỹ",

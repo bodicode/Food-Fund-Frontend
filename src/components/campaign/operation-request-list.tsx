@@ -27,6 +27,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   APPROVED: { label: "Đã duyệt", color: "bg-green-100 text-green-800" },
   REJECTED: { label: "Từ chối", color: "bg-red-100 text-red-800" },
   COMPLETED: { label: "Hoàn thành", color: "bg-blue-100 text-blue-800" },
+  DISBURSED: { label: "Đã giải ngân", color: "bg-blue-100 text-blue-800" }
 };
 
 export function OperationRequestList({ campaignId, refreshKey }: OperationRequestListProps) {
@@ -113,7 +114,7 @@ export function OperationRequestList({ campaignId, refreshKey }: OperationReques
 
                 <div className="flex items-center gap-2 text-gray-600">
                   <User className="h-4 w-4 text-blue-600" />
-                  <span>{request.user.full_name}</span>
+                  <span>{request?.user?.full_name}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-gray-600">

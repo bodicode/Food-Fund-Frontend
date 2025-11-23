@@ -59,7 +59,9 @@ export function CommentSection({
     }, 300);
   };
 
-  const handleSubmitComment = async () => {
+  const handleSubmitComment = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    
     // Check if user is authenticated before allowing comment submission
     const canProceed = requireAuth(() => {
       if (!newComment.trim()) {
@@ -191,7 +193,7 @@ export function CommentSection({
   return (
     <div className="space-y-4">
       {/* Comment Input */}
-      <div className="flex gap-2">
+      <form onSubmit={handleSubmitComment} className="flex gap-2">
         <Textarea
           placeholder="Viết bình luận..."
           value={newComment}
@@ -200,9 +202,9 @@ export function CommentSection({
           disabled={isSubmitting}
         />
         <Button
-          onClick={handleSubmitComment}
+          type="submit"
           disabled={isSubmitting || !newComment.trim()}
-          className="self-end"
+          className="self-end btn-color"
         >
           {isSubmitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -210,7 +212,7 @@ export function CommentSection({
             <Send className="w-4 h-4" />
           )}
         </Button>
-      </div>
+      </form>
 
       {/* Comments List */}
       <div className="space-y-4">

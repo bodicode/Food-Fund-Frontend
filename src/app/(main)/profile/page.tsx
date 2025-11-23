@@ -25,8 +25,10 @@ import { translateMessage } from "@/lib/translator";
 import { UserProfile } from "@/types/api/user";
 import { userService } from "@/services/user.service";
 import { OrganizationTab } from "@/components/profile/tabs/organization-tab";
+import { MyDisbursementsTab } from "@/components/campaign/my-disbursements-tab";
+import { CreditCard } from "lucide-react";
 
-type TabKey = "profile" | "campaigns" | "history" | "wallet";
+type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements";
 
 const SidebarContent = ({
   profile,
@@ -42,7 +44,10 @@ const SidebarContent = ({
   const navItems = [
     { key: "profile", label: "Hồ sơ cá nhân", icon: UserIcon },
     ...(profile?.role === "FUNDRAISER"
-      ? [{ key: "wallet", label: "Ví của tôi", icon: WalletIcon }]
+      ? [
+          { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
+          { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
+        ]
       : []),
     { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
     { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
@@ -132,7 +137,13 @@ export default function ProfilePage() {
       organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
       campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
       ...(profile?.role === "FUNDRAISER"
-        ? { wallet: { component: <WalletTab />, title: "Ví của tôi" } }
+        ? {
+            wallet: { component: <WalletTab />, title: "Ví của tôi" },
+            disbursements: {
+              component: <MyDisbursementsTab />,
+              title: "Yêu cầu giải ngân",
+            },
+          }
         : {}),
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
     }),
@@ -143,8 +154,11 @@ export default function ProfilePage() {
     const tabFromUrl = searchParams.get("tab") as TabKey | null;
     if (tabFromUrl && TABS[tabFromUrl]) {
       setActiveTab(tabFromUrl);
-    } else if (tabFromUrl === "wallet" && profile?.role !== "FUNDRAISER") {
-      // Redirect to profile if trying to access wallet without FUNDRAISER role
+    } else if (
+      (tabFromUrl === "wallet" || tabFromUrl === "disbursements") &&
+      profile?.role !== "FUNDRAISER"
+    ) {
+      // Redirect to profile if trying to access wallet/disbursements without FUNDRAISER role
       router.push("/profile?tab=profile");
     }
   }, [searchParams, TABS, profile?.role, router]);

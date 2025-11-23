@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import {
   Select,
   SelectContent,
@@ -656,10 +657,15 @@ export default function AdminDashboard() {
 
         <Card
           className="border-0 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-          onClick={() =>
-            platformStats?.performance.mostFundedCampaign &&
-            router.push(`/admin/campaigns/${platformStats.performance.mostFundedCampaign.id}`)
-          }
+          onClick={() => {
+            if (platformStats?.performance.mostFundedCampaign) {
+              const slug = createCampaignSlug(
+                platformStats.performance.mostFundedCampaign.title,
+                platformStats.performance.mostFundedCampaign.id
+              );
+              router.push(`/admin/campaigns/${slug}`);
+            }
+          }}
         >
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2 mb-1">
@@ -720,7 +726,10 @@ export default function AdminDashboard() {
                     <div
                       key={c.id}
                       className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/admin/campaigns/${c.id}`)}
+                      onClick={() => {
+                        const slug = createCampaignSlug(c.title, c.id);
+                        router.push(`/admin/campaigns/${slug}`);
+                      }}
                     >
                       <div className="relative w-full sm:w-20 h-40 sm:h-20 rounded-lg overflow-hidden shrink-0">
                         <Image
