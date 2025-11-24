@@ -35,6 +35,15 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState("");
 
+  // Password change states
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordVerified, setPasswordVerified] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+
   const nameInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,7 +72,6 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
     const action = searchParams.get("action");
     if (action === "upload-avatar") {
       setIsEditing(true);
-      // Scroll to avatar section
       setTimeout(() => {
         const avatarSection = document.querySelector("[data-avatar-section]");
         if (avatarSection) {
@@ -225,6 +233,95 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
       setIsSaving(false);
       setIsEditing(false);
     }
+  };
+
+  const handleVerifyCurrentPassword = async () => {
+    setPasswordError("");
+
+    if (!currentPassword) {
+      setPasswordError("Vui lòng nhập mật khẩu hiện tại");
+      return;
+    }
+
+    try {
+      setIsVerifying(true);
+      const checkResult = await userService.checkCurrentPassword(currentPassword);
+
+      if (checkResult.success) {
+        setPasswordVerified(true);
+        toast.success("Xác thực thành công", {
+          description: "Bạn có thể nhập mật khẩu mới",
+        });
+      } else {
+        toast.error("Mật khẩu không chính xác");
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Có lỗi xảy ra";
+      toast.error("Có lỗi xảy ra", {
+        description: errorMsg,
+      });
+      setPasswordError(errorMsg);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+
+    // Validate inputs
+    if (!newPassword || !confirmPassword) {
+      setPasswordError("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError("Mật khẩu mới phải có ít nhất 6 ký tự");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      // Change password
+      const result = await userService.changePassword(newPassword, confirmPassword);
+      if (result.success) {
+        toast.success("Đổi mật khẩu thành công 🎉", {
+          description: result.message,
+        });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setPasswordVerified(false);
+        setIsChangingPassword(false);
+      } else {
+        toast.error("Không thể đổi mật khẩu", {
+          description: result.message,
+        });
+        setPasswordError(result.message);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Có lỗi xảy ra";
+      toast.error("Có lỗi xảy ra", {
+        description: errorMsg,
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelPasswordChange = () => {
+    setIsChangingPassword(false);
+    setPasswordVerified(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
   };
 
   if (!user) return <Loader className="w-5 h-5" animate animateOnView loop />;
@@ -410,6 +507,136 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
             className="mt-1 bg-gray-50"
           />
         </div>
+      </div>
+
+      {/* Change Password Section */}
+      <div className="mt-8 pt-8 border-t">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Đổi mật khẩu</h3>
+          {!isChangingPassword && (
+            <Button
+              variant="outline"
+              onClick={() => setIsChangingPassword(true)}
+            >
+              Đổi mật khẩu
+            </Button>
+          )}
+        </div>
+
+        {isChangingPassword && (
+          <Card className="border-2">
+            <CardContent className="p-6 space-y-4">
+              {/* Step 1: Verify current password */}
+              {!passwordVerified ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mật khẩu hiện tại <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value);
+                        setPasswordError("");
+                      }}
+                      placeholder="Nhập mật khẩu hiện tại để xác thực"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleVerifyCurrentPassword();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelPasswordChange}
+                      disabled={isVerifying}
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      className="btn-color flex items-center gap-2"
+                      onClick={handleVerifyCurrentPassword}
+                      disabled={isVerifying || !currentPassword}
+                    >
+                      {isVerifying && <Loader className="w-4 h-4 animate-spin" />}
+                      Xác thực mật khẩu
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Step 2: Enter new password */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-green-700 font-medium">
+                      ✓ Mật khẩu hiện tại đã được xác thực
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mật khẩu mới <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setPasswordError("");
+                      }}
+                      placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Xác nhận mật khẩu mới <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordError("");
+                      }}
+                      placeholder="Nhập lại mật khẩu mới"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleChangePassword();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {passwordError && (
+                    <p className="text-red-500 text-sm">{passwordError}</p>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelPasswordChange}
+                      disabled={isSaving}
+                    >
+                      Hủy
+                    </Button>
+                    <Button
+                      className="btn-color flex items-center gap-2"
+                      onClick={handleChangePassword}
+                      disabled={isSaving || !newPassword || !confirmPassword}
+                    >
+                      {isSaving && <Loader className="w-4 h-4 animate-spin" />}
+                      Xác nhận đổi mật khẩu
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Badge Section */}

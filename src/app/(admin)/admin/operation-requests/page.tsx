@@ -39,6 +39,9 @@ import {
 import { UpdateOperationRequestDialog } from "@/components/admin/update-operation-request-dialog";
 import { CreateDisbursementDialog } from "@/components/admin/create-disbursement-dialog";
 import { AdminIngredientRequestDetailDialog } from "@/components/admin";
+import { DisbursementDetailDialog } from "@/components/admin/disbursement-detail-dialog";
+import { disbursementService } from "@/services/disbursement.service";
+import { toast } from "sonner";
 
 const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
@@ -77,6 +80,9 @@ export default function OperationRequestsPage() {
   const [isIngredientDisbursementDialogOpen, setIsIngredientDisbursementDialogOpen] = useState(false);
   const [selectedIngredientForDisbursement, setSelectedIngredientForDisbursement] =
     useState<IngredientRequest | null>(null);
+  
+  // Disbursement detail state
+  const [selectedDisbursementId, setSelectedDisbursementId] = useState<string | null>(null);
 
   const fetchOperationData = async () => {
     setOperationLoading(true);
@@ -178,6 +184,19 @@ export default function OperationRequestsPage() {
 
   const handleIngredientRequestUpdated = () => {
     fetchIngredientData();
+  };
+
+  const handleViewDisbursementDetail = async (requestId: string, requestType: "operation" | "ingredient") => {
+    try {
+      const inflowId = await disbursementService.getInflowIdByRequestId(requestId, requestType);
+      if (inflowId) {
+        setSelectedDisbursementId(inflowId);
+      } else {
+        toast.error("Không tìm thấy thông tin giải ngân");
+      }
+    } catch {
+      toast.error("Có lỗi khi tải thông tin giải ngân");
+    }
   };
 
   return (
@@ -394,7 +413,17 @@ export default function OperationRequestsPage() {
                       </div>
 
                       <div className="flex justify-end gap-2">
-                        {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
+                        {request.status === "DISBURSED" ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDisbursementDetail(request.id, "operation")}
+                            className="gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Xem chi tiết
+                          </Button>
+                        ) : request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
                           <Button
                             size="sm"
                             onClick={() => handleOperationDisbursementClick(request)}
@@ -487,7 +516,17 @@ export default function OperationRequestsPage() {
                       </div>
 
                       <div className="flex justify-end gap-2">
-                        {request.status === "DISBURSED" || request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
+                        {request.status === "DISBURSED" ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDisbursementDetail(request.id, "ingredient")}
+                            className="gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Xem chi tiết
+                          </Button>
+                        ) : request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
                           <Button
                             size="sm"
                             onClick={() => handleIngredientDisbursementClick(request)}
@@ -568,6 +607,15 @@ export default function OperationRequestsPage() {
           amount={String(selectedIngredientForDisbursement.totalCost)}
           campaignPhaseId={selectedIngredientForDisbursement.campaignPhase.id}
           onSuccess={handleIngredientDisbursementSuccess}
+        />
+      )}
+
+      {/* Disbursement Detail Dialog */}
+      {selectedDisbursementId && (
+        <DisbursementDetailDialog
+          isOpen={!!selectedDisbursementId}
+          onClose={() => setSelectedDisbursementId(null)}
+          disbursementId={selectedDisbursementId}
         />
       )}
     </div>

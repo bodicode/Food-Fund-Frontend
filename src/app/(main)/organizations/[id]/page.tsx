@@ -43,13 +43,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const slugToName = (slug: string) => {
-  return slug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
 export default function OrganizationDetailPage() {
   const params = useParams();
   const router = useRouter();

@@ -6,6 +6,8 @@ import { UserProfile, UpdateMyProfileInput, UpdateUserAccountInput } from "@/typ
 import { UPDATE_MY_PROFILE } from "@/graphql/mutations/auth/update-my-profile";
 import { UPDATE_USER_ACCOUNT } from "@/graphql/mutations/auth/update-user-account";
 import { GENERATE_AVATAR_UPLOAD_URL } from "@/graphql/mutations/auth/generate-avatar-upload-url";
+import { CHECK_CURRENT_PASSWORD } from "@/graphql/mutations/auth/check-current-password";
+import { CHANGE_PASSWORD } from "@/graphql/mutations/auth/change-password";
 
 export const userService = {
   getProfile: async (): Promise<UserProfile | null> => {
@@ -108,5 +110,69 @@ export const userService = {
     });
 
     return data?.generateAvatarUploadUrl?.uploadUrl ?? null;
+  },
+
+  checkCurrentPassword: async (
+    currentPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { data } = await client.mutate<{
+        checkCurrentPassword: { message: string };
+      }>({
+        mutation: CHECK_CURRENT_PASSWORD,
+        variables: {
+          input: { currentPassword },
+        },
+      });
+
+      if (data?.checkCurrentPassword) {
+        const message = data.checkCurrentPassword.message;
+        
+        // Check if message indicates invalid password
+        if (message.toLowerCase().includes("invalid")) {
+          return { success: false, message };
+        }
+        
+        return { success: true, message };
+      }
+      return { success: false, message: "Không thể xác thực mật khẩu" };
+    } catch (error: unknown) {
+      // Extract message from GraphQL error
+      const err = error as { graphQLErrors?: Array<{ message: string }>; message?: string };
+      const message =
+        err?.graphQLErrors?.[0]?.message ||
+        err?.message ||
+        "Mật khẩu không chính xác";
+      return { success: false, message };
+    }
+  },
+
+  changePassword: async (
+    newPassword: string,
+    confirmNewPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { data } = await client.mutate<{
+        changePassword: { message: string; timestamp: string };
+      }>({
+        mutation: CHANGE_PASSWORD,
+        variables: {
+          input: { newPassword, confirmNewPassword },
+        },
+      });
+
+      if (data?.changePassword) {
+        return { success: true, message: data.changePassword.message };
+      }
+      return { success: false, message: "Không thể đổi mật khẩu" };
+    } catch (error: unknown) {
+      // Extract message from GraphQL error
+      const err = error as { graphQLErrors?: Array<{ message: string }>; message?: string };
+      const message =
+        err?.graphQLErrors?.[0]?.message ||
+        err?.message ||
+        "Có lỗi xảy ra khi đổi mật khẩu";
+      return { success: false, message };
+    }
   },
 };
