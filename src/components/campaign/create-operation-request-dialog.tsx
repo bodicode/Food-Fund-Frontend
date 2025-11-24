@@ -40,7 +40,7 @@ export function CreateOperationRequestDialog({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     campaignPhaseId: "",
-    expenseType: "" as "COOKING" | "DELIVERY" | "INGREDIENT" | "",
+    expenseType: "" as "COOKING" | "DELIVERY" | "",
     title: "",
     totalCost: "",
   });
@@ -82,10 +82,7 @@ export function CreateOperationRequestDialog({
     try {
       await operationRequestService.createOperationRequest({
         campaignPhaseId: formData.campaignPhaseId,
-        expenseType: formData.expenseType as
-          | "COOKING"
-          | "DELIVERY"
-          | "INGREDIENT",
+        expenseType: formData.expenseType as "COOKING" | "DELIVERY",
         title: formData.title,
         totalCost: formData.totalCost,
       });

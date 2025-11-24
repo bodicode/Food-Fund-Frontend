@@ -4,9 +4,9 @@ export const GET_MY_WALLET = gql`
   query GetMyWallet {
     getMyWallet {
       balance
-      createdAt
+      created_at
       id
-      updatedAt
+      updated_at
       userId
       walletType
     }

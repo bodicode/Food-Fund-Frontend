@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,16 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { UserProfile } from "@/types/api/user";
 import { userService } from "@/services/user.service";
 import { cleanInput } from "@/lib/utils/utils";
+import { buildCoverUrl } from "@/lib/build-image";
 import { toast } from "sonner";
-import { Award } from "lucide-react";
+import { Award, Upload, X } from "lucide-react";
 
-export function ProfileTab() {
+interface ProfileTabProps {
+  onProfileUpdate?: () => void;
+}
+
+export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
@@ -25,8 +32,11 @@ export function ProfileTab() {
   const [address, setAddress] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [previewAvatar, setPreviewAvatar] = useState("");
 
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     userService.getMyProfile().then((profile) => {
@@ -37,6 +47,7 @@ export function ProfileTab() {
         setPhone(profile.phone_number || "");
         setBio(profile.bio || "");
         setAvatar(profile.avatar_url || "");
+        setPreviewAvatar(profile.avatar_url || "");
         setAddress(profile.address || "");
       }
     });
@@ -47,6 +58,20 @@ export function ProfileTab() {
       nameInputRef.current.focus();
     }
   }, [isEditing]);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "upload-avatar") {
+      setIsEditing(true);
+      // Scroll to avatar section
+      setTimeout(() => {
+        const avatarSection = document.querySelector("[data-avatar-section]");
+        if (avatarSection) {
+          avatarSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    }
+  }, [searchParams]);
 
   const validatePhone = (value: string) => {
     if (!value) return "";
@@ -73,6 +98,84 @@ export function ProfileTab() {
 
     setPhone(formatted);
     setPhoneError(validatePhone(formatted));
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn file hình ảnh");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Kích thước file không được vượt quá 5MB");
+      return;
+    }
+
+    // Create preview immediately using FileReader
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const previewUrl = reader.result as string;
+      setPreviewAvatar(previewUrl);
+
+      try {
+        setIsUploadingAvatar(true);
+
+        // Generate upload URL
+        const uploadInfo = await userService.generateAvatarUploadUrl(
+          file.type
+        );
+
+        if (!uploadInfo) {
+          toast.error("Không thể tạo URL upload");
+          return;
+        }
+
+        // Upload file to S3
+        const uploadResponse = await fetch(uploadInfo.uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type,
+            "x-amz-acl": "public-read",
+          },
+          body: file,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text().catch(() => "");
+          console.error("Upload error:", uploadResponse.status, errorText);
+          toast.error("Lỗi khi upload file");
+          return;
+        }
+
+        // Build full CDN URL from fileKey
+        const fullCdnUrl = buildCoverUrl(uploadInfo.fileKey);
+        setAvatar(fullCdnUrl);
+        toast.success("Upload avatar thành công");
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        toast.error("Có lỗi xảy ra khi upload avatar");
+        setPreviewAvatar("");
+      } finally {
+        setIsUploadingAvatar(false);
+        if (avatarInputRef.current) {
+          avatarInputRef.current.value = "";
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatar("");
+    setPreviewAvatar("");
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = "";
+    }
   };
 
   const handleSave = async () => {
@@ -105,6 +208,8 @@ export function ProfileTab() {
       if (updated) {
         setUser(updated);
         toast.success("Cập nhật hồ sơ thành công 🎉");
+        // Refresh profile in parent component (sidebar)
+        onProfileUpdate?.();
       } else {
         toast.error("Không thể cập nhật hồ sơ");
       }
@@ -157,6 +262,73 @@ export function ProfileTab() {
         Đây là thông tin cá nhân của bạn. Bạn có thể chỉnh sửa chi tiết.
       </p>
 
+      {/* Avatar Section */}
+      {isEditing && (
+        <div className="mb-6 pb-6 border-b" data-avatar-section>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Ảnh đại diện
+          </label>
+          <div className="flex items-end gap-4">
+            <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300">
+              {previewAvatar ? (
+                <>
+                  <Image
+                    src={previewAvatar}
+                    alt="Avatar preview"
+                    fill
+                    className="object-cover"
+                  />
+                  {isEditing && (
+                    <button
+                      onClick={handleRemoveAvatar}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <Upload className="w-6 h-6 text-gray-400" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="gap-2"
+              >
+                {isUploadingAvatar ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Đang upload...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    Chọn ảnh
+                  </>
+                )}
+              </Button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+                disabled={isUploadingAvatar}
+              />
+              <p className="text-xs text-gray-500">
+                Tối đa 5MB, định dạng: JPG, PNG, WebP
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -206,9 +378,8 @@ export function ProfileTab() {
             value={phone}
             readOnly={!isEditing}
             onChange={(e) => handlePhoneChange(e.target.value)}
-            className={`mt-1 ${isEditing ? "" : "bg-gray-50"} ${
-              phoneError ? "border-red-500" : ""
-            }`}
+            className={`mt-1 ${isEditing ? "" : "bg-gray-50"} ${phoneError ? "border-red-500" : ""
+              }`}
           />
           {phoneError && (
             <p className="text-red-500 text-sm mt-1">{phoneError}</p>
@@ -237,19 +408,6 @@ export function ProfileTab() {
             value={translateRole(user.role)}
             readOnly
             className="mt-1 bg-gray-50"
-          />
-        </div>
-
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Giới thiệu
-          </label>
-          <Input
-            type="text"
-            value={bio}
-            readOnly={!isEditing}
-            onChange={(e) => setBio(e.target.value)}
-            className={`mt-1 ${isEditing ? "" : "bg-gray-50"}`}
           />
         </div>
       </div>

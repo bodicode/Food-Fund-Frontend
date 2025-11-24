@@ -240,22 +240,22 @@ export default function AdminDashboard() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
               Tổng người dùng
             </CardTitle>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="h-5 w-5 text-blue-600" />
+            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0 ml-1">
+              <Users className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">
               {loading ? "..." : mockUserOverview.totalUsers.toLocaleString()}
             </div>
-            <p className="text-[11px] sm:text-xs text-green-600 font-medium mt-1">
+            <p className="text-[10px] xs:text-[11px] sm:text-xs text-green-600 font-medium mt-1 line-clamp-2">
               +{mockUserOverview.newUsersThisMonth} người mới tháng này
             </p>
           </CardContent>
@@ -263,19 +263,19 @@ export default function AdminDashboard() {
 
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
               Tổng chiến dịch
             </CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Target className="h-5 w-5 text-green-600" />
+            <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0 ml-1">
+              <Target className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
               {loading ? "..." : platformStats?.overview.totalCampaigns ?? "--"}
             </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1 break-words">
+            <p className="text-[10px] xs:text-[11px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
               {platformStats
                 ? `${platformStats.overview.activeCampaigns} hoạt động · ${platformStats.byStatus.pending} chờ duyệt`
                 : "Đang tải..."}
@@ -285,23 +285,23 @@ export default function AdminDashboard() {
 
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
               Tổng quỹ gọi được
             </CardTitle>
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-amber-600" />
+            <div className="p-1.5 sm:p-2 bg-amber-100 rounded-lg flex-shrink-0 ml-1">
+              <DollarSign className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">
               {loading
                 ? "..."
                 : platformStats
                   ? formatCurrency(Number(platformStats.financial.totalReceivedAmount))
                   : "--"}
             </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+            <p className="text-[10px] xs:text-[11px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
               Mục tiêu:{" "}
               {platformStats
                 ? formatCurrency(Number(platformStats.financial.totalTargetAmount))
@@ -312,23 +312,23 @@ export default function AdminDashboard() {
 
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
+            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
               Tỷ lệ thành công
             </CardTitle>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-purple-600" />
+            <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg flex-shrink-0 ml-1">
+              <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
+            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
               {loading
                 ? "..."
                 : platformStats
                   ? `${Math.round(platformStats.performance.successRate * 100)}%`
                   : "--"}
             </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+            <p className="text-[10px] xs:text-[11px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
               TB:{" "}
               {platformStats
                 ? `${Math.round(platformStats.performance.averageDurationDays)} ngày`
@@ -339,7 +339,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Wallet Stats */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 opacity-10" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -351,7 +351,7 @@ export default function AdminDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <div className="lg:text-2xl sm:text-3xl font-bold text-gray-900">
               {loading
                 ? "..."
                 : walletStats
@@ -360,30 +360,6 @@ export default function AdminDashboard() {
             </div>
             <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
               Tổng số dư ví hệ thống
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Số dư người gây quỹ
-            </CardTitle>
-            <div className="p-2 bg-violet-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-violet-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">
-              {loading
-                ? "..."
-                : walletStats
-                  ? formatCurrency(Number(walletStats.totalFundraiserBalance))
-                  : "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng số dư của {walletStats?.totalFundraisers || 0} người gây quỹ
             </p>
           </CardContent>
         </Card>
@@ -422,17 +398,22 @@ export default function AdminDashboard() {
             <div className="text-2xl sm:text-3xl font-bold text-gray-900">
               {loading ? "..." : walletStats?.totalTransactionsThisMonth ?? "--"}
             </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-1ok">
               Số giao dịch trong tháng
             </p>
           </CardContent>
         </Card>
 
+      </div>
+
+      {/* Wallet Stats - Row 2 (2 cards centered) */}
+      <div className="flex justify-center gap-2 sm:gap-3 lg:gap-4">
+        <div className="w-full md:w-1/3">
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-600 opacity-10" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Người gây quỹ
+              Tổ chức
             </CardTitle>
             <div className="p-2 bg-orange-100 rounded-lg">
               <Users className="h-5 w-5 text-orange-600" />
@@ -443,10 +424,37 @@ export default function AdminDashboard() {
               {loading ? "..." : walletStats?.totalFundraisers ?? "--"}
             </div>
             <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng số người gây quỹ
+              Tổng số tổ chức
             </p>
           </CardContent>
         </Card>
+        </div>
+
+        <div className="w-full md:w-1/3">
+        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+              Số dư tổ chức
+            </CardTitle>
+            <div className="p-2 bg-violet-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-violet-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">
+              {loading
+                ? "..."
+                : walletStats
+                  ? formatCurrency(Number(walletStats.totalFundraiserBalance))
+                  : "--"}
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+              Tổng số dư của {walletStats?.totalFundraisers || 0} tổ chức
+            </p>
+          </CardContent>
+        </Card>
+        </div>
       </div>
 
       {/* Charts */}
@@ -551,9 +559,15 @@ export default function AdminDashboard() {
                           yAxisId="right"
                           orientation="right"
                           tick={{ fontSize: 10 }}
-                          tickFormatter={(value) =>
-                            `${(value as number / 1_000_000).toFixed(0)}tr`
-                          }
+                          tickFormatter={(value) => {
+                            const num = value as number;
+                            if (num >= 1_000_000) {
+                              return `${(num / 1_000_000).toFixed(0)}tr`;
+                            } else if (num >= 1_000) {
+                              return `${(num / 1_000).toFixed(0)}k`;
+                            }
+                            return `${num}`;
+                          }}
                         />
                         <Tooltip
                           formatter={(value: number, name: string) => {
@@ -690,6 +704,218 @@ export default function AdminDashboard() {
             ) : (
               <p className="text-sm text-gray-500">Chưa có chiến dịch nổi bật</p>
             )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Campaign success rate gauge */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-purple-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Tỷ lệ thành công chiến dịch
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Phần trăm chiến dịch đạt mục tiêu
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="text-5xl font-bold text-purple-600 mb-2">
+                  {loading ? "..." : `${Math.round((platformStats?.performance?.successRate || 0) * 100)}%`}
+                </div>
+                <p className="text-sm text-gray-600">
+                  {platformStats?.byStatus.completed || 0} / {platformStats?.overview.totalCampaigns || 0} chiến dịch
+                </p>
+                <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.round((platformStats?.performance?.successRate || 0) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top categories by campaign count */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-orange-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Danh mục nổi bật
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Top 5 danh mục có nhiều chiến dịch nhất
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : platformStats?.byCategory && platformStats.byCategory.length > 0 ? (
+                platformStats.byCategory.slice(0, 5).map((cat, idx) => {
+                  const maxCampaigns = Math.max(...(platformStats.byCategory?.map(c => c.campaignCount) || [1]));
+                  const percentage = (cat.campaignCount / maxCampaigns) * 100;
+                  return (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {idx + 1}. {cat.categoryTitle}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-orange-600">
+                            {cat.campaignCount}
+                          </p>
+                          <p className="text-xs text-gray-500">chiến dịch</p>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-orange-400 to-orange-600 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Tổng gọi được: <span className="font-semibold">{formatCurrency(Number(cat.totalReceivedAmount))}</span>
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-8">Chưa có dữ liệu</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Donation and Transaction Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Campaign status breakdown */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-cyan-100 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-cyan-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Phân bố trạng thái
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Chi tiết từng trạng thái chiến dịch
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <span className="text-sm text-gray-700">Đang hoạt động</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{platformStats?.byStatus.active || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                      <span className="text-sm text-gray-700">Chờ duyệt</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{platformStats?.byStatus.pending || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500" />
+                      <span className="text-sm text-gray-700">Hoàn thành</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{platformStats?.byStatus.completed || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500" />
+                      <span className="text-sm text-gray-700">Từ chối</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{platformStats?.byStatus.rejected || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gray-500" />
+                      <span className="text-sm text-gray-700">Đã hủy</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">{platformStats?.byStatus.cancelled || 0}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Transaction summary */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-rose-100 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-rose-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Tóm tắt giao dịch
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Thống kê giao dịch theo thời gian
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <>
+                  <div className="p-3 bg-rose-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Giao dịch hôm nay</p>
+                    <p className="text-2xl font-bold text-rose-600">
+                      {walletStats?.totalTransactionsToday || 0}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Giao dịch tháng này</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {walletStats?.totalTransactionsThisMonth || 0}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Tổng số tổ chức</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {walletStats?.totalFundraisers || 0}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

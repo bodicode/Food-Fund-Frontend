@@ -135,10 +135,10 @@ export default function AdminExpenseProofsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Quản lý Chứng từ Chi phí
+            Quản lý xét duyệt hóa đơn
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-            Duyệt và quản lý các chứng từ chi phí từ người bếp
+            Duyệt và quản lý các hóa đơn từ bếp
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export default function AdminExpenseProofsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng số chứng từ</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Tổng số yêu cầu</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
                   {stats.totalProofs}
                 </p>

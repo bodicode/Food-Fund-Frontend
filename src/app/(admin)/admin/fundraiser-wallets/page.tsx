@@ -368,7 +368,7 @@ export default function FundraiserWalletsPage() {
                           className="border-b hover:bg-gray-50 transition-colors"
                         >
                           <td className="py-3 px-3 text-xs text-gray-600">
-                            {new Date(transaction.createdAt).toLocaleDateString("vi-VN")}
+                            {new Date(transaction.created_at).toLocaleDateString("vi-VN")}
                           </td>
                           <td className="py-3 px-3">
                             <Badge
@@ -421,7 +421,7 @@ export default function FundraiserWalletsPage() {
                           {transaction.transactionType}
                         </Badge>
                         <span className="text-xs text-gray-500">
-                          {new Date(transaction.createdAt).toLocaleDateString("vi-VN")}
+                          {new Date(transaction.created_at).toLocaleDateString("vi-VN")}
                         </span>
                       </div>
 

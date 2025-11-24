@@ -43,7 +43,6 @@ import { AdminIngredientRequestDetailDialog } from "@/components/admin";
 const expenseTypeLabels: Record<OperationRequest["expenseType"], string> = {
   COOKING: "Nấu ăn",
   DELIVERY: "Vận chuyển",
-  INGREDIENT: "Nguyen lieu",
 };
 
 const statusLabels: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -184,7 +183,7 @@ export default function OperationRequestsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-10">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Quản lý giải ngân & Nguyên liệu</h1>
           <p className="text-gray-600 mt-1">
@@ -213,7 +212,7 @@ export default function OperationRequestsPage() {
         >
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Yêu cầu giải ngân
+            Yêu cầu giải ngân chi phí nấu ăn và vận chuyển
           </div>
         </button>
         <button
@@ -226,7 +225,7 @@ export default function OperationRequestsPage() {
         >
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
-            Yêu cầu nguyên liệu
+            Yêu cầu giải ngân chi phí mua nguyên liệu
           </div>
         </button>
       </div>
@@ -351,7 +350,7 @@ export default function OperationRequestsPage() {
                             {request.campaignPhase.phaseName}
                           </Badge>
                           <Badge variant="secondary" className="text-xs">
-                            {expenseTypeLabels[request.expenseType]}
+                            Loại: {expenseTypeLabels[request.expenseType]}
                           </Badge>
                           {request.campaignPhase?.campaign && (
                             <button

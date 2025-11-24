@@ -5,6 +5,7 @@ import client from "@/lib/apollo-client";
 import { UserProfile, UpdateMyProfileInput, UpdateUserAccountInput } from "@/types/api/user";
 import { UPDATE_MY_PROFILE } from "@/graphql/mutations/auth/update-my-profile";
 import { UPDATE_USER_ACCOUNT } from "@/graphql/mutations/auth/update-user-account";
+import { GENERATE_AVATAR_UPLOAD_URL } from "@/graphql/mutations/auth/generate-avatar-upload-url";
 
 export const userService = {
   getProfile: async (): Promise<UserProfile | null> => {
@@ -68,5 +69,44 @@ export const userService = {
       variables: { userId, input },
     });
     return data?.updateUserAccount ?? null;
+  },
+
+  generateAvatarUploadUrl: async (
+    mimeType: string
+  ): Promise<{
+    uploadUrl: string;
+    fileKey: string;
+    cdnUrl: string;
+    expiresAt: string;
+  } | null> => {
+    // Convert MIME type to extension
+    const toExtFromMime = (mime: string) => {
+      const type = mime.toLowerCase();
+      if (type.includes("jpeg") || type.includes("jpg")) return "jpeg";
+      if (type.includes("png")) return "png";
+      if (type.includes("webp")) return "webp";
+      return "jpeg";
+    };
+
+    const { data } = await client.mutate<{
+      generateAvatarUploadUrl: {
+        success: boolean;
+        uploadUrl: {
+          uploadUrl: string;
+          fileKey: string;
+          cdnUrl: string;
+          expiresAt: string;
+        };
+      };
+    }>({
+      mutation: GENERATE_AVATAR_UPLOAD_URL,
+      variables: {
+        input: {
+          fileType: toExtFromMime(mimeType),
+        },
+      },
+    });
+
+    return data?.generateAvatarUploadUrl?.uploadUrl ?? null;
   },
 };

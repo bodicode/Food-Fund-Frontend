@@ -12,6 +12,7 @@ import {
   LogOut,
   Building2,
   Wallet as WalletIcon,
+  Plus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,13 @@ const SidebarContent = ({
   activeTab,
   onNavigate,
   onLogout,
+  onUploadAvatar,
 }: {
   profile: UserProfile | null;
   activeTab: TabKey;
   onNavigate: (key: TabKey) => void;
   onLogout: () => void;
+  onUploadAvatar: () => void;
 }) => {
   const navItems = [
     { key: "profile", label: "Hồ sơ cá nhân", icon: UserIcon },
@@ -57,14 +60,22 @@ const SidebarContent = ({
   return (
     <aside className="w-full flex flex-col h-full bg-white rounded-xl shadow-sm p-4">
       <div className="flex flex-col items-center text-center p-4 border-b">
-        <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-offset-2 ring-[#ad4e28]/50">
+        <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-offset-2 ring-[#ad4e28]/50 group">
           <Image
-            src="/images/avatar.webp"
+            src={profile?.avatar_url || "/images/avatar.webp"}
             alt={profile?.full_name || "User avatar"}
             width={96}
             height={96}
             className="object-cover w-full h-full"
           />
+          {!profile?.avatar_url && (
+            <button
+              onClick={onUploadAvatar}
+              className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            >
+              <Plus className="w-6 h-6 text-white" />
+            </button>
+          )}
         </div>
         <h3 className="mt-4 font-bold text-lg text-gray-800">
           {profile?.full_name || "Đang tải..."}
@@ -131,9 +142,16 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const handleRefreshProfile = async () => {
+    const updatedProfile = await userService.getMyProfile();
+    if (updatedProfile) {
+      setProfile(updatedProfile);
+    }
+  };
+
   const TABS = useMemo(
     () => ({
-      profile: { component: <ProfileTab />, title: "Hồ sơ cá nhân" },
+      profile: { component: <ProfileTab onProfileUpdate={handleRefreshProfile} />, title: "Hồ sơ cá nhân" },
       organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
       campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
       ...(profile?.role === "FUNDRAISER"
@@ -197,11 +215,18 @@ export default function ProfilePage() {
     };
   }, []);
 
+  const handleUploadAvatar = () => {
+    setActiveTab("profile");
+    router.push("/profile?tab=profile&action=upload-avatar");
+    setSidebarOpen(false);
+  };
+
   const sidebarProps = {
     profile,
     activeTab,
     onNavigate: handleNavigate,
     onLogout: handleLogout,
+    onUploadAvatar: handleUploadAvatar,
   };
 
   return (
