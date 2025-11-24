@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { disbursementService, Disbursement, DisbursementStatus, TransactionType } from "@/services/disbursement.service";
+import { operationRequestService } from "@/services/operation-request.service";
+import { ingredientRequestService } from "@/services/ingredient-request.service";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
 import { toast } from "sonner";
@@ -20,9 +22,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  DollarSign,
   Calendar,
-  User,
   Package,
   FileText,
   RefreshCw,
@@ -53,8 +53,13 @@ const transactionTypeLabels: Record<TransactionType, string> = {
   DELIVERY: "Vận chuyển",
 };
 
+interface DisbursementWithDetails extends Disbursement {
+  campaignTitle?: string;
+  phaseName?: string;
+}
+
 export function MyDisbursementsTab() {
-  const [disbursements, setDisbursements] = useState<Disbursement[]>([]);
+  const [disbursements, setDisbursements] = useState<DisbursementWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -64,7 +69,44 @@ export function MyDisbursementsTab() {
     setLoading(true);
     try {
       const result = await disbursementService.getMyDisbursements(100, 1);
-      setDisbursements(result.items);
+
+      // Fetch additional details for each disbursement
+      const disbursementsWithDetails = await Promise.all(
+        result.items.map(async (disbursement) => {
+          let campaignTitle = "N/A";
+          let phaseName = disbursement.campaignPhase?.phaseName || "N/A";
+
+          try {
+            if (disbursement.operationRequestId) {
+              const operationRequest = await operationRequestService.getOperationRequestById(
+                disbursement.operationRequestId
+              );
+              if (operationRequest) {
+                phaseName = operationRequest.campaignPhase?.phaseName || phaseName;
+                campaignTitle = operationRequest.campaignPhase?.campaign?.title || "N/A";
+              }
+            } else if (disbursement.ingredientRequestId) {
+              const ingredientRequest = await ingredientRequestService.getIngredientRequest(
+                disbursement.ingredientRequestId
+              );
+              if (ingredientRequest) {
+                phaseName = ingredientRequest.campaignPhase?.phaseName || phaseName;
+                campaignTitle = ingredientRequest.campaignPhase?.campaign?.title || "N/A";
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching request details:", error);
+          }
+
+          return {
+            ...disbursement,
+            campaignTitle,
+            phaseName,
+          };
+        })
+      );
+
+      setDisbursements(disbursementsWithDetails);
     } catch (error) {
       const errorMessage = translateError(error);
       toast.error(errorMessage);
@@ -150,76 +192,79 @@ export function MyDisbursementsTab() {
             const StatusIcon = status.icon;
 
             return (
-              <Card key={disbursement.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-sm">
-                        <Package className="w-3 h-3 text-purple-600" />
-                        <span className="text-gray-900 font-medium">
-                          Giai đoạn: {disbursement.campaignPhase?.phaseName || "N/A"} - Chiến dịch: N/A
-                        </span>
+              <Card key={disbursement.id} className="hover:shadow-lg transition-all border-l-4 border-l-[#ad4e28]">
+                <CardContent className="p-6">
+                  {/* Header Row */}
+                  <div className="flex items-start justify-between mb-5 pb-4 border-b">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {disbursement.campaignTitle}
+                        </h3>
+                        <Badge className={`${status.color} flex items-center gap-1`}>
+                          <StatusIcon className="w-3 h-3" />
+                          {status.label}
+                        </Badge>
                       </div>
-                      <Badge className={`${status.color} flex items-center gap-1`}>
-                        <StatusIcon className="w-3 h-3" />
-                        {status.label}
-                      </Badge>
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <span className="text-gray-600">Loại giao dịch:</span>
-                        <span className="font-medium">{transactionTypeLabels[disbursement.transactionType]}</span>
-                      </Badge>
+                      <p className="text-sm text-gray-600">
+                        Giai đoạn: <span className="font-medium text-gray-900">{disbursement.phaseName}</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-600 mb-1">Số tiền</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatCurrency(parseFloat(disbursement.amount))}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-green-600" />
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Package className="w-5 h-5 text-purple-600" />
+                      </div>
                       <div>
-                        <p className="text-xs text-gray-600">Số tiền</p>
-                        <p className="font-bold text-green-600">
-                          {formatCurrency(parseFloat(disbursement.amount))}
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Loại giao dịch</p>
+                        <p className="font-semibold text-gray-900">
+                          {transactionTypeLabels[disbursement.transactionType]}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-blue-600" />
-                      <div>
-                        <p className="text-xs text-gray-600">Người nhận</p>
-                        <p className="font-medium text-gray-900">
-                          {disbursement?.receiver?.full_name}
-                        </p>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-orange-100 rounded-lg">
+                        <Calendar className="w-5 h-5 text-orange-600" />
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-orange-600" />
                       <div>
-                        <p className="text-xs text-gray-600">Ngày tạo</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Ngày tạo</p>
+                        <p className="font-semibold text-gray-900">
                           {formatDateTime(disbursement.created_at)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-purple-600" />
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
                       <div>
-                        <p className="text-xs text-gray-600">Chứng chỉ</p>
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Chứng chỉ</p>
                         <Button
                           variant="link"
                           size="sm"
                           onClick={() => openLightbox(disbursement.proof)}
-                          className="font-medium text-blue-600 hover:underline text-sm p-0 h-auto"
+                          className="font-semibold text-blue-600 hover:text-blue-700 p-0 h-auto"
                         >
-                          Xem file
+                          Xem file →
                         </Button>
                       </div>
                     </div>
                   </div>
 
+                  {/* Action Buttons */}
                   {disbursement.status === "PENDING" && (
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex gap-3 justify-end pt-4 border-t">
                       <Button
                         size="sm"
                         variant="outline"
@@ -227,7 +272,7 @@ export function MyDisbursementsTab() {
                           handleConfirmDisbursement(disbursement.id, "FAILED")
                         }
                         disabled={confirming === disbursement.id}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         {confirming === disbursement.id ? (
                           <>

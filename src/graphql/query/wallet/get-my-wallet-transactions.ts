@@ -7,7 +7,7 @@ export const GET_MY_WALLET_TRANSACTIONS = gql`
       transactions {
         amount
         campaignId
-        createdAt
+        created_at
         description
         gateway
         id
@@ -17,9 +17,9 @@ export const GET_MY_WALLET_TRANSACTIONS = gql`
       }
       wallet {
         balance
-        createdAt
+        created_at
         id
-        updatedAt
+        updated_at
         userId
         walletType
       }

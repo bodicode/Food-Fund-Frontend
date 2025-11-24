@@ -48,7 +48,7 @@ export interface WalletTransaction {
   id: string;
   amount: string;
   campaignId: string;
-  createdAt: string;
+  created_at: string;
   description: string;
   gateway: string;
   paymentTransactionId: string | null;
@@ -75,8 +75,8 @@ export interface MyWallet {
   id: string;
   balance: string;
   walletType: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
   userId: string;
 }
 

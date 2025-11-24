@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { donationService } from "@/services/donation.service";
 import { DonationDetails } from "@/types/api/donation-detail";
 import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDateTime } from "@/lib/utils/date-utils";
 import { getStatusColorClass, translateTransactionStatus } from "@/lib/utils/status-utils";
 import {
     Receipt,
@@ -27,6 +26,26 @@ import {
     XCircle,
 } from "lucide-react";
 import { Loader } from "@/components/animate-ui/icons/loader";
+
+// Helper function to safely format date
+const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return "N/A";
+    try {
+        // Handle ISO format: "2025-11-08T17:32:16.548Z"
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "N/A";
+        // Format as: "08/11/2025 17:32"
+        return new Intl.DateTimeFormat("vi-VN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+        }).format(date);
+    } catch {
+        return "N/A";
+    }
+};
 
 interface DonationDetailDialogProps {
     orderCode: string;
@@ -102,7 +121,7 @@ export function DonationDetailDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange} modal>
-            <DialogContent 
+            <DialogContent
                 className="max-w-2xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
                 onWheel={(e) => e.stopPropagation()}
             >
@@ -167,7 +186,7 @@ export function DonationDetailDialog({
                                         <div>
                                             <p className="text-xs text-gray-500 mb-1">Ngày tạo</p>
                                             <p className="text-sm font-medium text-gray-900">
-                                                {formatDateTime(details.createdAt)}
+                                                {formatDate(details.createdAt)}
                                             </p>
                                         </div>
                                     </div>
@@ -177,7 +196,7 @@ export function DonationDetailDialog({
                                         <div>
                                             <p className="text-xs text-gray-500 mb-1">Cập nhật lần cuối</p>
                                             <p className="text-sm font-medium text-gray-900">
-                                                {formatDateTime(details.paymentTransaction.updatedAt)}
+                                                {formatDate(details.paymentTransaction.updatedAt)}
                                             </p>
                                         </div>
                                     </div>

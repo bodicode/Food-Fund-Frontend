@@ -5,17 +5,10 @@ import {
   Home,
   Users,
   FileText,
-  Calendar,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Globe,
   HeartHandshake,
   DollarSign,
-  ShieldCheck,
   Menu,
   Tag,
-  ChevronDown,
   Building2,
   Award,
 } from "lucide-react";
@@ -47,8 +40,6 @@ interface AdminLayoutProps {
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const [toolsOpen, setToolsOpen] = useState(true);
-  const [statsOpen, setStatsOpen] = useState(true);
 
   const isActive = (path: string) => pathname === path;
 
@@ -108,7 +99,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         Yêu cầu tổ chức
       </NavLink>
       <NavLink href="/admin/expense-proofs" icon={FileText}>
-        Chứng từ chi phí
+        Xét duyệt hóa đơn
       </NavLink>
       <NavLink href="/admin/operation-requests" icon={DollarSign}>
         Yêu cầu Giải ngân
@@ -119,62 +110,6 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/badges" icon={Award}>
         Huy hiệu
       </NavLink>
-
-      <div className="pt-4">
-        <button
-          onClick={() => setToolsOpen(!toolsOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-        >
-          <span>Công cụ</span>
-          <ChevronDown
-            className={cn(
-              "w-4 h-4 transition-transform",
-              toolsOpen ? "rotate-180" : ""
-            )}
-          />
-        </button>
-        {toolsOpen && (
-          <div className="space-y-1 mt-1">
-            <NavLink href="/admin/calendar" icon={Calendar}>
-              Lịch hoạt động
-            </NavLink>
-            <NavLink href="/admin/audit" icon={ShieldCheck}>
-              Kiểm duyệt
-            </NavLink>
-          </div>
-        )}
-      </div>
-
-      <div className="pt-2">
-        <button
-          onClick={() => setStatsOpen(!statsOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-        >
-          <span>Thống kê</span>
-          <ChevronDown
-            className={cn(
-              "w-4 h-4 transition-transform",
-              statsOpen ? "rotate-180" : ""
-            )}
-          />
-        </button>
-        {statsOpen && (
-          <div className="space-y-1 mt-1">
-            <NavLink href="/admin/bar" icon={BarChart3}>
-              Bar Chart
-            </NavLink>
-            <NavLink href="/admin/pie" icon={PieChart}>
-              Pie Chart
-            </NavLink>
-            <NavLink href="/admin/line" icon={LineChart}>
-              Line Chart
-            </NavLink>
-            <NavLink href="/admin/map" icon={Globe}>
-              Geography
-            </NavLink>
-          </div>
-        )}
-      </div>
     </nav>
   );
 }
