@@ -24,6 +24,7 @@ import { decodeIdToken } from "@/lib/jwt-utils";
 import { SignInInput, SignInResponse, GoogleAuthInput, GoogleAuthResponse } from "@/types/api/sign-in";
 import { SIGNOUT_MUTATION } from "@/graphql/mutations/auth/signout";
 import { GOOGLE_AUTH_MUTATION } from "@/graphql/mutations/auth/google-auth";
+import { REFRESH_TOKEN_MUTATION } from "@/graphql/mutations/auth/refresh-token";
 
 export interface AuthService {
   login(input: SignInInput): Promise<SignInResponse["signIn"]>;
@@ -62,6 +63,10 @@ export interface AuthService {
   signout(
     accessToken: string
   ): Promise<{ message: string; success: boolean; timestamp: string }>;
+  refreshToken(
+    refreshToken: string,
+    userName: string
+  ): Promise<{ accessToken: string; idToken: string; expiresIn: number; message: string }>;
 }
 
 export const graphQLAuthService: AuthService = {
@@ -244,6 +249,31 @@ export const graphQLAuthService: AuthService = {
       return data.signOut;
     } catch (err) {
       console.error("AuthService.signout error:", err);
+      throw err;
+    }
+  },
+
+  async refreshToken(refreshToken: string, userName: string) {
+    try {
+      const { data, error } = await client.mutate<{
+        refreshToken: { accessToken: string; idToken: string; expiresIn: number; message: string };
+      }>({
+        mutation: REFRESH_TOKEN_MUTATION,
+        variables: { 
+          refreshTokenInput2: {
+            refreshToken,
+            userName,
+          }
+        },
+      });
+
+      if (!data?.refreshToken) {
+        return Promise.reject(error);
+      }
+
+      return data.refreshToken;
+    } catch (err) {
+      console.error("AuthService.refreshToken error:", err);
       throw err;
     }
   },
