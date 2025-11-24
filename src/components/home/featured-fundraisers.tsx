@@ -1,65 +1,63 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { organizationService } from "@/services/organization.service";
+import { Organization } from "@/types/api/organization";
 
 gsap.registerPlugin(ScrollTrigger);
 
-type Fundraiser = {
-  id: number;
-  name: string;
-  username: string;
-  description?: string;
-  logo: string;
-  raised: number;
+const createSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 };
-
-const fmtVND = (n: number) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(n);
-
-const fundraisers: Fundraiser[] = [
-  {
-    id: 1,
-    name: "Hội Chữ thập đỏ Việt Nam",
-    username: "@chuthapdo",
-    description:
-      "Hội Chữ thập đỏ Việt Nam là tổ chức xã hội nhân đạo quần chúng, do Chủ tịch Hồ Chí Minh sáng lập…",
-    logo: "/images/avatar.webp",
-    raised: 439_058_502_851,
-  },
-  {
-    id: 2,
-    name: "Nguyễn Văn B",
-    username: "@b@gmail.com",
-    logo: "/images/avatar.webp",
-    raised: 70_327_688_990,
-  },
-  {
-    id: 3,
-    name: "Ban Vận Động Quỹ Vì Người Nghèo Tỉnh Long An",
-    username: "@quyvinguoingheolongan",
-    logo: "/images/avatar.webp",
-    raised: 46_796_947_438,
-  },
-];
 
 export function FeaturedFundraisers() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        const { organizations } = await organizationService.getActiveOrganizations();
+        setOrganizations(organizations.slice(0, 3));
+      } catch (error) {
+        console.error("Failed to fetch organizations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    if (!root || loading) return;
 
+    // Set initial state
+    gsap.set(root, {
+      opacity: 1,
+      y: 0,
+      transformStyle: "preserve-3d",
+      transformOrigin: "50% 50%",
+      boxShadow: "0 12px 28px rgba(0,0,0,0.12)",
+    });
+
+    // Animate in
     gsap.from(root, {
       y: 24,
-      opacity: 1,
+      opacity: 0,
       duration: 0.8,
       ease: "power3.out",
       scrollTrigger: { trigger: root, start: "top 80%", once: true },
@@ -67,12 +65,6 @@ export function FeaturedFundraisers() {
 
     const MAX_TILT = 6;
     const SCALE_HOVER = 1.01;
-
-    gsap.set(root, {
-      transformStyle: "preserve-3d",
-      transformOrigin: "50% 50%",
-      boxShadow: "0 12px 28px rgba(0,0,0,0.12)",
-    });
 
     const qRotX = gsap.quickTo(root, "rotationX", {
       duration: 0.3,
@@ -116,7 +108,7 @@ export function FeaturedFundraisers() {
       root.removeEventListener("mouseleave", onLeave);
       ScrollTrigger.getAll().forEach((st) => st.kill());
     };
-  }, []);
+  }, [loading]);
 
   return (
     <section className="container mx-auto pb-6 md:pb-20 px-4">
@@ -138,70 +130,92 @@ export function FeaturedFundraisers() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4 md:px-8 pb-8 md:pb-12 items-stretch">
-          {fundraisers.map((f) => (
-            <div key={f.id} className="ff-card-wrap group">
-              <article
-                className="ff-card relative bg-white/95 backdrop-blur-sm dark:bg-card text-gray-800 dark:text-foreground
-                           rounded-2xl md:rounded-3xl shadow-xl hover:shadow-2xl ring-1 ring-white/50 dark:ring-white/10
-                           p-5 md:p-6 pt-14 md:pt-16 flex flex-col h-full will-change-transform transition-all duration-500 hover:-translate-y-2"
-              >
-                <div
-                  className="absolute left-1/2 -translate-x-1/2 -top-8 sm:-top-10 md:-top-14 
-                             size-20 sm:size-24 md:size-28 rounded-full overflow-hidden bg-white shadow-2xl
-                             ring-4 ring-white/50 group-hover:ring-6 group-hover:ring-[#E77731]/30 transition-all duration-500"
-                >
-                  <Image
-                    src={f.logo}
-                    alt={f.name}
-                    width={112}
-                    height={112}
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-
-                <div className="flex flex-col flex-1 items-center text-center">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-2 min-h-[3rem] sm:min-h-[4rem] flex items-center justify-center group-hover:text-[#E77731] transition-colors duration-300 px-2">
-                    {f.name}
-                  </h3>
-
-                  <span
-                    className="text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full mb-3 sm:mb-4 bg-gradient-to-r from-[#E77731]/10 to-[#ad4e28]/10 border border-[#E77731]/20 truncate max-w-full"
-                    style={{
-                      color: "#E77731",
-                    }}
-                  >
-                    {f.username}
-                  </span>
-
-                  {f.description ? (
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-muted-foreground mb-4 sm:mb-5 line-clamp-2 min-h-[2.5rem] sm:min-h-[2.75rem] px-2">
-                      {f.description}
-                    </p>
-                  ) : (
-                    <div className="min-h-[2.5rem] sm:min-h-[2.75rem] mb-4 sm:mb-5" />
-                  )}
-
-                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl md:rounded-2xl p-3 md:p-4 mb-4 sm:mb-5 w-full border border-[#E77731]/10">
-                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-muted-foreground font-medium mb-1">
-                      Số tiền gây quỹ
-                    </p>
-                    <p
-                      className="text-xl sm:text-2xl md:text-3xl font-bold break-all"
-                      style={{ color: "#E77731" }}
-                    >
-                      {fmtVND(f.raised)}
-                    </p>
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i}>
+                <div className="relative bg-white/95 backdrop-blur-sm dark:bg-card rounded-2xl md:rounded-3xl shadow-xl p-6 md:p-8 flex flex-col h-full animate-pulse">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4" />
+                      <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2" />
+                    </div>
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-300 dark:bg-gray-700" />
                   </div>
-
-                  <div className="mt-auto w-full flex justify-center px-2">
-                    <button className="btn-color w-full max-w-[220px] h-10 sm:h-11 md:h-12 rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95">
-                      Theo dõi
-                    </button>
+                  <div className="h-16 bg-gray-300 dark:bg-gray-700 rounded mb-5" />
+                  <div className="grid grid-cols-2 gap-3 mb-5">
+                    <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded-xl" />
+                    <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded-xl" />
                   </div>
+                  <div className="h-11 bg-gray-300 dark:bg-gray-700 rounded-full" />
                 </div>
-              </article>
+              </div>
+            ))
+          ) : organizations.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-white/80 text-lg">Chưa có tổ chức nào</p>
             </div>
-          ))}
+          ) : (
+            organizations.map((org) => (
+              <div key={org.id} className="group">
+                <article
+                  className="relative bg-white/95 backdrop-blur-sm dark:bg-card text-gray-800 dark:text-foreground
+                             rounded-2xl md:rounded-3xl shadow-xl hover:shadow-2xl ring-1 ring-white/50 dark:ring-white/10
+                             p-6 md:p-8 flex flex-col h-full will-change-transform transition-all duration-500 hover:-translate-y-2"
+                >
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 group-hover:text-[#E77731] transition-colors duration-300 line-clamp-2">
+                          {org.name}
+                        </h3>
+                        <span className="text-xs sm:text-sm text-gray-500 dark:text-muted-foreground">
+                          @{org.representative?.user_name || "organization"}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0 ml-3">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E77731] to-[#ad4e28] flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
+                          {org.name.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {org.description && (
+                      <p className="text-sm text-gray-600 dark:text-muted-foreground mb-5 line-clamp-3">
+                        {org.description}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 mb-5 mt-auto">
+                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl p-3 border border-[#E77731]/10">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground font-medium mb-1">
+                          Hoạt động
+                        </p>
+                        <p className="text-2xl font-bold" style={{ color: "#E77731" }}>
+                          {org.active_members || 0}
+                        </p>
+                      </div>
+                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl p-3 border border-[#E77731]/10">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground font-medium mb-1">
+                          Tổng TV
+                        </p>
+                        <p className="text-2xl font-bold" style={{ color: "#E77731" }}>
+                          {org.total_members || 0}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/organizations/${createSlug(org.name)}`}
+                      className="btn-color w-full h-11 md:h-12 rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95"
+                    >
+                      Xem chi tiết
+                      <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                    </Link>
+                  </div>
+                </article>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>

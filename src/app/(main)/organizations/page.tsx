@@ -43,6 +43,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const createSlug = (name: string) => {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
+
 export default function OrganizationsPage() {
   const router = useRouter();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -228,7 +240,7 @@ export default function OrganizationsPage() {
                 className="cursor-pointer"
               >
                 <Card
-                  onClick={() => router.push(`/organizations/${org.id}`)}
+                  onClick={() => router.push(`/organizations/${createSlug(org.name)}`)}
                   className="h-full border-0 shadow-md hover:shadow-2xl rounded-2xl overflow-hidden transition-all duration-500 bg-white group"
                 >
                   <CardHeader className="relative bg-gradient-to-r from-[#b6542f] to-[#e37341] text-white py-5 px-6">

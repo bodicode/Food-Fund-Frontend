@@ -43,10 +43,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const slugToName = (slug: string) => {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function OrganizationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const orgId = params.id as string;
+  const slug = params.id as string;
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,8 +68,37 @@ export default function OrganizationDetailPage() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await organizationService.getOrganizationById(orgId);
-        setOrganization(data);
+        // Fetch all organizations and find by name match
+        const { organizations } = await organizationService.getActiveOrganizations();
+        
+        // Convert slug back to searchable format
+        const searchName = slug
+          .toLowerCase()
+          .replace(/-/g, " ")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "d");
+
+        // Find organization by matching slug
+        const found = organizations.find((org) => {
+          const orgSlug = org.name
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
+            .replace(/[^a-z0-9\s-]/g, "")
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-");
+          
+          return orgSlug === slug || searchName === org.name.toLowerCase();
+        });
+
+        if (found) {
+          setOrganization(found);
+        } else {
+          throw new Error("Không tìm thấy tổ chức");
+        }
       } catch (err) {
         toast.error("Không thể tải thông tin tổ chức", {
           description:
@@ -75,7 +111,7 @@ export default function OrganizationDetailPage() {
         setLoading(false);
       }
     })();
-  }, [orgId, router]);
+  }, [slug, router]);
 
   const handleJoinRequest = () => {
     requireAuth(() => {
