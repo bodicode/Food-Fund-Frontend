@@ -417,7 +417,8 @@ export default function MyCampaignDetailPage() {
               campaignId={campaign.id}
               campaignTitle={campaign.title}
               campaignStatus={campaign.status}
-              organizationName={campaign?.creator?.full_name}
+              organizationName={campaign?.organization?.name}
+              organizationId={campaign?.organization?.id}
               canEdit={campaign.status === "PENDING"}
               onEdit={() => {
                 const slug = createCampaignSlug(campaign.title, campaign.id);
@@ -429,12 +430,6 @@ export default function MyCampaignDetailPage() {
               campaignFundingProgress={campaign.fundingProgress}
               daysLeft={timeLeft}
               fundraisingEndDate={campaign.fundraisingEndDate}
-            />
-
-            <OrganizerCard
-              name={campaign.creator?.full_name}
-              email={campaign.creator?.email}
-              phone={campaign.creator?.phone_number}
             />
 
             {/* Timeline */}

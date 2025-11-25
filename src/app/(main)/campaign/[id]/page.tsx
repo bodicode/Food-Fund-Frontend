@@ -397,7 +397,8 @@ export default function CampaignDetailPage() {
               campaignId={campaign.id}
               campaignTitle={campaign.title}
               campaignStatus={campaign.status}
-              organizationName={campaign.creator?.full_name}
+              organizationName={campaign.organization?.name}
+              organizationId={campaign.organization?.id}
               canEdit={campaign.status === "PENDING"}
               onEdit={() => {
                 const slug = createCampaignSlug(campaign.title, campaign.id);

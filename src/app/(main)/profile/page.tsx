@@ -62,13 +62,19 @@ const SidebarContent = ({
       <div className="flex flex-col items-center text-center p-4 border-b">
         <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-offset-2 ring-[#ad4e28]/50 group">
           <Image
-            src={profile?.avatar_url || "/images/avatar.webp"}
+            src={
+              profile?.avatar_url && 
+              profile.avatar_url.trim() !== "" && 
+              (profile.avatar_url.startsWith('http') || profile.avatar_url.startsWith('/'))
+                ? profile.avatar_url 
+                : "/images/avatar.webp"
+            }
             alt={profile?.full_name || "User avatar"}
             width={96}
             height={96}
             className="object-cover w-full h-full"
           />
-          {!profile?.avatar_url && (
+          {(!profile?.avatar_url || profile.avatar_url.trim() === "") && (
             <button
               onClick={onUploadAvatar}
               className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"

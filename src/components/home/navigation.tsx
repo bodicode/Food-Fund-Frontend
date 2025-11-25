@@ -42,8 +42,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { logout } from "@/store/slices/auth-slice";
+import { logout, updateUser } from "@/store/slices/auth-slice";
 import { USER_ROLES } from "@/constants";
+import { userService } from "@/services/user.service";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -56,6 +57,34 @@ export function Navigation() {
   const user = useSelector((state: RootState) => state.auth.user);
 
   useGsapNavigation(headerRef, pathname);
+
+  // Helper function to get valid avatar URL
+  const getAvatarUrl = (avatarUrl?: string | null) => {
+    if (!avatarUrl || avatarUrl.trim() === "") {
+      return "/images/avatar.webp";
+    }
+    // Check if it's a valid URL (starts with http/https or is a relative path)
+    if (avatarUrl.startsWith('http') || avatarUrl.startsWith('/')) {
+      return avatarUrl;
+    }
+    return "/images/avatar.webp";
+  };
+
+  // Fetch user profile to get avatar_url
+  useEffect(() => {
+    if (user && !user.avatar_url) {
+      (async () => {
+        try {
+          const profile = await userService.getMyProfile();
+          if (profile?.avatar_url) {
+            dispatch(updateUser({ avatar_url: profile.avatar_url }));
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      })();
+    }
+  }, [user, dispatch]);
 
   const handleLogout = async () => {
     try {
@@ -73,8 +102,8 @@ export function Navigation() {
     if (!headerRef.current) return;
 
     // Đảm bảo header luôn visible, không thay đổi position
-    gsap.set(headerRef.current, { 
-      opacity: 1, 
+    gsap.set(headerRef.current, {
+      opacity: 1,
       yPercent: 0,
       clearProps: "y,x,xPercent" // Clear các transform không cần thiết
     });
@@ -314,38 +343,50 @@ export function Navigation() {
                 <NotificationPopover />
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <span className="cursor-pointer hover:opacity-80 py-1">
-                      {user.name}
-                    </span>
+                    <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                      <div className="w-9 h-9 rounded-full overflow-hidden shadow-md hover:shadow-lg transition-shadow ring-2 ring-white">
+                        <Image
+                          src={getAvatarUrl(user.avatar_url)}
+                          alt={user.name || "User avatar"}
+                          width={36}
+                          height={36}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    </button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52">
-                  {user.role === USER_ROLES.ADMIN && (
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="px-3 py-3 border-b">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    {user.role === USER_ROLES.ADMIN && (
+                      <DropdownMenuItem
+                        onClick={() => router.push("/admin")}
+                        className="cursor-pointer text-sm py-3"
+                      >
+                        Dashboard
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
-                      onClick={() => router.push("/admin")}
+                      onClick={() => router.push("/profile")}
                       className="cursor-pointer text-sm py-3"
                     >
-                      Dashboard
+                      Hồ sơ
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    onClick={() => router.push("/profile")}
-                    className="cursor-pointer text-sm py-3"
-                  >
-                    Hồ sơ
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => router.push("/profile?tab=history")}
-                    className="cursor-pointer text-sm py-3"
-                  >
-                    Lịch sử ủng hộ
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="text-red-600 cursor-pointer text-sm py-3"
-                  >
-                    Đăng xuất
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() => router.push("/profile?tab=history")}
+                      className="cursor-pointer text-sm py-3"
+                    >
+                      Lịch sử ủng hộ
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-red-600 cursor-pointer text-sm py-3"
+                    >
+                      Đăng xuất
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                 </DropdownMenu>
               </>
             )}

@@ -39,6 +39,7 @@ interface ActionPanelProps {
   goal?: string;
   onDonate?: () => void;
   organizationName?: string;
+  organizationId?: string;
   organizationLogo?: string;
   onViewStatement?: () => void;
   fundraisingEndDate?: string;
@@ -58,7 +59,8 @@ export function ActionPanel({
   location,
   goal,
   onDonate,
-  organizationName = "Tổ chức thiện nguyện",
+  organizationName = "Tổ chức",
+  organizationId,
   organizationLogo = "/images/avatar.webp",
   onViewStatement,
   fundraisingEndDate,
@@ -112,6 +114,21 @@ export function ActionPanel({
     }
   };
 
+  const handleOrganizationClick = () => {
+    if (organizationName) {
+      const slug = organizationName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+      router.push(`/organizations/${slug}`);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -122,7 +139,7 @@ export function ActionPanel({
       <div className="flex items-start gap-3 pb-3 border-b border-gray-100">
         <Image
           src={organizationLogo}
-          alt={organizationName}
+          alt={organizationName || ""}
           width={48}
           height={48}
           className="rounded-full object-cover w-12 h-12 border"
@@ -132,9 +149,12 @@ export function ActionPanel({
             Tổ chức / Người đại diện
           </p>
           <div className="flex items-center gap-1">
-            <p className="text-sm font-semibold text-[#E77731] truncate">
+            <button
+              onClick={handleOrganizationClick}
+              className="text-sm font-semibold text-[#E77731] truncate hover:underline"
+            >
               {organizationName}
-            </p>
+            </button>
             <CheckCircle className="w-4 h-4 text-[#E77731] shrink-0" />
           </div>
           <button

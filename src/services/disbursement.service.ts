@@ -165,9 +165,7 @@ export const disbursementService = {
     try {
       // Get all inflow transactions (filter doesn't support operationRequestId/ingredientRequestId)
       const { items } = await this.getListInflowTransaction({}, 1000, 1);
-      
-      console.log("All inflow transactions:", items.length);
-      
+
       // Filter on client side
       const found = items.find((item) => {
         if (requestType === "operation") {
@@ -176,13 +174,11 @@ export const disbursementService = {
           return item.ingredientRequestId === requestId;
         }
       });
-      
+
       if (!found) {
         console.warn("No inflow transaction found for request:", requestId);
         return null;
       }
-      
-      console.log("Found inflow transaction:", found.id);
       return found.id;
     } catch (error) {
       console.error("Error finding inflow transaction:", error);
