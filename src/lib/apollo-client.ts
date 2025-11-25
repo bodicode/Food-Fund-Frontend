@@ -83,9 +83,12 @@ const errorLink = onError((errorResponse) => {
 
             // Decode idToken to get userName
             const decoded = decodeIdToken(idToken);
+            console.log("Decoded token for refresh:", decoded);
             const userName = (decoded?.["cognito:username"] as string) || (decoded?.username as string) || "";
+            console.log("Username for refresh:", userName);
 
             if (!userName) {
+              console.error("No username found in token");
               toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
               store.dispatch(logout());
               window.location.replace(ROUTES.LOGIN);
@@ -94,19 +97,23 @@ const errorLink = onError((errorResponse) => {
             }
 
             // Import dynamically to avoid circular dependency
+            console.log("Calling refresh token with:", { refreshToken: refreshToken.substring(0, 20) + "...", userName });
             import("@/services/auth.service")
               .then(({ graphQLAuthService }) =>
                 graphQLAuthService.refreshToken(refreshToken, userName)
               )
               .then((response) => {
-                // Update tokens in cookies
+                console.log("Refresh token success:", response);
+                // Update tokens in cookies with expiration
                 Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, response.accessToken, {
                   secure: true,
                   sameSite: "strict",
+                  expires: 1 / 24, // 1 hour
                 });
                 Cookies.set(COOKIE_NAMES.ID_TOKEN, response.idToken, {
                   secure: true,
                   sameSite: "strict",
+                  expires: 1 / 24, // 1 hour
                 });
 
                 // Decode and update Redux store

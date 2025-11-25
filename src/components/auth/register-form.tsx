@@ -75,12 +75,25 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         );
       }
 
-      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, { secure: true, sameSite: "strict" });
-      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, res.accessToken, { secure: true, sameSite: "strict" });
-      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, res.refreshToken, { secure: true, sameSite: "strict" });
+      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, { 
+        secure: true, 
+        sameSite: "strict",
+        expires: 1 / 24, // 1 hour
+      });
+      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, res.accessToken, { 
+        secure: true, 
+        sameSite: "strict",
+        expires: 1 / 24, // 1 hour
+      });
+      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, res.refreshToken, { 
+        secure: true, 
+        sameSite: "strict",
+        expires: 30, // 30 days
+      });
       Cookies.set(COOKIE_NAMES.ROLE, (decoded["custom:role"] as string) || USER_ROLES.DONOR, {
         secure: true,
         sameSite: "strict",
+        expires: 30, // 30 days
       });
 
       // Điều hướng theo role
