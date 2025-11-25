@@ -83,9 +83,7 @@ const errorLink = onError((errorResponse) => {
 
             // Decode idToken to get userName
             const decoded = decodeIdToken(idToken);
-            console.log("Decoded token for refresh:", decoded);
             const userName = (decoded?.["cognito:username"] as string) || (decoded?.username as string) || "";
-            console.log("Username for refresh:", userName);
 
             if (!userName) {
               console.error("No username found in token");
@@ -97,13 +95,11 @@ const errorLink = onError((errorResponse) => {
             }
 
             // Import dynamically to avoid circular dependency
-            console.log("Calling refresh token with:", { refreshToken: refreshToken.substring(0, 20) + "...", userName });
             import("@/services/auth.service")
               .then(({ graphQLAuthService }) =>
                 graphQLAuthService.refreshToken(refreshToken, userName)
               )
               .then((response) => {
-                console.log("Refresh token success:", response);
                 // Update tokens in cookies with expiration
                 Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, response.accessToken, {
                   secure: true,
@@ -145,9 +141,14 @@ const errorLink = onError((errorResponse) => {
                 pendingRequests = [];
                 isRefreshing = false;
 
-                toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
+                // Clear auth state but don't force redirect
                 store.dispatch(logout());
-                window.location.replace(ROUTES.LOGIN);
+
+                // Only show toast once
+                if (!sessionStorage.getItem('refresh_failed')) {
+                  toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
+                  sessionStorage.setItem('refresh_failed', 'true');
+                }
 
                 observer.error(refreshError);
               });

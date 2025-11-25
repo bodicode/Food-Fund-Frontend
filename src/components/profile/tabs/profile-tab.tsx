@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useDispatch } from "react-redux";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { cleanInput } from "@/lib/utils/utils";
 import { buildCoverUrl } from "@/lib/build-image";
 import { toast } from "sonner";
 import { Award, Upload, X } from "lucide-react";
+import { updateUser } from "@/store/slices/auth-slice";
 
 interface ProfileTabProps {
   onProfileUpdate?: () => void;
@@ -22,6 +24,7 @@ interface ProfileTabProps {
 
 export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
   const searchParams = useSearchParams();
+  const dispatch = useDispatch();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
@@ -215,6 +218,15 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
       const updated = await userService.updateMyProfile(payload);
       if (updated) {
         setUser(updated);
+        
+        // Update Redux store to sync with header
+        if (payload.avatar_url) {
+          dispatch(updateUser({ avatar_url: payload.avatar_url }));
+        }
+        if (payload.full_name) {
+          dispatch(updateUser({ name: payload.full_name }));
+        }
+        
         toast.success("Cập nhật hồ sơ thành công 🎉");
         // Refresh profile in parent component (sidebar)
         onProfileUpdate?.();
@@ -367,7 +379,7 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
           </label>
           <div className="flex items-end gap-4">
             <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300">
-              {previewAvatar ? (
+              {previewAvatar && previewAvatar.trim() !== "" && (previewAvatar.startsWith('http') || previewAvatar.startsWith('/') || previewAvatar.startsWith('data:')) ? (
                 <>
                   <Image
                     src={previewAvatar}

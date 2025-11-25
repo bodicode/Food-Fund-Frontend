@@ -41,11 +41,16 @@ export interface Campaign {
     description?: string;
   };
 
-  creator: {
+  creator?: {
     id?: string;
     full_name: string;
     email?: string;
     phone_number?: string;
+  };
+
+  organization?: {
+    id: string;
+    name: string;
   };
 
   created_at: string;

@@ -8,6 +8,8 @@ export interface DecodedIdToken {
   exp: number;
   iat: number;
   "custom:role"?: string;
+  "cognito:username"?: string;
+  username?: string;
   [key: string]: unknown;
 }
 

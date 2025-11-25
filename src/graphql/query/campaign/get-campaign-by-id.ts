@@ -25,11 +25,9 @@ export const GET_CAMPAIGN_BY_ID = gql`
         title
         description
       }
-      creator {
+      organization {
         id
-        full_name
-        email
-        phone_number
+        name
       }
       phases {
         id
