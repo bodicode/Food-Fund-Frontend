@@ -30,6 +30,14 @@ export interface IngredientRequest {
   changedStatusAt?: string;
   created_at: string;
   items?: IngredientRequestItem[];
+  organization?: {
+    id: string;
+    name: string;
+    bank_account_name: string;
+    bank_account_number: string;
+    bank_name: string;
+    bank_short_name: string;
+  };
 }
 
 export interface IngredientRequestFilterInput {

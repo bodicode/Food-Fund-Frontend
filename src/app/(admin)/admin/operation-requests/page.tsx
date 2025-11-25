@@ -40,6 +40,7 @@ import { UpdateOperationRequestDialog } from "@/components/admin/update-operatio
 import { CreateDisbursementDialog } from "@/components/admin/create-disbursement-dialog";
 import { AdminIngredientRequestDetailDialog } from "@/components/admin";
 import { DisbursementDetailDialog } from "@/components/admin/disbursement-detail-dialog";
+import { RequestDetailDialog } from "@/components/admin/request-detail-dialog";
 import { disbursementService } from "@/services/disbursement.service";
 import { toast } from "sonner";
 
@@ -83,6 +84,10 @@ export default function OperationRequestsPage() {
   
   // Disbursement detail state
   const [selectedDisbursementId, setSelectedDisbursementId] = useState<string | null>(null);
+  
+  // Request detail state (for non-disbursed requests)
+  const [selectedRequestDetailId, setSelectedRequestDetailId] = useState<string | null>(null);
+  const [selectedRequestDetailType, setSelectedRequestDetailType] = useState<"operation" | "ingredient">("operation");
 
   const fetchOperationData = async () => {
     setOperationLoading(true);
@@ -421,24 +426,52 @@ export default function OperationRequestsPage() {
                             className="gap-2"
                           >
                             <Eye className="w-4 h-4" />
-                            Xem chi tiết
+                            Xem giải ngân
                           </Button>
                         ) : request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleOperationDisbursementClick(request)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                          >
-                            Giải ngân
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRequestDetailId(request.id);
+                                setSelectedRequestDetailType("operation");
+                              }}
+                              className="gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Xem chi tiết
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleOperationDisbursementClick(request)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              Giải ngân
+                            </Button>
+                          </>
                         ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => handleOperationUpdateClick(request)}
-                            className="btn-color"
-                          >
-                            Xử lý
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRequestDetailId(request.id);
+                                setSelectedRequestDetailType("operation");
+                              }}
+                              className="gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Xem chi tiết
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleOperationUpdateClick(request)}
+                              className="btn-color"
+                            >
+                              Xử lý
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -524,16 +557,30 @@ export default function OperationRequestsPage() {
                             className="gap-2"
                           >
                             <Eye className="w-4 h-4" />
-                            Xem chi tiết
+                            Xem giải ngân
                           </Button>
                         ) : request.status === "REJECTED" ? null : request.status === "APPROVED" ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleIngredientDisbursementClick(request)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                          >
-                            Giải ngân
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRequestDetailId(request.id);
+                                setSelectedRequestDetailType("ingredient");
+                              }}
+                              className="gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Xem chi tiết
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleIngredientDisbursementClick(request)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              Giải ngân
+                            </Button>
+                          </>
                         ) : (
                           <Button
                             variant="outline"
@@ -616,6 +663,16 @@ export default function OperationRequestsPage() {
           isOpen={!!selectedDisbursementId}
           onClose={() => setSelectedDisbursementId(null)}
           disbursementId={selectedDisbursementId}
+        />
+      )}
+
+      {/* Request Detail Dialog (for non-disbursed requests) */}
+      {selectedRequestDetailId && (
+        <RequestDetailDialog
+          isOpen={!!selectedRequestDetailId}
+          onClose={() => setSelectedRequestDetailId(null)}
+          requestId={selectedRequestDetailId}
+          requestType={selectedRequestDetailType}
         />
       )}
     </div>

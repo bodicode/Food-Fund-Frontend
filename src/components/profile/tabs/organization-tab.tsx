@@ -116,7 +116,18 @@ export function OrganizationTab() {
               {org.status === "VERIFIED" && (
                 <Button
                   size="sm"
-                  onClick={() => router.push("/profile/organization")}
+                  onClick={() => {
+                    const slug = org.name
+                      .toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/đ/g, "d")
+                      .replace(/[^a-z0-9\s-]/g, "")
+                      .trim()
+                      .replace(/\s+/g, "-")
+                      .replace(/-+/g, "-");
+                    router.push(`/organizations/${slug}`);
+                  }}
                   className="bg-[#ad4e28] hover:bg-[#8d3e20] text-white"
                 >
                   <Eye className="w-4 h-4 mr-2" />

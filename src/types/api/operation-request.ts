@@ -35,6 +35,14 @@ export interface OperationRequest {
       title: string;
     };
   };
+  organization?: {
+    id: string;
+    name: string;
+    bank_account_name: string;
+    bank_account_number: string;
+    bank_name: string;
+    bank_short_name: string;
+  };
 }
 
 export interface UpdateOperationRequestStatusInput {

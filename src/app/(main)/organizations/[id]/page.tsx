@@ -61,17 +61,9 @@ export default function OrganizationDetailPage() {
   useEffect(() => {
     (async () => {
       try {
-        // Fetch all organizations and find by name match
+        // First, fetch all organizations to find the ID by slug
         const { organizations } = await organizationService.getActiveOrganizations();
         
-        // Convert slug back to searchable format
-        const searchName = slug
-          .toLowerCase()
-          .replace(/-/g, " ")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/đ/g, "d");
-
         // Find organization by matching slug
         const found = organizations.find((org) => {
           const orgSlug = org.name
@@ -84,14 +76,16 @@ export default function OrganizationDetailPage() {
             .replace(/\s+/g, "-")
             .replace(/-+/g, "-");
           
-          return orgSlug === slug || searchName === org.name.toLowerCase();
+          return orgSlug === slug;
         });
 
-        if (found) {
-          setOrganization(found);
-        } else {
+        if (!found) {
           throw new Error("Không tìm thấy tổ chức");
         }
+
+        // Then fetch full details by ID
+        const fullOrg = await organizationService.getOrganizationById(found.id);
+        setOrganization(fullOrg);
       } catch (err) {
         toast.error("Không thể tải thông tin tổ chức", {
           description:
