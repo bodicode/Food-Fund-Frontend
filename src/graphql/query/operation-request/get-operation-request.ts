@@ -18,9 +18,14 @@ export const GET_OPERATION_REQUEST = gql`
       campaignPhase {
         id
         phaseName
-        campaign {
-          title
-        }
+      }
+      organization {
+        id
+        name
+        bank_account_name
+        bank_account_number
+        bank_name
+        bank_short_name
       }
     }
   }

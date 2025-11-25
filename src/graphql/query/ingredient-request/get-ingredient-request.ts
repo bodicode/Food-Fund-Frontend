@@ -20,6 +20,7 @@ export const GET_INGREDIENT_REQUEST = gql`
         campaign {
           id
           title
+          receivedAmount
         }
       }
       items {
@@ -29,6 +30,14 @@ export const GET_INGREDIENT_REQUEST = gql`
         estimatedUnitPrice
         estimatedTotalPrice
         supplier
+      }
+      organization {
+        id
+        name
+        bank_account_name
+        bank_account_number
+        bank_name
+        bank_short_name
       }
     }
   }

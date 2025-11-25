@@ -65,13 +65,22 @@ export default function OrganizationDetailPage() {
         const data = await organizationService.getMyOrganization();
         setOrganization(data);
         if (data) loadJoinRequests();
-      } catch (err) {
-        toast.error("Không thể tải thông tin tổ chức", {
-          description:
-            err instanceof Error
-              ? err.message
-              : "Đã xảy ra lỗi không xác định.",
-        });
+      } catch (err: unknown) {
+        // Handle user not found error gracefully (user doesn't have organization yet)
+        const error = err as { message?: string; graphQLErrors?: Array<{ extensions?: { code?: string } }> };
+        const errorCode = error?.graphQLErrors?.[0]?.extensions?.code;
+        
+        if (errorCode === "USER_101" || error?.message?.includes("User not found")) {
+          // User doesn't have organization yet - this is normal
+          setOrganization(null);
+        } else {
+          toast.error("Không thể tải thông tin tổ chức", {
+            description:
+              err instanceof Error
+                ? err.message
+                : "Đã xảy ra lỗi không xác định.",
+          });
+        }
       } finally {
         setLoading(false);
       }
