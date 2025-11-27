@@ -39,7 +39,6 @@ interface ActionPanelProps {
   goal?: string;
   onDonate?: () => void;
   organizationName?: string;
-  organizationId?: string;
   organizationLogo?: string;
   onViewStatement?: () => void;
   fundraisingEndDate?: string;
@@ -60,7 +59,6 @@ export function ActionPanel({
   goal,
   onDonate,
   organizationName = "Tổ chức",
-  organizationId,
   organizationLogo = "/images/avatar.webp",
   onViewStatement,
   fundraisingEndDate,

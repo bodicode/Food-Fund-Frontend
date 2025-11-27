@@ -15,6 +15,7 @@ export interface PlatformWalletStats {
   totalFundraisers: number;
   totalTransactionsThisMonth: number;
   totalTransactionsToday: number;
+  totalUsers: number;
 }
 
 export interface FundraiserWallet {

@@ -10,13 +10,13 @@ export interface Campaign {
   coverImage?: string;
 
   status:
-    | "PENDING"
-    | "APPROVED"
-    | "ACTIVE"
-    | "PROCESSING"
-    | "REJECTED"
-    | "COMPLETED"
-    | "CANCELLED";
+  | "PENDING"
+  | "APPROVED"
+  | "ACTIVE"
+  | "PROCESSING"
+  | "REJECTED"
+  | "COMPLETED"
+  | "CANCELLED";
 
   targetAmount: string;
   donationCount: number;
@@ -236,13 +236,13 @@ export interface CampaignParams {
   filter?: CampaignFilterInput;
   search?: string;
   sortBy?:
-    | "NEWEST_FIRST"
-    | "OLDEST_FIRST"
-    | "ACTIVE_FIRST"
-    | "TARGET_AMOUNT_ASC"
-    | "TARGET_AMOUNT_DESC"
-    | "MOST_DONATED"
-    | "LEAST_DONATED";
+  | "NEWEST_FIRST"
+  | "OLDEST_FIRST"
+  | "ACTIVE_FIRST"
+  | "TARGET_AMOUNT_ASC"
+  | "TARGET_AMOUNT_DESC"
+  | "MOST_DONATED"
+  | "LEAST_DONATED";
   limit?: number;
   offset?: number;
 }
@@ -297,4 +297,35 @@ export interface UpdateCampaignInput {
 
   fundraisingStartDate?: string;
   fundraisingEndDate?: string;
+}
+export interface SearchCampaignInput {
+  limit?: number;
+  page?: number;
+  query?: string;
+  sortBy?:
+  | "NEWEST_FIRST"
+  | "OLDEST_FIRST"
+  | "ACTIVE_FIRST"
+  | "TARGET_AMOUNT_ASC"
+  | "TARGET_AMOUNT_DESC"
+  | "MOST_DONATED"
+  | "LEAST_DONATED"
+  | "ENDING_SOON";
+  categoryId?: string | null;
+  creatorId?: string | null;
+  maxTargetAmount?: number | null;
+  minTargetAmount?: number | null;
+  status?: CampaignStatus | null;
+}
+
+export interface SearchCampaignResult {
+  items: Campaign[];
+  limit: number;
+  page: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface SearchCampaignResponse {
+  searchCampaigns: SearchCampaignResult;
 }

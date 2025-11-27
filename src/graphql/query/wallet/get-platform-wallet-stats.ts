@@ -8,6 +8,7 @@ export const GET_PLATFORM_WALLET_STATS = gql`
       totalFundraisers
       totalTransactionsThisMonth
       totalTransactionsToday
+      totalUsers
     }
   }
 `;

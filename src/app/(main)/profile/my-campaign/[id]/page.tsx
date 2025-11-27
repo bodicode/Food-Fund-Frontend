@@ -30,7 +30,6 @@ import { Stat } from "@/components/campaign/stat";
 import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
 import { Timeline } from "@/components/campaign/timeline";
 import { ActionPanel } from "@/components/campaign/action-panel";
-import { OrganizerCard } from "@/components/campaign/organization-card";
 import { DeleteCampaignDialog } from "@/components/campaign/delete-campaign-dialog";
 import { toast } from "sonner";
 import {
@@ -79,12 +78,12 @@ export default function MyCampaignDetailPage() {
         // Get actual campaign ID from sessionStorage
         const slug = id as string;
         const campaignId = getCampaignIdFromSlug(slug);
-        
+
         if (!campaignId) {
           setLoading(false);
           return;
         }
-        
+
         const data = await campaignService.getCampaignById(campaignId);
         setCampaign(data);
       } catch (err) {
@@ -418,7 +417,6 @@ export default function MyCampaignDetailPage() {
               campaignTitle={campaign.title}
               campaignStatus={campaign.status}
               organizationName={campaign?.organization?.name}
-              organizationId={campaign?.organization?.id}
               canEdit={campaign.status === "PENDING"}
               onEdit={() => {
                 const slug = createCampaignSlug(campaign.title, campaign.id);
@@ -512,7 +510,7 @@ export default function MyCampaignDetailPage() {
                   />
                 );
               })()}
-            
+
             </div>
           </aside>
         </div>

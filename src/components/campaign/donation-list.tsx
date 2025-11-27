@@ -6,7 +6,6 @@ import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Heart } from "lucide-react";
+import { SearchDonationInput } from "@/types/api/donation";
 
 interface DonationListProps {
   campaignId: string;
@@ -33,19 +33,38 @@ export function DonationList({ campaignId }: DonationListProps) {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<DonationSortField>("TRANSACTION_DATE");
   const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchDonations = React.useCallback(async () => {
     setLoading(true);
     try {
-      const data = await donationService.getCampaignDonations({
+      // Map UI sort to API sort
+      let apiSortBy: SearchDonationInput["sortBy"] = "NEWEST";
+
+      if (sortBy === "AMOUNT") {
+        apiSortBy = sortOrder === "DESC" ? "HIGHEST_AMOUNT" : "LOWEST_AMOUNT";
+      } else {
+        apiSortBy = sortOrder === "DESC" ? "NEWEST" : "OLDEST";
+      }
+
+      const data = await donationService.searchDonations({
         campaignId,
-        skip: 0,
-        take: 50,
-        sortBy,
-        sortOrder,
-        searchDonorName: searchQuery || undefined,
+        limit: 50,
+        page: 1,
+        query: debouncedSearchQuery || null,
+        sortBy: apiSortBy,
+        minAmount: null,
+        maxAmount: null,
       });
       setDonations(data);
     } catch (error) {
@@ -53,15 +72,11 @@ export function DonationList({ campaignId }: DonationListProps) {
     } finally {
       setLoading(false);
     }
-  }, [campaignId, sortBy, sortOrder, searchQuery]);
+  }, [campaignId, sortBy, sortOrder, debouncedSearchQuery]);
 
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
-
-  const handleSearch = () => {
-    fetchDonations();
-  };
 
   if (loading) {
     return (
@@ -81,13 +96,9 @@ export function DonationList({ campaignId }: DonationListProps) {
             placeholder="Tìm kiếm người ủng hộ..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="pl-10"
           />
         </div>
-        <Button onClick={handleSearch} className="bg-[#ad4e28] hover:bg-[#9c4624]">
-          Tìm kiếm
-        </Button>
 
         <Select value={sortBy} onValueChange={(val) => setSortBy(val as typeof sortBy)}>
           <SelectTrigger className="w-full sm:w-48">
