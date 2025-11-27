@@ -1,7 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useLayoutEffect, useRef, useEffect, useState, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -18,139 +18,201 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { campaignService } from "@/services/campaign.service";
 import { categoryService } from "@/services/category.service";
 import { CategoryStats } from "@/types/api/category";
-import { Campaign, CampaignStatus } from "@/types/api/campaign";
-import { useCampaigns } from "@/hooks/use-campaign";
+import type { Campaign, CampaignStatus, SearchCampaignInput } from "@/types/api/campaign";
+import { titleToSlug } from "@/lib/utils/slug-utils";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function CampaignSearchPage() {
   const cardsRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [categoriesStats, setCategoriesStats] = useState<CategoryStats[]>([]);
-  const [totalCampaigns, setTotalCampaigns] = useState<number>(0);
-  
+  const [totalSystemCampaigns, setTotalSystemCampaigns] = useState<number>(0);
+
+  // Search State
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Filter State - Initialized from URL or defaults
+  const [searchText, setSearchText] = useState(searchParams.get("q") || "");
+  const [debouncedSearchText, setDebouncedSearchText] = useState(searchParams.get("q") || "");
+  const [categoryId, setCategoryId] = useState<string | null>(searchParams.get("category") || null);
+  const [status, setStatus] = useState<CampaignStatus | "ALL">((searchParams.get("status") as CampaignStatus | "ALL") || "ACTIVE");
+  const [sortBy, setSortBy] = useState<SearchCampaignInput["sortBy"]>((searchParams.get("sort") as SearchCampaignInput["sortBy"]) || "MOST_DONATED");
+
+  // Fetch Categories Stats
   useEffect(() => {
     categoryService.getCampaignCategoriesStats().then((stats) => {
       setCategoriesStats(stats);
-      // Calculate total campaigns across all categories
       const total = stats.reduce((sum, category) => sum + category.campaignCount, 0);
-      setTotalCampaigns(total);
+      setTotalSystemCampaigns(total);
     });
   }, []);
 
-  const { campaigns, loading, hasMore, params, setParams, fetchCampaigns } =
-    useCampaigns({ limit: 9, offset: 0, sortBy: "MOST_DONATED" });
-
-  // Local state for debounced search input
-  const [searchText, setSearchText] = useState<string>("");
+  // Auto-focus search input
   useEffect(() => {
-    setSearchText(params.search || "");
-  }, [params.search]);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
 
-  // Debounce: trigger search after user stops typing
+  // Sync URL to State
   useEffect(() => {
-    const h = setTimeout(() => {
-      if (searchText !== params.search) {
-        setParams((prev) => ({ ...prev, search: searchText }));
-        fetchCampaigns({ search: searchText, offset: 0 });
+    const catSlugFromUrl = searchParams.get("category");
+    if (catSlugFromUrl && categoriesStats.length > 0) {
+      const foundCat = categoriesStats.find(c => titleToSlug(c.title) === catSlugFromUrl);
+      setCategoryId(foundCat ? foundCat.id : null);
+    } else if (!catSlugFromUrl) {
+      setCategoryId(null);
+    }
+
+    const queryFromUrl = searchParams.get("q");
+    setSearchText(queryFromUrl || "");
+    setDebouncedSearchText(queryFromUrl || "");
+
+    const statusFromUrl = searchParams.get("status");
+    setStatus((statusFromUrl as CampaignStatus | "ALL") || "ACTIVE");
+
+    const sortFromUrl = searchParams.get("sort");
+    setSortBy((sortFromUrl as SearchCampaignInput["sortBy"]) || "MOST_DONATED");
+  }, [searchParams, categoriesStats]);
+
+  // Helper to update URL
+  const updateParams = useCallback((updates: Record<string, string | null>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") {
+        current.delete(key);
+      } else {
+        current.set(key, value);
+      }
+    });
+
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.push(`${pathname}${query}`);
+  }, [searchParams, pathname, router]);
+
+  // Debounce Search Text Update to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchText !== (searchParams.get("q") || "")) {
+        updateParams({ q: searchText });
       }
     }, 400);
-    return () => clearTimeout(h);
-  }, [searchText, params.search, setParams, fetchCampaigns]);
+    return () => clearTimeout(timer);
+  }, [searchText, searchParams, updateParams]);
 
-  // Handle category filter from URL params
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get('category');
-    if (categoryFromUrl && categoryFromUrl !== params.filter?.categoryId) {
-      const newFilter = {
-        ...params.filter,
-        categoryId: categoryFromUrl,
-      };
-      setParams((prev) => ({ ...prev, filter: newFilter }));
-      fetchCampaigns({ filter: newFilter, offset: 0 });
+  // Fetch Campaigns
+  const fetchCampaigns = async (isLoadMore = false) => {
+    const currentPage = isLoadMore ? page + 1 : 1;
+    if (!isLoadMore) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      const result = await campaignService.searchCampaigns({
+        limit: 9,
+        page: currentPage,
+        query: debouncedSearchText,
+        sortBy: sortBy,
+        categoryId: categoryId === "ALL" ? null : categoryId,
+        status: status === "ALL" ? null : status,
+      });
+
+      if (result) {
+        if (isLoadMore) {
+          setCampaigns((prev) => [...prev, ...result.items]);
+        } else {
+          setCampaigns(result.items);
+        }
+        setPage(result.page);
+        setTotalPages(result.totalPages);
+      }
+    } catch (error) {
+      console.error("Error searching campaigns:", error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
-  }, [searchParams, params.filter, setParams, fetchCampaigns]);
-
-  // Custom sorting function for campaigns when showing all statuses
-  const sortCampaignsByStatus = (campaigns: Campaign[]) => {
-    const statusPriority = {
-      'ACTIVE': 1,
-      'APPROVED': 2,
-      'COMPLETED': 3,
-      'PENDING': 4
-    };
-
-    return [...campaigns].sort((a, b) => {
-      const priorityA = statusPriority[a.status as keyof typeof statusPriority] || 999;
-      const priorityB = statusPriority[b.status as keyof typeof statusPriority] || 999;
-      return priorityA - priorityB;
-    });
   };
 
-  // Apply custom sorting when showing all statuses ONLY if no explicit sortBy provided
-  const displayCampaigns = (!params.filter?.status || params.filter.status.length === 0)
-    && !params.sortBy
-      ? sortCampaignsByStatus(campaigns)
-      : campaigns;
+  // Trigger fetch when filters change (State changes)
+  useEffect(() => {
+    fetchCampaigns(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchText, categoryId, status, sortBy]);
 
+  // GSAP Animation for cards
   useLayoutEffect(() => {
-    if (!cardsRef.current) return;
+    if (!cardsRef.current || loading) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".campaign-card",
-        { opacity: 0, y: 40 },
+        { opacity: 0, y: 30 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          stagger: 0.15,
+          duration: 0.6,
+          ease: "power2.out",
+          stagger: 0.1,
+          clearProps: "all"
         }
       );
     }, cardsRef);
     return () => ctx.revert();
-  }, [displayCampaigns]);
+  }, [campaigns, loading]);
 
   return (
-    <div className="lg:container mx-auto px-4 py-32">
+    <div className="lg:container mx-auto px-4 py-32 min-h-screen">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-color mb-6">
-          Danh sách chiến dịch gây quỹ
+          Tìm kiếm chiến dịch
         </h1>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+            {/* Category Filter */}
             <Select
-              value={params.filter?.categoryId || "ALL"}
+              value={categoryId || "ALL"}
               onValueChange={(val) => {
-                const newFilter = {
-                  ...params.filter,
-                  categoryId: val === "ALL" ? undefined : val,
-                };
-                setParams((prev) => ({ ...prev, filter: newFilter }));
-                fetchCampaigns({ filter: newFilter, offset: 0 });
+                if (val === "ALL") {
+                  updateParams({ category: null });
+                } else {
+                  const cat = categoriesStats.find(c => c.id === val);
+                  if (cat) {
+                    updateParams({ category: titleToSlug(cat.title) });
+                  }
+                }
               }}
             >
-              <SelectTrigger className="w-[200px] border rounded-md px-3 py-2 text-sm">
+              <SelectTrigger className="w-[200px] border rounded-md px-3 py-2 text-sm bg-white">
                 <SelectValue placeholder="Danh mục" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">
-                  <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center justify-between w-full gap-2">
                     <span>Tất cả danh mục</span>
-                    <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
-                      {totalCampaigns}
+                    <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                      {totalSystemCampaigns}
                     </span>
                   </div>
                 </SelectItem>
                 {categoriesStats.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center justify-between w-full gap-2">
                       <span>{cat.title}</span>
-                      <span className="ml-2 px-2 py-0.5 text-xs bg-brown-color text-white rounded-full">
+                      <span className="px-2 py-0.5 text-xs bg-brown-color text-white rounded-full">
                         {cat.campaignCount}
                       </span>
                     </div>
@@ -159,15 +221,12 @@ export default function CampaignSearchPage() {
               </SelectContent>
             </Select>
 
+            {/* Sort Filter */}
             <Select
-              value={params.sortBy || "MOST_DONATED"}
-              onValueChange={(val) => {
-                const newSort = val as typeof params.sortBy;
-                setParams((prev) => ({ ...prev, sortBy: newSort }));
-                fetchCampaigns({ sortBy: newSort, offset: 0 });
-              }}
+              value={sortBy || "MOST_DONATED"}
+              onValueChange={(val) => updateParams({ sort: val })}
             >
-              <SelectTrigger className="w-[220px] border rounded-md px-3 py-2 text-sm">
+              <SelectTrigger className="w-[200px] border rounded-md px-3 py-2 text-sm bg-white">
                 <SelectValue placeholder="Sắp xếp" />
               </SelectTrigger>
               <SelectContent>
@@ -180,55 +239,49 @@ export default function CampaignSearchPage() {
               </SelectContent>
             </Select>
 
+            {/* Status Filter */}
             <Select
-              value={params.filter?.status?.[0] || "ALL"}
-              onValueChange={(val) => {
-                const newFilter = {
-                  ...params.filter,
-                  status: val === "ALL" ? undefined : [val as CampaignStatus],
-                };
-                setParams((prev) => ({ ...prev, filter: newFilter }));
-                fetchCampaigns({ filter: newFilter, offset: 0 });
-              }}
+              value={status}
+              onValueChange={(val) => updateParams({ status: val })}
             >
-              <SelectTrigger className="w-[200px] border rounded-md px-3 py-2 text-sm">
+              <SelectTrigger className="w-[180px] border rounded-md px-3 py-2 text-sm bg-white">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
+                <SelectItem value="ACTIVE">Đang gây quỹ</SelectItem>
                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
+                <SelectItem value="PROCESSING">Đang trong tiếng trình</SelectItem>
                 <SelectItem value="APPROVED">Đã duyệt</SelectItem>
-                {/* <SelectItem value="PENDING">Chờ duyệt</SelectItem> */}
               </SelectContent>
             </Select>
 
             <RotateCw
-              animate
-              animateOnHover
-              animateOnTap
-              animateOnView
-              className="w-5 h-5 text-gray-500 cursor-pointer"
-              onClick={() => fetchCampaigns({ offset: 0 })}
+              className={`w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors ${loading ? "animate-spin" : ""}`}
+              onClick={() => {
+                // Reset all filters by pushing pathname without query params
+                router.push(pathname);
+                // Also reset local search text state immediately for better UX
+                setSearchText("");
+              }}
             />
           </div>
 
+          {/* Search Input */}
           <div className="relative w-full max-w-sm">
             <SearchIcon
-              animate
-              animateOnView
               className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
             />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Tìm kiếm tên chiến dịch"
-              className="w-full rounded-md border pl-9 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-200"
+              placeholder="Tìm kiếm tên chiến dịch..."
+              className="w-full rounded-md border pl-9 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 transition-all shadow-sm"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  setParams((prev) => ({ ...prev, search: searchText }));
-                  fetchCampaigns({ search: searchText, offset: 0 });
+                  updateParams({ q: searchText });
                 }
               }}
             />
@@ -236,30 +289,37 @@ export default function CampaignSearchPage() {
               <button
                 type="button"
                 aria-label="Clear search"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-base leading-none"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
                 onClick={() => {
                   setSearchText("");
-                  setParams((prev) => ({ ...prev, search: "" }));
-                  fetchCampaigns({ search: "", offset: 0 });
+                  updateParams({ q: "" });
                 }}
               >
-                x
+                <span className="text-xs font-bold">✕</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {displayCampaigns.length === 0 && !loading ? (
-          <div className="col-span-full text-center py-16 text-gray-500">
+      {/* Results Grid */}
+      <div ref={cardsRef} className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 min-h-[400px] content-start">
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-[380px] bg-gray-100 rounded-2xl animate-pulse" />
+          ))
+        ) : campaigns.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
+            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <SearchIcon className="w-10 h-10 text-gray-300" />
+            </div>
             <p className="text-lg font-medium">Không tìm thấy chiến dịch nào</p>
             <p className="text-sm text-gray-400 mt-2">
-              Thử thay đổi bộ lọc hoặc tìm kiếm khác nhé.
+              Thử thay đổi từ khóa hoặc bộ lọc xem sao nhé.
             </p>
           </div>
         ) : (
-          displayCampaigns.map((c) => (
+          campaigns.map((c) => (
             <div key={c.id} className="campaign-card">
               <CampaignCard {...c} coverImage={c.coverImage || ""} />
             </div>
@@ -267,24 +327,21 @@ export default function CampaignSearchPage() {
         )}
       </div>
 
-      {hasMore && (
-        <div className="flex justify-center mt-8">
+      {/* Load More Button */}
+      {page < totalPages && !loading && (
+        <div className="flex justify-center mt-12">
           <Button
-            onClick={() =>
-              fetchCampaigns(
-                {
-                  offset: (params.offset || 0) + (params.limit || 3),
-                },
-                true
-              )
-            }
-            disabled={loading}
-            className="px-6 py-2 rounded-lg btn-color"
+            onClick={() => fetchCampaigns(true)}
+            disabled={loadingMore}
+            className="px-8 py-6 rounded-full btn-color text-base font-medium shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 min-w-[160px]"
           >
-            {loading ? (
-              <Loader animate animateOnView className="h-4 w-4" />
+            {loadingMore ? (
+              <div className="flex items-center gap-2">
+                <Loader className="h-5 w-5 animate-spin" />
+                <span>Đang tải...</span>
+              </div>
             ) : (
-              "Xem thêm"
+              "Xem thêm chiến dịch"
             )}
           </Button>
         </div>

@@ -128,7 +128,7 @@ export function FeaturedCampaigns() {
 
   return (
     <section className="pt-12 mt-6 bg-base-color">
-      <div ref={rootRef} className="px-6 md:px-12 mx-auto max-w-7xl">
+      <div ref={rootRef} className="px-4 md:px-12 mx-auto max-w-7xl">
         <div className="flex items-center justify-between mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-color text-transparent">
             Chiến dịch nổi bật
@@ -147,7 +147,7 @@ export function FeaturedCampaigns() {
           </Link>
         </div>
 
-        <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-stretch">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 items-stretch">
           <div className="lg:col-span-2 flex">
             <CampaignCard
               {...hero}
@@ -157,7 +157,7 @@ export function FeaturedCampaigns() {
             />
           </div>
 
-          <div className="flex flex-col gap-8">
+          <div className="hidden lg:flex flex-col gap-8">
             {rightTwoByTwo.slice(0, 2).map((c) => (
               <CampaignCard
                 key={c.id}

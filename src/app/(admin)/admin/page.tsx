@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Eye,
   BarChart3,
+  PieChart as PieChartIcon,
   Calendar,
 } from "lucide-react";
 import {
@@ -47,11 +48,7 @@ import type {
   Campaign,
 } from "@/types/api/campaign";
 
-// Mock user stats
-const mockUserOverview = {
-  totalUsers: 1247,
-  newUsersThisMonth: 89,
-};
+
 
 type DateRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
 
@@ -175,6 +172,24 @@ export default function AdminDashboard() {
       ? formatCurrency(Number(platformStats.timeRange.totalRaised))
       : null;
 
+  const walletDistributionData = walletStats
+    ? [
+      { name: "Hệ thống", value: Number(walletStats.systemBalance), color: "#0ea5e9" },
+      { name: "Tổ chức", value: Number(walletStats.totalFundraiserBalance), color: "#8b5cf6" },
+    ].filter((item) => item.value > 0)
+    : [];
+
+  const avgFundraisingByCategoryData =
+    platformStats?.byCategory
+      .map((item) => ({
+        name: item.categoryTitle,
+        avgRaised:
+          item.campaignCount > 0
+            ? Math.round(Number(item.totalReceivedAmount) / item.campaignCount)
+            : 0,
+      }))
+      .sort((a, b) => b.avgRaised - a.avgRaised) ?? [];
+
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-6">
       {/* Header with Gradient */}
@@ -208,7 +223,7 @@ export default function AdminDashboard() {
               <Calendar className="w-4 h-4" />
               <span className="font-medium">Khoảng thời gian:</span>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3">
               <Select
                 value={dateRange}
                 onValueChange={(value) => setDateRange(value as DateRange)}
@@ -253,10 +268,10 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
             <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">
-              {loading ? "..." : mockUserOverview.totalUsers.toLocaleString()}
+              {loading ? "..." : walletStats?.totalUsers.toLocaleString() ?? "--"}
             </div>
             <p className="text-[10px] xs:text-[11px] sm:text-xs text-green-600 font-medium mt-1 line-clamp-2">
-              +{mockUserOverview.newUsersThisMonth} người mới tháng này
+              Tổng số người dùng trên hệ thống
             </p>
           </CardContent>
         </Card>
@@ -409,51 +424,51 @@ export default function AdminDashboard() {
       {/* Wallet Stats - Row 2 (2 cards centered) */}
       <div className="flex justify-center gap-2 sm:gap-3 lg:gap-4">
         <div className="w-full md:w-1/3">
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Tổ chức
-            </CardTitle>
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Users className="h-5 w-5 text-orange-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {loading ? "..." : walletStats?.totalFundraisers ?? "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng số tổ chức
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-600 opacity-10" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+                Tổ chức
+              </CardTitle>
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Users className="h-5 w-5 text-orange-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {loading ? "..." : walletStats?.totalFundraisers ?? "--"}
+              </div>
+              <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+                Tổng số tổ chức
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="w-full md:w-1/3">
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Số dư tổ chức
-            </CardTitle>
-            <div className="p-2 bg-violet-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-violet-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">
-              {loading
-                ? "..."
-                : walletStats
-                  ? formatCurrency(Number(walletStats.totalFundraiserBalance))
-                  : "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng số dư của {walletStats?.totalFundraisers || 0} tổ chức
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+                Số dư tổ chức
+              </CardTitle>
+              <div className="p-2 bg-violet-100 rounded-lg">
+                <DollarSign className="h-5 w-5 text-violet-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                {loading
+                  ? "..."
+                  : walletStats
+                    ? formatCurrency(Number(walletStats.totalFundraiserBalance))
+                    : "--"}
+              </div>
+              <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+                Tổng số dư của {walletStats?.totalFundraisers || 0} tổ chức
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -761,45 +776,164 @@ export default function AdminDashboard() {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="h-64 w-full overflow-x-auto">
+              <div className="h-full min-w-[300px]">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                  </div>
+                ) : platformStats?.byCategory && platformStats.byCategory.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ReBarChart
+                      data={platformStats.byCategory.slice(0, 5)}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" hide />
+                      <YAxis
+                        dataKey="categoryTitle"
+                        type="category"
+                        width={100}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <Tooltip
+                        formatter={(value: number, name: string) => {
+                          if (name === "totalReceivedAmount") return [formatCurrency(value), "Tổng tiền"];
+                          return [value, "Số chiến dịch"];
+                        }}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                      />
+                      <Bar dataKey="campaignCount" fill="#f97316" radius={[0, 4, 4, 0]} barSize={20} name="Số chiến dịch" />
+                    </ReBarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <p className="text-sm">Chưa có dữ liệu</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Financial Analysis Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Wallet Balance Distribution */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-sky-100 rounded-lg">
+                <PieChartIcon className="h-4 w-4 text-sky-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Phân bổ tài chính
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Tỷ lệ số dư giữa hệ thống và các tổ chức
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full">
               {loading ? (
-                <div className="flex items-center justify-center py-8">
+                <div className="flex items-center justify-center h-full">
                   <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
                 </div>
-              ) : platformStats?.byCategory && platformStats.byCategory.length > 0 ? (
-                platformStats.byCategory.slice(0, 5).map((cat, idx) => {
-                  const maxCampaigns = Math.max(...(platformStats.byCategory?.map(c => c.campaignCount) || [1]));
-                  const percentage = (cat.campaignCount / maxCampaigns) * 100;
-                  return (
-                    <div key={idx} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {idx + 1}. {cat.categoryTitle}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-orange-600">
-                            {cat.campaignCount}
-                          </p>
-                          <p className="text-xs text-gray-500">chiến dịch</p>
-                        </div>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="bg-gradient-to-r from-orange-400 to-orange-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        Tổng gọi được: <span className="font-semibold">{formatCurrency(Number(cat.totalReceivedAmount))}</span>
-                      </p>
-                    </div>
-                  );
-                })
               ) : (
-                <p className="text-sm text-gray-500 text-center py-8">Chưa có dữ liệu</p>
+                <ResponsiveContainer width="100%" height="100%">
+                  {walletDistributionData.length > 0 ? (
+                    <PieChart>
+                      <Pie
+                        data={walletDistributionData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        label={({ value }: any) => formatCurrency(value)}
+                      >
+                        {walletDistributionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    </PieChart>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <p className="text-sm">Chưa có dữ liệu ví</p>
+                    </div>
+                  )}
+                </ResponsiveContainer>
               )}
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              {walletDistributionData.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs text-gray-600">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Average Fundraising by Category */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-violet-100 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-violet-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Hiệu quả gây quỹ trung bình
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Trung bình số tiền gọi được mỗi chiến dịch theo danh mục
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full overflow-x-auto">
+              <div className="h-full min-w-[300px]">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {avgFundraisingByCategoryData.length > 0 ? (
+                      <ReBarChart
+                        data={avgFundraisingByCategoryData}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                        <XAxis type="number" hide />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          width={100}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <Tooltip
+                          formatter={(value: number) => [formatCurrency(value), "Trung bình"]}
+                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                        />
+                        <Bar dataKey="avgRaised" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} />
+                      </ReBarChart>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <p className="text-sm">Chưa có dữ liệu danh mục</p>
+                      </div>
+                    )}
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

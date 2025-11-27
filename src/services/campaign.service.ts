@@ -27,7 +27,11 @@ import {
   CampaignStatsFilterInput,
   CategoryCampaignStats,
   CategoryCampaignStatsResponse,
+  SearchCampaignInput,
+  SearchCampaignResponse,
+  SearchCampaignResult,
 } from "@/types/api/campaign";
+import { SEARCH_CAMPAIGNS } from "@/graphql/query/campaign/search-campaigns";
 
 export const campaignService = {
   async getMyCampaigns(params?: {
@@ -229,6 +233,22 @@ export const campaignService = {
     } catch (error) {
       console.error("❌ Error extending campaign:", error);
       throw error;
+    }
+  },
+  async searchCampaigns(
+    input: SearchCampaignInput
+  ): Promise<SearchCampaignResult | null> {
+    try {
+      const { data } = await client.query<SearchCampaignResponse>({
+        query: SEARCH_CAMPAIGNS,
+        variables: { input },
+        fetchPolicy: "network-only",
+      });
+
+      return data?.searchCampaigns ?? null;
+    } catch (error) {
+      console.error("❌ Error searching campaigns:", error);
+      return null;
     }
   },
 };

@@ -20,7 +20,6 @@ import {
   CreditCard,
   User,
   Calendar,
-  DollarSign,
   Package,
   Clock,
   FileText,
@@ -67,7 +66,7 @@ export function RequestDetailDialog({
   }, [isOpen, requestId, requestType]);
 
   const request = requestType === "operation" ? operationRequest : ingredientRequest;
-  const organization = request?.organization as { 
+  const organization = request?.organization as {
     id: string;
     name: string;
     bank_account_name: string;
@@ -136,8 +135,8 @@ export function RequestDetailDialog({
                 <div>
                   <p className="text-sm text-gray-600">Họ và tên</p>
                   <p className="font-semibold text-gray-900">
-                    {requestType === "operation" 
-                      ? operationRequest?.user?.full_name 
+                    {requestType === "operation"
+                      ? operationRequest?.user?.full_name
                       : ingredientRequest?.kitchenStaff?.full_name}
                   </p>
                 </div>

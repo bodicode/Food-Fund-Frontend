@@ -136,3 +136,31 @@ export interface DonationPaymentDetail {
 export interface GetDonationPaymentLinkResponse {
   getMyDonationPaymentLink: DonationPaymentDetail;
 }
+
+export interface SearchDonationInput {
+  campaignId?: string | null;
+  limit?: number | null;
+  maxAmount?: number | null;
+  minAmount?: number | null;
+  page?: number | null;
+  query?: string | null;
+  sortBy?: "HIGHEST_AMOUNT" | "LOWEST_AMOUNT" | "NEWEST" | "OLDEST";
+}
+
+export interface DonationStatementTransaction {
+  no: number;
+  donorName: string;
+  receivedAmount: number;
+  transactionDateTime: string;
+}
+
+export interface SearchDonationResponse {
+  searchDonationStatements: {
+    campaignId: string;
+    campaignTitle: string;
+    generatedAt: string;
+    totalDonations: number;
+    totalReceived: number;
+    transactions: DonationStatementTransaction[];
+  };
+}

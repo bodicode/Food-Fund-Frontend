@@ -184,10 +184,11 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: "#ad4e28";
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
+    background-color: #ad4e28;
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
@@ -195,7 +196,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: transparent;
+    scrollbar-color: #ad4e28 transparent;
   }
 
   @keyframes fadeIn {

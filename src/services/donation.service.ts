@@ -20,11 +20,13 @@ import {
 } from "@/types/api/donation";
 import { DonationDetails, GetDonationDetailsResponse } from "@/types/api/donation-detail";
 import { GET_DONATION_DETAILS } from "@/graphql/query/donation/get-donation-details";
+import { SEARCH_DONATIONS } from "@/graphql/query/donation/search-donations";
+import { SearchDonationInput, SearchDonationResponse } from "@/types/api/donation";
 
 export const donationService = {
   async createDonation(input: CreateDonationInput): Promise<DonationResponse | null> {
     try {
-      const { data} = await client.mutate<CreateDonationResponse>({
+      const { data } = await client.mutate<CreateDonationResponse>({
         mutation: CREATE_DONATION,
         variables: { input },
       });
@@ -109,6 +111,29 @@ export const donationService = {
       return result.data.getMyDonationDetails;
     } catch (error) {
       console.error("❌ Error fetching donation details:", error);
+      throw error;
+    }
+  },
+  async searchDonations(input: SearchDonationInput): Promise<CampaignDonation[]> {
+    try {
+      const { data } = await client.query<SearchDonationResponse>({
+        query: SEARCH_DONATIONS,
+        variables: { input },
+        fetchPolicy: "network-only",
+      });
+
+      if (!data?.searchDonationStatements?.transactions) {
+        return [];
+      }
+
+      // Map to CampaignDonation interface to maintain compatibility
+      return data.searchDonationStatements.transactions.map(tx => ({
+        amount: tx.receivedAmount,
+        donorName: tx.donorName,
+        transactionDatetime: tx.transactionDateTime
+      }));
+    } catch (error) {
+      console.error("❌ Error searching donations:", error);
       throw error;
     }
   },

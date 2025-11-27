@@ -64,12 +64,12 @@ export default function CampaignDetailPage() {
       // Get actual ID from sessionStorage
       const slug = id as string;
       const actualId = getCampaignIdFromSlug(slug);
-      
+
       if (!actualId) {
         setLoading(false);
         return;
       }
-      
+
       const data = await campaignService.getCampaignById(actualId);
       setCampaign(data);
       setLoading(false);
@@ -398,7 +398,6 @@ export default function CampaignDetailPage() {
               campaignTitle={campaign.title}
               campaignStatus={campaign.status}
               organizationName={campaign.organization?.name}
-              organizationId={campaign.organization?.id}
               canEdit={campaign.status === "PENDING"}
               onEdit={() => {
                 const slug = createCampaignSlug(campaign.title, campaign.id);

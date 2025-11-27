@@ -187,7 +187,7 @@ export function CampaignCard({
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
           className={`fc-img w-full ${
-            isHero ? "h-[360px] md:h-[800px]" : "h-[220px] md:h-[300px]"
+            isHero ? "h-[360px] md:h-[800px]" : "h-[260px] md:h-[300px]"
           } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
         />
 

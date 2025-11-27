@@ -25,8 +25,6 @@ export const GET_CAMPAIGNS = gql`
       fundraisingStartDate
       fundraisingEndDate
       fundingProgress
-      daysActive
-      totalPhases
       daysRemaining
       creator {
         id
@@ -35,9 +33,6 @@ export const GET_CAMPAIGNS = gql`
       category {
         id
         title
-      }
-      phases { 
-          location
       }
     }
   }
