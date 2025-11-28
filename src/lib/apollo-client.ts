@@ -61,12 +61,12 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
   const errors = normalizeApolloError(errorResponse);
 
   // Log full error details for debugging (even in production)
-  console.error("[ApolloError] Error caught:", {
+  console.error("[ApolloError] Error caught:", JSON.stringify({
     operationName: operation.operationName,
     graphQLErrors,
     networkError,
     normalizedErrors: errors
-  });
+  }, null, 2));
 
   // --- CHECK LOGIC: Xác định xem có phải lỗi token không ---
   let isTokenError = false;
