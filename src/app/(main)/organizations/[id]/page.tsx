@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { organizationService } from "@/services/organization.service";
+import { campaignService } from "@/services/campaign.service";
 import { Organization, OrganizationRole } from "@/types/api/organization";
+import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date-utils";
@@ -22,7 +25,9 @@ import {
   ArrowLeft,
   UserPlus,
   Mail,
-  Calendar,
+  Calendar as CalendarIcon,
+  LayoutGrid,
+  Info,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +47,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CampaignCard } from "@/components/shared/campaign-card";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
@@ -49,21 +56,23 @@ export default function OrganizationDetailPage() {
   const slug = params.id as string;
 
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<OrganizationRole>(
     USER_ROLES.DELIVERY_STAFF
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+  const { isLoginDialogOpen, requireAuth, closeLoginDialog, currentUser } = useAuthGuard();
 
   useEffect(() => {
     (async () => {
       try {
         // First, fetch all organizations to find the ID by slug
         const { organizations } = await organizationService.getActiveOrganizations();
-        
+
         // Find organization by matching slug
         const found = organizations.find((org) => {
           const orgSlug = org.name
@@ -75,7 +84,7 @@ export default function OrganizationDetailPage() {
             .trim()
             .replace(/\s+/g, "-")
             .replace(/-+/g, "-");
-          
+
           return orgSlug === slug;
         });
 
@@ -86,6 +95,26 @@ export default function OrganizationDetailPage() {
         // Then fetch full details by ID
         const fullOrg = await organizationService.getOrganizationById(found.id);
         setOrganization(fullOrg);
+
+        // Fetch campaigns created by the organization representative
+        const representativeId = fullOrg.representative?.cognito_id;
+        if (representativeId) {
+          setLoadingCampaigns(true);
+          try {
+            const result = await campaignService.searchCampaigns({
+              creatorId: representativeId,
+              limit: 100, // Fetch enough campaigns
+            });
+            if (result) {
+              setCampaigns(result.items);
+            }
+          } catch (error) {
+            console.error("Error fetching organization campaigns:", error);
+          } finally {
+            setLoadingCampaigns(false);
+          }
+        }
+
       } catch (err) {
         toast.error("Không thể tải thông tin tổ chức", {
           description:
@@ -137,9 +166,12 @@ export default function OrganizationDetailPage() {
     }
   };
 
+  const isRepresentative =
+    currentUser?.id === organization?.representative?.cognito_id;
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#fffaf7] to-[#f9f4f1]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fffaf7]">
         <Loader animate loop className="h-8 w-8 text-[#b55631]" />
       </div>
     );
@@ -147,7 +179,7 @@ export default function OrganizationDetailPage() {
 
   if (!organization) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#fffaf7] to-[#f9f4f1]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fffaf7]">
         <div className="text-center">
           <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -166,246 +198,301 @@ export default function OrganizationDetailPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-[#fffaf7] to-[#f8f5f3] pt-28 pb-16 overflow-hidden">
-      {/* Decorative Floating Dots */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-64 h-64 bg-[#f0e6df] rounded-full blur-3xl opacity-40 top-10 left-[-60px]" />
-        <div className="absolute w-80 h-80 bg-[#fbe7dd] rounded-full blur-3xl opacity-40 bottom-10 right-[-80px]" />
-      </div>
+    <div className="min-h-screen bg-[#f8f5f3] pb-16">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-r from-[#b6542f] to-[#e37341] text-white pt-32 pb-16 px-4">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl -top-20 -right-20" />
+          <div className="absolute w-64 h-64 bg-black/5 rounded-full blur-3xl bottom-0 left-0" />
+        </div>
 
-      <div className="container mx-auto px-4 max-w-4xl relative">
-        {/* Back Button */}
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={() => router.push("/organizations")}
-          className="flex items-center gap-2 text-[#b55631] hover:text-[#944322] font-semibold mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Quay lại
-        </motion.button>
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={() => router.push("/organizations")}
+            className="flex items-center gap-2 text-white/80 hover:text-white font-medium mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Quay lại danh sách
+          </motion.button>
 
-        {/* Header Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden mb-8">
-            <div className="bg-gradient-to-r from-[#b6542f] to-[#e37341] text-white p-8">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-3 rounded-lg bg-white/20 backdrop-blur-sm">
-                      <Building2 className="w-6 h-6 text-white" />
-                    </div>
-                    <h1 className="text-4xl font-bold">{organization.name}</h1>
-                  </div>
-                  {organization.description && (
-                    <p className="text-white/90 text-lg">
-                      {organization.description}
-                    </p>
-                  )}
+          <div className="flex flex-col md:flex-row items-start gap-8">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl shadow-xl flex items-center justify-center text-[#b55631] flex-shrink-0"
+            >
+              <Building2 className="w-12 h-12 md:w-16 md:h-16" />
+            </motion.div>
+
+            <div className="flex-1">
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-3xl md:text-5xl font-bold mb-3"
+              >
+                {organization.name}
+              </motion.h1>
+
+              {organization.description && (
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-white/90 text-lg max-w-3xl leading-relaxed"
+                >
+                  {organization.description}
+                </motion.p>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex flex-wrap gap-4 mt-6"
+              >
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
+                  <Users className="w-4 h-4" />
+                  {organization.total_members || 0} thành viên
                 </div>
-              </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
+                  <CheckCircle className="w-4 h-4" />
+                  {organization.active_members || 0} đang hoạt động
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
+                  <CalendarIcon className="w-4 h-4" />
+                  Thành lập: {formatDate(organization.created_at)}
+                </div>
+              </motion.div>
             </div>
 
-            <CardContent className="p-8 space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-[#b55631] mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600 font-medium">Địa chỉ</p>
-                      <p className="text-gray-800">{organization.address}</p>
-                    </div>
-                  </div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {!isRepresentative && (
+                <Button
+                  onClick={handleJoinRequest}
+                  className="bg-white text-[#b55631] hover:bg-gray-100 font-semibold py-6 px-8 rounded-xl shadow-lg transition-all text-base"
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Yêu cầu tham gia
+                </Button>
+              )}
+            </motion.div>
+          </div >
+        </div >
+      </div >
 
-                  <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-[#b55631] mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600 font-medium">
-                        Số điện thoại
-                      </p>
-                      <p className="text-gray-800">{organization.phone_number}</p>
-                    </div>
-                  </div>
+      <div className="container mx-auto max-w-6xl px-4 -mt-8 relative z-20">
+        <Tabs defaultValue="campaigns" className="space-y-8">
+          <TabsList className="bg-white p-1 rounded-xl shadow-md border border-gray-100 inline-flex h-auto">
+            <TabsTrigger value="campaigns" className="px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              Chiến dịch ({campaigns.length})
+            </TabsTrigger>
+            <TabsTrigger value="about" className="px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+              <Info className="w-4 h-4 mr-2" />
+              Thông tin
+            </TabsTrigger>
+            <TabsTrigger value="members" className="px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+              <Users className="w-4 h-4 mr-2" />
+              Thành viên
+            </TabsTrigger>
+          </TabsList>
 
-                  {organization.website && (
-                    <div className="flex items-start gap-3">
-                      <Globe className="w-5 h-5 text-[#b55631] mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-gray-600 font-medium">
-                          Website
-                        </p>
-                        <a
-                          href={
-                            organization.website.startsWith("http")
-                              ? organization.website
-                              : `https://${organization.website}`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#b55631] hover:underline break-all"
-                        >
-                          {organization.website}
-                        </a>
+          <TabsContent value="campaigns" className="focus:outline-none">
+            {loadingCampaigns ? (
+              <div className="flex justify-center py-20">
+                <Loader animate loop className="w-10 h-10 text-[#b55631]" />
+              </div>
+            ) : campaigns.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {campaigns.map((campaign) => (
+                  <CampaignCard
+                    key={campaign.id}
+                    id={campaign.id}
+                    title={campaign.title}
+                    description={campaign.description}
+                    coverImage={campaign.coverImage || ""}
+                    phases={campaign.phases?.map(p => ({
+                      phaseName: p.phaseName,
+                      location: p.location,
+                      ingredientPurchaseDate: p.ingredientPurchaseDate,
+                      cookingDate: p.cookingDate,
+                      deliveryDate: p.deliveryDate,
+                    }))}
+                    status={campaign.status}
+                    donationCount={campaign.donationCount}
+                    receivedAmount={campaign.receivedAmount}
+                    targetAmount={campaign.targetAmount}
+                    fundraisingStartDate={campaign.fundraisingStartDate}
+                    fundraisingEndDate={campaign.fundraisingEndDate}
+                    creatorName={campaign.creator?.full_name}
+                    fundingProgress={campaign.fundingProgress}
+                    daysRemaining={campaign.daysRemaining}
+                    daysActive={campaign.daysActive}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                <LayoutGrid className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900">Chưa có chiến dịch nào</h3>
+                <p className="text-gray-500">Tổ chức này chưa tạo chiến dịch nào.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="about" className="focus:outline-none">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-2 space-y-6">
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                      <Info className="w-5 h-5 text-[#b55631]" />
+                      Thông tin liên hệ
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-orange-50 rounded-lg">
+                          <MapPin className="w-5 h-5 text-[#b55631]" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 font-medium mb-1">Địa chỉ</p>
+                          <p className="text-gray-900 font-medium">{organization.address}</p>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Stats */}
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-6 h-6 text-blue-600" />
-                      <div>
-                        <p className="text-sm text-blue-600 font-medium">
-                          Tổng thành viên
-                        </p>
-                        <p className="text-2xl font-bold text-blue-800">
-                          {organization.total_members || 0}
-                        </p>
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-orange-50 rounded-lg">
+                          <Phone className="w-5 h-5 text-[#b55631]" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 font-medium mb-1">Số điện thoại</p>
+                          <p className="text-gray-900 font-medium">{organization.phone_number}</p>
+                        </div>
                       </div>
+                      {organization.website && (
+                        <div className="flex items-start gap-3 md:col-span-2">
+                          <div className="p-2 bg-orange-50 rounded-lg">
+                            <Globe className="w-5 h-5 text-[#b55631]" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500 font-medium mb-1">Website</p>
+                            <a
+                              href={organization.website.startsWith("http") ? organization.website : `https://${organization.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#b55631] hover:underline font-medium"
+                            >
+                              {organization.website}
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                      <div>
-                        <p className="text-sm text-green-600 font-medium">
-                          Thành viên hoạt động
-                        </p>
-                        <p className="text-2xl font-bold text-green-800">
-                          {organization.active_members || 0}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-6 h-6 text-amber-600" />
-                      <div>
-                        <p className="text-sm text-amber-600 font-medium">
-                          Ngày thành lập
-                        </p>
-                        <p className="text-lg font-bold text-amber-800">
-                          {formatDate(organization.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Representative */}
-              {organization.representative && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Người đại diện
-                  </h3>
-                  <Card className="border-2 border-gray-100">
+              <div className="md:col-span-1">
+                {organization.representative && (
+                  <Card className="border-0 shadow-md h-full">
                     <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#b6542f] to-[#e37341] text-white flex items-center justify-center text-2xl font-bold ring-4 ring-[#fffaf7] shadow-lg">
-                          {organization.representative.full_name.charAt(0)}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-gray-800">
-                            {organization.representative.full_name}
-                          </h4>
-                          <p className="text-gray-600 text-sm">
-                            @{organization.representative.user_name}
-                          </p>
+                      <h3 className="text-xl font-bold text-gray-900 mb-6">Người đại diện</h3>
+                      <div className="flex flex-col items-center text-center">
+                        {organization.representative.avatar_url ? (
+                          <Image
+                            src={organization.representative.avatar_url}
+                            alt={organization.representative.full_name}
+                            width={96}
+                            height={96}
+                            className="rounded-full object-cover shadow-lg mb-4"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#b6542f] to-[#e37341] text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4">
+                            {organization.representative.full_name.charAt(0)}
+                          </div>
+                        )}
+                        <h4 className="text-lg font-bold text-gray-900">
+                          {organization.representative.full_name}
+                        </h4>
+                        <p className="text-gray-500 text-sm mb-4">
+                          @{organization.representative.user_name}
+                        </p>
+
+                        <div className="w-full space-y-3 text-left bg-gray-50 p-4 rounded-xl">
                           {organization.representative.email && (
-                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                              <Mail className="w-4 h-4" />
-                              {organization.representative.email}
+                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                              <Mail className="w-4 h-4 text-gray-400" />
+                              <span className="truncate">{organization.representative.email}</span>
                             </div>
                           )}
                           {organization.representative.phone_number && (
-                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                              <Phone className="w-4 h-4" />
-                              {organization.representative.phone_number}
+                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                              <Phone className="w-4 h-4 text-gray-400" />
+                              <span>{organization.representative.phone_number}</span>
                             </div>
                           )}
-                          <Badge
-                            className={`mt-3 ${organization.representative.is_active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-700"
-                              }`}
-                          >
-                            {organization.representative.is_active
-                              ? "Đang hoạt động"
-                              : "Không hoạt động"}
-                          </Badge>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+          </TabsContent>
 
-              {/* Members */}
-              {organization.members && organization.members.length > 0 && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Thành viên ({organization.members.length})
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {organization.members.map((membership) => (
-                      <Card key={membership.id} className="border-2 border-gray-100">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b6542f] to-[#e37341] text-white flex items-center justify-center font-bold ring-2 ring-[#fffaf7]">
-                              {membership.member.full_name.charAt(0)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-800 truncate">
-                                {membership.member.full_name}
-                              </h4>
-                              <p className="text-sm text-gray-600 truncate">
-                                @{membership.member.user_name}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {translateRole(membership.member_role)}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Tham gia: {formatDate(membership.joined_at)}
-                              </p>
-                            </div>
+          <TabsContent value="members" className="focus:outline-none">
+            {organization.members && organization.members.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {organization.members.map((membership) => (
+                  <Card key={membership.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        {membership.member.avatar_url ? (
+                          <Image
+                            src={membership.member.avatar_url}
+                            alt={membership.member.full_name}
+                            width={48}
+                            height={48}
+                            className="rounded-full object-cover bg-gray-100"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg">
+                            {membership.member.full_name.charAt(0)}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex gap-4 justify-center"
-        >
-          <Button
-            onClick={handleJoinRequest}
-            className="bg-[#b55631] hover:bg-[#944322] text-white font-semibold py-3 px-8 rounded-xl transition-all"
-          >
-            <UserPlus className="w-5 h-5 mr-2" />
-            Yêu cầu tham gia
-          </Button>
-        </motion.div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 truncate">
+                            {membership.member.full_name}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs font-normal">
+                              {translateRole(membership.member_role)}
+                            </Badge>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-gray-500">
+                              {formatDate(membership.joined_at)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900">Chưa có thành viên</h3>
+                <p className="text-gray-500">Tổ chức này chưa có thành viên nào khác.</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Join Request Dialog */}
@@ -516,6 +603,6 @@ export default function OrganizationDetailPage() {
         description="Bạn cần đăng nhập để có thể gửi yêu cầu tham gia tổ chức. Vui lòng đăng nhập để tiếp tục."
         actionText="Đăng nhập ngay"
       />
-    </div>
+    </div >
   );
 }

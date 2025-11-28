@@ -251,7 +251,7 @@ export default function CampaignSearchPage() {
                 <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
                 <SelectItem value="ACTIVE">Đang gây quỹ</SelectItem>
                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
-                <SelectItem value="PROCESSING">Đang trong tiếng trình</SelectItem>
+                <SelectItem value="PROCESSING">Đang trong tiến trình</SelectItem>
                 <SelectItem value="APPROVED">Đã duyệt</SelectItem>
               </SelectContent>
             </Select>

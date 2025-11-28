@@ -17,7 +17,7 @@ export default function Hero() {
   const images = [
     "/images/hero.png",
     "/images/hero-1.png",
-    "/images/hero-2.png",
+    "/images/hero-bg-3.png",
   ];
 
   useEffect(() => {

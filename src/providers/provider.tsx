@@ -5,6 +5,7 @@ import { store, persistor } from "@/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { Toaster } from "sonner";
 import { ApolloWrapper } from "./apollo-provider";
+import { TokenRefreshProvider } from "./token-refresh-provider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AUTH_CONFIG } from "@/constants";
 
@@ -15,10 +16,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ReduxProvider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <ApolloWrapper>
-          <GoogleOAuthProvider clientId={clientId}>
-            {children}
-            <Toaster richColors theme="light" position="top-center" />
-          </GoogleOAuthProvider>
+          <TokenRefreshProvider>
+            <GoogleOAuthProvider clientId={clientId}>
+              {children}
+              <Toaster richColors theme="light" position="top-center" />
+            </GoogleOAuthProvider>
+          </TokenRefreshProvider>
         </ApolloWrapper>
       </PersistGate>
     </ReduxProvider>

@@ -6,6 +6,7 @@ import { donationService } from "@/services/donation.service";
 import { MyDonationsData } from "@/types/api/donation";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { getStatusColorClass, translateTransactionStatus } from "@/lib/utils/status-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
@@ -205,7 +206,18 @@ export function HistoryTab() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/campaign/${item.donation.campaignId}`)}
+                        onClick={async () => {
+                          try {
+                            const { campaignService } = await import("@/services/campaign.service");
+                            const campaign = await campaignService.getCampaignById(item.donation.campaignId);
+                            const slug = createCampaignSlug(campaign?.title || "", item.donation.campaignId);
+                            router.push(`/campaign/${slug}`);
+                          } catch (error) {
+                            console.error("Error fetching campaign:", error);
+                            const slug = createCampaignSlug("", item.donation.campaignId);
+                            router.push(`/campaign/${slug}`);
+                          }
+                        }}
                         className="text-xs"
                       >
                         <Eye className="w-3 h-3 mr-1" />

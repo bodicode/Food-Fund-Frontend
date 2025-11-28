@@ -41,14 +41,16 @@ import { formatCurrency } from "@/lib/utils/currency-utils";
 import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
 import { campaignService } from "@/services/campaign.service";
 import { walletService, PlatformWalletStats } from "@/services/wallet.service";
+import { expenseProofService } from "@/services/expense-proof.service";
+import { operationRequestService } from "@/services/operation-request.service";
 import { coverSrc } from "@/lib/utils/utils";
 import type {
   CampaignStatsFilterInput,
   PlatformCampaignStats,
   Campaign,
 } from "@/types/api/campaign";
-
-
+import type { ExpenseProofStats } from "@/types/api/expense-proof";
+import type { OperationRequestStats } from "@/types/api/operation-request";
 
 type DateRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
 
@@ -89,6 +91,8 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [platformStats, setPlatformStats] = useState<PlatformCampaignStats | null>(null);
   const [walletStats, setWalletStats] = useState<PlatformWalletStats | null>(null);
+  const [expenseProofStats, setExpenseProofStats] = useState<ExpenseProofStats | null>(null);
+  const [operationRequestStats, setOperationRequestStats] = useState<OperationRequestStats | null>(null);
   const [recentCampaigns, setRecentCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange>("30d");
@@ -107,7 +111,7 @@ export default function AdminDashboard() {
   const loadData = async (f: CampaignStatsFilterInput) => {
     setLoading(true);
     try {
-      const [platform, campaigns, wallet] = await Promise.all([
+      const [platform, campaigns, wallet, expenseProofs, operationRequests] = await Promise.all([
         campaignService.getPlatformCampaignStats(f),
         campaignService.getCampaigns({
           sortBy: "NEWEST_FIRST",
@@ -115,10 +119,14 @@ export default function AdminDashboard() {
           offset: 0,
         }),
         walletService.getPlatformWalletStats(),
+        expenseProofService.getExpenseProofStats(),
+        operationRequestService.getOperationRequestStats(),
       ]);
       setPlatformStats(platform);
       setRecentCampaigns(campaigns || []);
       setWalletStats(wallet);
+      setExpenseProofStats(expenseProofs);
+      setOperationRequestStats(operationRequests);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -189,6 +197,22 @@ export default function AdminDashboard() {
             : 0,
       }))
       .sort((a, b) => b.avgRaised - a.avgRaised) ?? [];
+
+  const expenseProofChartData = expenseProofStats
+    ? [
+      { name: "Chờ duyệt", value: expenseProofStats.pendingCount, color: "#f59e0b" },
+      { name: "Đã duyệt", value: expenseProofStats.approvedCount, color: "#10b981" },
+      { name: "Từ chối", value: expenseProofStats.rejectedCount, color: "#ef4444" },
+    ].filter((item) => item.value > 0)
+    : [];
+
+  const operationRequestChartData = operationRequestStats
+    ? [
+      { name: "Chờ duyệt", value: operationRequestStats.pendingCount, color: "#f59e0b" },
+      { name: "Đã duyệt", value: operationRequestStats.approvedCount, color: "#10b981" },
+      { name: "Từ chối", value: operationRequestStats.rejectedCount, color: "#ef4444" },
+    ].filter((item) => item.value > 0)
+    : [];
 
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-6">
@@ -934,6 +958,131 @@ export default function AdminDashboard() {
                   </ResponsiveContainer>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Expense Proof & Operation Request Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Expense Proof Stats */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-pink-100 rounded-lg">
+                <PieChartIcon className="h-4 w-4 text-pink-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Yêu cầu xét duyệt hóa đơn
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Trạng thái các yêu cầu xét duyệt hóa đơn
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {expenseProofChartData.length > 0 ? (
+                    <PieChart>
+                      <Pie
+                        data={expenseProofChartData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        label
+                      >
+                        {expenseProofChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <p className="text-sm">Chưa có dữ liệu</p>
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              )}
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              {expenseProofChartData.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs text-gray-600">{item.name} ({item.value})</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Operation Request Stats */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <PieChartIcon className="h-4 w-4 text-indigo-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Yêu cầu giải ngân
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Trạng thái các yêu cầu giải ngân
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {operationRequestChartData.length > 0 ? (
+                    <PieChart>
+                      <Pie
+                        data={operationRequestChartData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        label
+                      >
+                        {operationRequestChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <p className="text-sm">Chưa có dữ liệu</p>
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              )}
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              {operationRequestChartData.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs text-gray-600">{item.name} ({item.value})</span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

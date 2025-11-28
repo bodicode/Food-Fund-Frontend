@@ -27,13 +27,13 @@ type CampaignCardProps = {
     status?: string;
   }>;
   status?:
-    | "PENDING"
-    | "APPROVED"
-    | "ACTIVE"
-    | "PROCESSING"
-    | "REJECTED"
-    | "COMPLETED"
-    | "CANCELLED";
+  | "PENDING"
+  | "APPROVED"
+  | "ACTIVE"
+  | "PROCESSING"
+  | "REJECTED"
+  | "COMPLETED"
+  | "CANCELLED";
   donationCount: number;
   receivedAmount: string;
   targetAmount: string;
@@ -72,7 +72,6 @@ export function CampaignCard({
   fundraisingStartDate,
   fundraisingEndDate,
   // categoryId,
-  creatorName,
   isHero = false,
   isEmergency = false,
   fundingProgress,
@@ -89,8 +88,8 @@ export function CampaignCard({
     typeof fundingProgress === "number"
       ? Math.round(fundingProgress)
       : goal > 0
-      ? Math.round((raised / goal) * 100)
-      : 0;
+        ? Math.round((raised / goal) * 100)
+        : 0;
 
   useLayoutEffect(() => {
     if (!cardRef.current) return;
@@ -166,17 +165,14 @@ export function CampaignCard({
       ref={cardRef}
       key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none will-change-transform ${
-        isHero
-          ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-lg transition-all duration-300 ease-out hover:-translate-y-2"
-          : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-md transition-all duration-300 ease-out hover:-translate-y-3"
-      } ${
-        isEmergency
+      className={`cursor-pointer select-none will-change-transform ${isHero
+        ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-lg transition-all duration-300 ease-out hover:-translate-y-2"
+        : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-md transition-all duration-300 ease-out hover:-translate-y-3"
+        } ${isEmergency
           ? "ring-2 ring-red-400 ring-offset-2 bg-white/95 backdrop-blur-xl"
           : ""
-      } ${isPending ? "opacity-50 pointer-events-none" : ""} ${
-        className ? className : ""
-      }`}
+        } ${isPending ? "opacity-50 pointer-events-none" : ""} ${className ? className : ""
+        }`}
     >
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10 opacity-70 group-hover:opacity-50 transition-opacity duration-300" />
@@ -186,9 +182,8 @@ export function CampaignCard({
           alt={title}
           width={isHero ? 800 : 400}
           height={isHero ? 600 : 300}
-          className={`fc-img w-full ${
-            isHero ? "h-[360px] md:h-[800px]" : "h-[260px] md:h-[300px]"
-          } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
+          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[260px] md:h-[300px]"
+            } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
         />
 
         {isEmergency && (
@@ -231,20 +226,18 @@ export function CampaignCard({
       </div>
 
       <span
-        className={`absolute ${
-          isHero ? "top-4 left-4" : "top-3 left-3"
-        } z-20 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full border border-white/30 shadow-lg backdrop-blur-sm`}
+        className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"
+          } z-20 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full border border-white/30 shadow-lg backdrop-blur-sm`}
       >
         {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
       </span>
 
       <div className={`${isHero ? "p-5" : "p-4"} flex flex-col`}>
         <h3
-          className={`${
-            isHero
-              ? "font-bold text-xl line-clamp-2 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
-              : "font-bold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
-          }`}
+          className={`${isHero
+            ? "font-bold text-xl line-clamp-2 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
+            : "font-bold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
+            }`}
         >
           {title}
         </h3>
@@ -328,10 +321,6 @@ export function CampaignCard({
               )}
             </>
           )}
-        </div>
-
-        <div className="mt-2 text-xs text-gray-400 italic min-h-[1.25rem]">
-          {creatorName && `Bởi ${creatorName}`}
         </div>
 
         {isHero && (computedDaysActive != null || daysLeft() != null) && (

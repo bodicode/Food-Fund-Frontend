@@ -9,7 +9,7 @@ export function titleToSlug(title: string): string {
     .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, ""); // Remove diacritics
-  
+
   return normalized
     .replace(/[^\w\s-]/g, "") // Remove special characters
     .replace(/\s+/g, "-") // Replace spaces with hyphens
