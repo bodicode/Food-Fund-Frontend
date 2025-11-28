@@ -5,9 +5,9 @@ export const GET_ALL_FUNDRAISER_WALLETS = gql`
     getAllFundraiserWallets(skip: $skip, take: $take) {
       wallets {
         balance
-        createdAt
+        created_at
         id
-        updatedAt
+        updated_at
         walletType
         user {
           address

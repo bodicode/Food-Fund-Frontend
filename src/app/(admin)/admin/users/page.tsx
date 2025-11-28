@@ -63,7 +63,6 @@ export default function TeamPage() {
           <thead>
             <tr>
               {[
-                "ID",
                 "Họ và Tên",
                 "Username",
                 "Email",
@@ -109,9 +108,6 @@ export default function TeamPage() {
                     }
                   `}
                 >
-                  <td className="px-4 py-3 text-sm whitespace-nowrap">
-                    {u.id}
-                  </td>
                   <td className="px-4 py-3 text-sm whitespace-nowrap">
                     {u.full_name}
                   </td>
@@ -181,7 +177,7 @@ export default function TeamPage() {
             setUsers((prev) =>
               prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
             );
-            fetchUsers(); // Refresh data after update
+            fetchUsers();
           }}
         />
       )}

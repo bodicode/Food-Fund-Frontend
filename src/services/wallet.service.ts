@@ -22,8 +22,8 @@ export interface FundraiserWallet {
   id: string;
   balance: string;
   walletType: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
   user: {
     id: string;
     full_name: string;
@@ -63,9 +63,9 @@ export interface GetFundraiserWalletWithTransactionsResponse {
     transactions: WalletTransaction[];
     wallet: {
       balance: string;
-      createdAt: string;
+      created_at: string;
       id: string;
-      updatedAt: string;
+      updated_at: string;
       walletType: string;
       userId: string;
     };

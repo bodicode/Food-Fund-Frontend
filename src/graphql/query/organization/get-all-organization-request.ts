@@ -20,6 +20,16 @@ export const GET_ALL_ORGANIZATION_REQUESTS = gql`
       bank_account_number
       bank_name
       bank_short_name
+      representative {
+        avatar_url
+        bio
+        email
+        full_name
+        id
+        is_active
+        role
+        user_name
+      }
     }
   }
 `;

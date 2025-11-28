@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-import Link from "next/link";
+import Image from "next/image";
 import {
   Check,
   Clock,
@@ -10,6 +10,15 @@ import {
   Search,
   X,
   ExternalLink,
+  Eye,
+  Building2,
+  User,
+  CreditCard,
+  Calendar,
+  Phone,
+  Mail,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +38,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 import { Organization, OrganizationStatus } from "@/types/api/organization";
 import { statusConfig } from "@/lib/translator";
@@ -39,8 +57,13 @@ export default function OrganizationRequestsPage() {
   const [raw, setRaw] = useState<Organization[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<OrganizationStatus>("ALL");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchData = useCallback(
     async (order: "asc" | "desc" = sortOrder) => {
@@ -59,7 +82,7 @@ export default function OrganizationRequestsPage() {
   );
 
   useEffect(() => {
-    fetchData("asc");
+    fetchData("desc");
   }, [fetchData]);
 
   const filtered = useMemo(() => {
@@ -93,6 +116,18 @@ export default function OrganizationRequestsPage() {
     return list;
   }, [raw, search, status, sortOrder]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, status, sortOrder]);
+
   const getStatusCfg = (s: string) => {
     const cfg = statusConfig[s as keyof typeof statusConfig];
     return (
@@ -110,6 +145,9 @@ export default function OrganizationRequestsPage() {
       const updated = await organizationService.approveOrganizationRequest(id);
       setRaw((prev) => prev.map((r) => (r.id === id ? updated : r)));
       toast.success("Đã phê duyệt yêu cầu.");
+      if (selectedOrg?.id === id) {
+        setSelectedOrg(updated);
+      }
     } catch (e) {
       console.error(e);
       toast.error("Phê duyệt thất bại. Vui lòng thử lại!");
@@ -121,6 +159,9 @@ export default function OrganizationRequestsPage() {
       const updated = await organizationService.rejectOrganizationRequest(id);
       setRaw((prev) => prev.map((r) => (r.id === id ? updated : r)));
       toast.success("Đã từ chối yêu cầu.");
+      if (selectedOrg?.id === id) {
+        setSelectedOrg(updated);
+      }
     } catch (e) {
       console.error(e);
       toast.error("Từ chối thất bại. Vui lòng thử lại!");
@@ -200,229 +241,375 @@ export default function OrganizationRequestsPage() {
         </div>
       </div>
 
-      {/* Bảng scroll ngang */}
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 overflow-hidden">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="border-collapse w-full" style={{ minWidth: '1800px' }}>
-            <thead>
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700">
               <tr>
-                {[
-                  "ID",
-                  "Tổ chức",
-                  "Lĩnh vực",
-                  "Thông tin đại diện",
-                  "Liên hệ",
-                  "Địa chỉ",
-                  "Website",
-                  "CMND/CCCD",
-                  "Tài khoản ngân hàng",
-                  "Trạng thái",
-                  "Ngày tạo",
-                  "Thao tác",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="sticky top-0 z-10 text-left text-gray-700 dark:text-gray-200 text-sm font-semibold whitespace-nowrap px-4 py-3 bg-gray-200 dark:bg-[#334155] shadow-sm"
-                  >
-                    {h}
-                  </th>
-                ))}
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  Tổ chức
+                </th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  Người đại diện
+                </th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  Liên hệ
+                </th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  Trạng thái
+                </th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">
+                  Ngày tạo
+                </th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-center">
+                  Thao tác
+                </th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <tr>
-                  <td colSpan={12} className="px-4 py-6 text-sm">
-                    Đang tải...
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={12}
-                    className="px-4 py-10 text-center text-sm text-gray-500"
-                  >
-                    Không có yêu cầu nào phù hợp.
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    Không tìm thấy yêu cầu nào phù hợp.
                   </td>
                 </tr>
               ) : (
-              filtered.map((r, idx) => {
-                const cfg = getStatusCfg(r.status);
-                const Icon = cfg.icon;
+                paginatedData.map((r) => {
+                  const cfg = getStatusCfg(r.status);
+                  const StatusIcon = cfg.icon;
 
-                return (
-                  <tr
-                    key={r.id}
-                    className={cn(
-                      "border-t border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800",
-                      idx % 2 === 0
-                        ? "bg-white dark:bg-slate-900"
-                        : "bg-gray-50/70 dark:bg-slate-800/40"
-                    )}
-                  >
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      {r.id}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm min-w-[200px]">
-                      <div className="flex flex-col">
-                        <span className="font-semibold whitespace-nowrap">
-                          {r.name}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                          {r.description}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3 text-sm min-w-[120px]">
-                      <span className="whitespace-nowrap">{r.activity_field || "-"}</span>
-                    </td>
-
-                    <td className="px-4 py-3 text-sm min-w-[180px]">
-                      <div className="leading-tight">
-                        <div className="font-medium whitespace-nowrap">
-                          {r.representative_name || "Người đại diện"}
+                  return (
+                    <tr
+                      key={r.id}
+                      className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {r.name}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                            {r.activity_field || "Chưa cập nhật lĩnh vực"}
+                          </span>
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {r.email || "Email"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {r.representative?.avatar_url ? (
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0">
+                              <Image
+                                src={r.representative.avatar_url}
+                                alt={r.representative_name || "Avatar"}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium text-xs shrink-0">
+                              {r.representative_name?.charAt(0).toUpperCase() || "U"}
+                            </div>
+                          )}
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {r.representative_name || "Chưa cập nhật"}
+                          </span>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="px-4 py-3 text-sm min-w-[140px]">
-                      <span className="whitespace-nowrap">
-                        {r.phone_number || "-"}
-                      </span>
-                    </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1 text-xs">
+                          <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                            <Mail className="w-3.5 h-3.5" />
+                            {r.email}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                            <Phone className="w-3.5 h-3.5" />
+                            {r.phone_number || "---"}
+                          </div>
+                        </div>
+                      </td>
 
-                    <td className="px-4 py-3 text-sm min-w-[180px]">
-                      <span
-                        className="line-clamp-1 whitespace-nowrap"
-                        title={r.address}
-                      >
-                        {r.address}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-sm min-w-[140px]">
-                      {r.website ? (
-                        <a
-                          href={
-                            r.website.startsWith("http")
-                              ? r.website
-                              : `https://${r.website}`
-                          }
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-sky-600 hover:underline whitespace-nowrap"
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "font-medium border-0",
+                            cfg.color
+                          )}
                         >
-                          {r.website}
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {cfg.label}
+                        </Badge>
+                      </td>
 
-                    <td className="px-4 py-3 text-sm min-w-[120px]">
-                      <span className="whitespace-nowrap" title={r.representative_identity_number}>
-                        {r.representative_identity_number || "-"}
-                      </span>
-                    </td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">
+                        {new Date(r.created_at).toLocaleDateString("vi-VN")}
+                      </td>
 
-                    <td className="px-4 py-3 text-sm min-w-[180px]">
-                      <div className="flex flex-col">
-                        <span className="text-xs whitespace-nowrap" title={r.bank_account_number}>
-                          {r.bank_account_number || "-"}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {r.bank_short_name || "-"}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold",
-                          cfg.color
-                        )}
-                      >
-                        <Icon className="w-3.5 h-3.5" />
-                        {cfg.label}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-sm whitespace-nowrap">
-                      {new Date(r.created_at).toLocaleDateString("vi-VN")}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm min-w-[140px]">
-                      <div className="flex items-center gap-2 whitespace-nowrap">
-                        <Link href={`/admin/org-requests/${r.id}`}>
-                          <Button variant="outline" size="sm" className="h-8">
-                            Xem
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => setSelectedOrg(r)}
+                          >
+                            <Eye className="w-4 h-4" />
                           </Button>
-                        </Link>
 
-                        {r.status === "PENDING" && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="w-40"
-                            >
-                              <DropdownMenuItem
-                                className="text-green-600 focus:text-green-700"
-                                onClick={() => onApprove(r.id)}
-                              >
-                                <Check className="w-4 h-4 mr-2" />
-                                Duyệt
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600 focus:text-red-700"
-                                onClick={() => onReject(r.id)}
-                              >
-                                <X className="w-4 h-4 mr-2" />
-                                Từ chối
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  navigator.clipboard.writeText(r.id);
-                                  toast.success("Đã copy ID.");
-                                }}
-                              >
-                                Sao chép ID
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
+                          {r.status === "PENDING" && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  className="text-green-600 focus:text-green-700 cursor-pointer"
+                                  onClick={() => onApprove(r.id)}
+                                >
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Phê duyệt
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600 focus:text-red-700 cursor-pointer"
+                                  onClick={() => onReject(r.id)}
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  Từ chối
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-        {loading
-          ? "Đang tải..."
-          : `Hiển thị ${filtered.length}/${raw.length} yêu cầu`}
-      </div>
+      {/* Pagination Controls */}
+      {!loading && filtered.length > 0 && (
+        <div className="flex items-center justify-between mt-4 text-sm text-gray-600 dark:text-gray-400">
+          <div>
+            Hiển thị {paginatedData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, filtered.length)} trên tổng số {filtered.length} yêu cầu
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="min-w-[3rem] text-center">
+              Trang {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Dialog */}
+      <Dialog open={!!selectedOrg} onOpenChange={(open) => !open && setSelectedOrg(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-indigo-600" />
+              Chi tiết yêu cầu tổ chức
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedOrg && (
+            <div className="space-y-6 py-4">
+              {/* Header Info */}
+              <div className="flex items-start justify-between bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                    {selectedOrg.name}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Calendar className="w-4 h-4" />
+                    Ngày tạo: {new Date(selectedOrg.created_at).toLocaleDateString("vi-VN", {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
+                <Badge
+                  className={cn(
+                    "px-3 py-1 text-sm border-0",
+                    getStatusCfg(selectedOrg.status).color
+                  )}
+                >
+                  {getStatusCfg(selectedOrg.status).label}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Organization Info */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-600 font-semibold border-b pb-2">
+                    <Building2 className="w-4 h-4" />
+                    Thông tin tổ chức
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Lĩnh vực:</span>
+                      <span className="col-span-2 font-medium">{selectedOrg.activity_field || "---"}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Website:</span>
+                      <span className="col-span-2">
+                        {selectedOrg.website ? (
+                          <a
+                            href={selectedOrg.website.startsWith("http") ? selectedOrg.website : `https://${selectedOrg.website}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            {selectedOrg.website} <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : "---"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Địa chỉ:</span>
+                      <span className="col-span-2 font-medium">{selectedOrg.address}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Mô tả:</span>
+                      <span className="col-span-2 text-gray-700 dark:text-gray-300">
+                        {selectedOrg.description || "Không có mô tả"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Representative Info */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-600 font-semibold border-b pb-2">
+                    <User className="w-4 h-4" />
+                    Người đại diện
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Họ tên:</span>
+                      <span className="col-span-2 font-medium">{selectedOrg.representative_name}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">CMND/CCCD:</span>
+                      <span className="col-span-2 font-medium">{selectedOrg.representative_identity_number || "---"}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Email:</span>
+                      <span className="col-span-2 font-medium">{selectedOrg.email}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <span className="text-gray-500">Số điện thoại:</span>
+                      <span className="col-span-2 font-medium">{selectedOrg.phone_number || "---"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Bank Info */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-indigo-600 font-semibold border-b pb-2">
+                  <CreditCard className="w-4 h-4" />
+                  Thông tin ngân hàng
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Ngân hàng</span>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {selectedOrg.bank_name || "---"}
+                      {selectedOrg.bank_short_name && ` (${selectedOrg.bank_short_name})`}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Số tài khoản</span>
+                    <p className="font-mono font-semibold text-gray-900 dark:text-white text-lg">
+                      {selectedOrg.bank_account_number || "---"}
+                    </p>
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Chủ tài khoản</span>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {selectedOrg.bank_account_name || "---"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setSelectedOrg(null)}>
+              Đóng
+            </Button>
+            {selectedOrg?.status === "PENDING" && (
+              <>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    onReject(selectedOrg.id);
+                    setSelectedOrg(null);
+                  }}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Từ chối
+                </Button>
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    onApprove(selectedOrg.id);
+                    setSelectedOrg(null);
+                  }}
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Phê duyệt
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
