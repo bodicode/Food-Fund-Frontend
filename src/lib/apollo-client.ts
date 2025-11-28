@@ -181,6 +181,9 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
 
             observer.next(true);
             observer.complete();
+
+            // Reload page to ensure fresh state
+            window.location.reload();
           })
           .catch((refreshError) => {
             console.error("Token refresh failed:", refreshError);
