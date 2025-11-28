@@ -9,6 +9,7 @@ import {
   type ServerError,
   type FetchResult,
 } from "@apollo/client";
+import type { GraphQLError } from "graphql";
 import { onError } from "@apollo/client/link/error";
 import { toast } from "sonner";
 import { normalizeApolloError, type ServerParseError } from "@/lib/apollo-error";
@@ -55,15 +56,31 @@ const resolvePendingRequests = () => {
   pendingRequests = [];
 };
 
-const errorLink = onError((errorResponse: { networkError?: Error | ServerError | ServerParseError | null; operation: Operation; forward: (op: Operation) => Observable<FetchResult> }) => {
-  const { operation, forward, networkError } = errorResponse;
+const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQLError>; networkError?: Error | ServerError | ServerParseError | null; operation: Operation; forward: (op: Operation) => Observable<FetchResult> }) => {
+  const { operation, forward, networkError, graphQLErrors } = errorResponse;
   const errors = normalizeApolloError(errorResponse);
 
   // --- CHECK LOGIC: Xác định xem có phải lỗi token không ---
   let isTokenError = false;
 
   // 1. Check lỗi GraphQL (message cụ thể)
-  if (errors.length > 0) {
+  // Check directly in graphQLErrors first for most accurate detection
+  if (graphQLErrors && graphQLErrors.length > 0) {
+    for (const err of graphQLErrors) {
+      if (
+        err.message.includes("Invalid Cognito token") ||
+        err.message.includes("Token expired") ||
+        (err.extensions?.code === "INTERNAL_ERROR" && err.message.includes("Invalid Cognito token")) ||
+        err.extensions?.code === "UNAUTHENTICATED"
+      ) {
+        isTokenError = true;
+        break;
+      }
+    }
+  }
+
+  // Fallback to normalized errors if not found yet
+  if (!isTokenError && errors.length > 0) {
     for (const err of errors) {
       // Check if token is expired or invalid
       if (
