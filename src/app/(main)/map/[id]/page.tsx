@@ -74,18 +74,18 @@ export default function CampaignMapPage() {
         // Get actual campaign ID from sessionStorage
         const slug = id as string;
         const campaignId = getCampaignIdFromSlug(slug);
-        
+
         if (!campaignId) {
           setLoading(false);
           return;
         }
-        
+
         const data = await campaignService.getCampaignById(campaignId);
         setCampaign(data);
 
         if (data?.phases && data.phases.length > 0) {
           const locations: PhaseLocation[] = [];
-          
+
           // Geocode each phase location
           for (const phase of data.phases) {
             if (phase.location) {
@@ -115,7 +115,7 @@ export default function CampaignMapPage() {
           }
 
           setPhaseLocations(locations);
-          
+
           // Set map center to first location or default
           if (locations.length > 0) {
             setMapCenter(locations[0].coordinates);
@@ -183,9 +183,8 @@ export default function CampaignMapPage() {
       </Button>
 
       <div
-        className={`${
-          showSidebar ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 transition-transform duration-300 fixed lg:absolute overflow-y-auto lg:w-[440px] w-[90%] max-w-[400px] top-[65px] left-0 h-[100vh] lg:h-[calc(100vh-65px)] bg-white/95 backdrop-blur-md lg:border-r border-gray-200 p-4 sm:p-6 z-20 lg:z-10 hide-scrollbar`}
+        className={`${showSidebar ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 transition-transform duration-300 fixed lg:absolute overflow-y-auto lg:w-[440px] w-[90%] max-w-[400px] top-[65px] left-0 h-[100vh] lg:h-[calc(100vh-65px)] bg-white/95 backdrop-blur-md lg:border-r border-gray-200 p-4 sm:p-6 z-20 lg:z-10 hide-scrollbar`}
       >
         <div className="rounded-2xl overflow-hidden shadow-md ring-1 ring-gray-200">
           <Image
@@ -247,7 +246,7 @@ export default function CampaignMapPage() {
               className="flex-1 border-2 border-[#ad4e28] text-[#ad4e28] py-3 rounded-xl font-semibold hover:bg-[#ad4e28]/10 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               <span>
-                <Map className="inline mr-1 w-4 h-4" /> 
+                <Map className="inline mr-1 w-4 h-4" />
                 {phaseLocations.length === 1 ? 'Chỉ đường' : `Chỉ đường ${phaseLocations.length} điểm`}
               </span>
             </button>
@@ -292,14 +291,14 @@ export default function CampaignMapPage() {
                       <span>📍</span>
                       <span>{phaseLocation.phase.location}</span>
                     </div>
-                    
+
                     {/* Phase timeline */}
                     <div className="text-xs text-gray-500 space-y-1 border-t pt-2">
                       <div>🛒 Mua NL: {new Date(phaseLocation.phase.ingredientPurchaseDate).toLocaleDateString('vi-VN')}</div>
                       <div>👨‍🍳 Nấu ăn: {new Date(phaseLocation.phase.cookingDate).toLocaleDateString('vi-VN')}</div>
                       <div>🚚 Giao hàng: {new Date(phaseLocation.phase.deliveryDate).toLocaleDateString('vi-VN')}</div>
                     </div>
-                    
+
                     <button
                       onClick={() => {
                         const slug = campaign?.title ? createCampaignSlug(campaign.title, campaign.id) : campaign.id;
@@ -318,8 +317,8 @@ export default function CampaignMapPage() {
           <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4 bg-gradient-to-br from-gray-50 to-white">
             <div className="text-6xl">🗺️</div>
             <p className="font-medium">
-              {campaign?.phases?.length === 0 
-                ? "Chiến dịch chưa có giai đoạn thực hiện" 
+              {campaign?.phases?.length === 0
+                ? "Chiến dịch chưa có giai đoạn thực hiện"
                 : "Không tìm thấy vị trí cho các giai đoạn"}
             </p>
           </div>

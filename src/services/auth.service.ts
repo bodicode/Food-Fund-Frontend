@@ -259,11 +259,14 @@ export const graphQLAuthService: AuthService = {
         refreshToken: { accessToken: string; idToken: string; expiresIn: number; message: string };
       }>({
         mutation: REFRESH_TOKEN_MUTATION,
-        variables: { 
+        variables: {
           refreshTokenInput2: {
             refreshToken,
             userName,
           }
+        },
+        context: {
+          skipAuth: true,
         },
       });
 

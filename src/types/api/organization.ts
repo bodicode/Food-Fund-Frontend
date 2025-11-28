@@ -23,6 +23,7 @@ export interface Representative {
   is_active: boolean;
   role?: string;
   phone_number?: string;
+  cognito_id?: string;
 }
 
 export interface OrganizationMember {
@@ -31,6 +32,8 @@ export interface OrganizationMember {
   phone_number?: string;
   user_name: string;
   is_active: boolean;
+  cognito_id?: string;
+  avatar_url?: string;
 }
 
 export interface OrganizationMembership {

@@ -22,6 +22,7 @@ export const GET_ORGANIZATION_BY_ID = gql`
         avatar_url
         phone_number
         is_active
+        cognito_id
       }
       members {
         id
@@ -36,6 +37,7 @@ export const GET_ORGANIZATION_BY_ID = gql`
           avatar_url
           phone_number
           is_active
+          cognito_id
         }
       }
     }

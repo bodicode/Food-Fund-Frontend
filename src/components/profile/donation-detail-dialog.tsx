@@ -13,11 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { donationService } from "@/services/donation.service";
 import { DonationDetails } from "@/types/api/donation-detail";
 import { formatCurrency } from "@/lib/utils/currency-utils";
-import { getStatusColorClass, translateTransactionStatus } from "@/lib/utils/status-utils";
+import { getStatusColorClass, translatePaymentStatus, translateTransactionStatus } from "@/lib/utils/status-utils";
 import {
     Receipt,
     Calendar,
-    DollarSign,
     CreditCard,
     FileText,
     Eye,
@@ -26,15 +25,13 @@ import {
     XCircle,
 } from "lucide-react";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 
-// Helper function to safely format date
 const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return "N/A";
     try {
-        // Handle ISO format: "2025-11-08T17:32:16.548Z"
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return "N/A";
-        // Format as: "08/11/2025 17:32"
         return new Intl.DateTimeFormat("vi-VN", {
             year: "numeric",
             month: "2-digit",
@@ -62,7 +59,6 @@ export function DonationDetailDialog({
     const [details, setDetails] = useState<DonationDetails | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Ngăn scroll body khi dialog mở
     useEffect(() => {
         if (open) {
             document.body.style.overflow = "hidden";
@@ -206,25 +202,15 @@ export function DonationDetailDialog({
                                         <div>
                                             <p className="text-xs text-gray-500 mb-1">Trạng thái thanh toán</p>
                                             <div className="mt-1">
-                                                {getStatusBadge(details.paymentTransaction.paymentAmountStatus)}
+                                                {getStatusBadge(translatePaymentStatus(details.paymentTransaction.paymentAmountStatus))}
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                        <DollarSign className="w-5 h-5 text-gray-500 mt-0.5" />
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-1">ID Giao dịch</p>
-                                            <p className="text-sm font-medium text-gray-900 font-mono break-all">
-                                                {details.paymentTransaction.id}
-                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {details.paymentTransaction.description && (
                                     <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                        <p className="text-xs text-blue-600 mb-1 font-medium">Ghi chú</p>
+                                        <p className="text-xs text-blue-600 mb-1 font-medium">Mô tả</p>
                                         <p className="text-sm text-gray-900">
                                             {details.paymentTransaction.description}
                                         </p>
@@ -245,11 +231,21 @@ export function DonationDetailDialog({
                         <div className="flex-shrink-0 px-6 pb-6 pt-4 border-t bg-white dark:bg-zinc-900">
                             <div className="flex gap-3">
                                 <Button
-                                    onClick={() => {
-                                        router.push(`/campaign/${details.campaignId}`);
-                                        onOpenChange(false);
+                                    onClick={async () => {
+                                        try {
+                                            const { campaignService } = await import("@/services/campaign.service");
+                                            const campaign = await campaignService.getCampaignById(details.campaignId);
+                                            const slug = createCampaignSlug(campaign?.title || "", details.campaignId);
+                                            router.push(`/campaign/${slug}`);
+                                            onOpenChange(false);
+                                        } catch (error) {
+                                            console.error("Error fetching campaign:", error);
+                                            const slug = createCampaignSlug("", details.campaignId);
+                                            router.push(`/campaign/${slug}`);
+                                            onOpenChange(false);
+                                        }
                                     }}
-                                    className="flex-1 bg-[#E77731] hover:bg-[#ad4e28] text-white"
+                                    className="flex-1 btn-color"
                                 >
                                     <Eye className="w-4 h-4 mr-2" />
                                     Xem chiến dịch

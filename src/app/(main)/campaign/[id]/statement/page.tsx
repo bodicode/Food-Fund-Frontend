@@ -28,13 +28,13 @@ export default function CampaignStatementPage() {
         setLoading(true);
         // Get actual campaign ID from sessionStorage
         const campaignId = getCampaignIdFromSlug(slug);
-        
+
         if (!campaignId) {
           setError("Không tìm thấy chiến dịch");
           setLoading(false);
           return;
         }
-        
+
         const data = await donationStatementService.getCampaignDonationStatement(campaignId);
         setStatement(data);
       } catch (err) {

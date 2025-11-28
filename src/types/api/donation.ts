@@ -54,6 +54,7 @@ export interface GetCampaignDonationsResponse {
 // ==============================
 export interface DonationDetail {
   campaignId: string;
+  campaignTitle?: string;
   donorName: string;
   donorId: string;
   id: string;
@@ -157,7 +158,7 @@ export interface DonationStatementTransaction {
 export interface SearchDonationResponse {
   searchDonationStatements: {
     campaignId: string;
-    campaignTitle: string;
+    campaignTitle?: string;
     generatedAt: string;
     totalDonations: number;
     totalReceived: number;

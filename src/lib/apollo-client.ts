@@ -19,12 +19,27 @@ const authLink = new ApolloLink((operation, forward) => {
   if (typeof window !== "undefined") {
     const token = Cookies.get(COOKIE_NAMES.ACCESS_TOKEN);
 
-    operation.setContext(({ headers = {} }) => ({
-      headers: {
-        ...headers,
-        Authorization: token ? `Bearer ${token}` : "",
-      },
-    }));
+    operation.setContext(({ headers = {}, skipAuth }: { headers?: Record<string, string>; skipAuth?: boolean }) => {
+
+      // Don't send Authorization header for RefreshToken mutation or if skipAuth is true
+      if (skipAuth || operation.operationName === "RefreshToken") {
+        // Explicitly remove Authorization header if it exists
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { Authorization, ...restHeaders } = headers;
+        return {
+          headers: {
+            ...restHeaders,
+          },
+        };
+      }
+
+      return {
+        headers: {
+          ...headers,
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      };
+    });
   }
 
   return forward(operation);
@@ -39,22 +54,18 @@ const resolvePendingRequests = () => {
 };
 
 const errorLink = onError((errorResponse) => {
-  const { graphQLErrors, operation, forward } = errorResponse as {
-    graphQLErrors?: readonly { message: string; extensions?: { code?: string } }[];
-    operation: {
-      operationName: string;
-      setContext: (context: { headers: Record<string, string> }) => void;
-    };
-    forward: (operation: unknown) => unknown;
-  };
+  const { operation, forward } = errorResponse;
 
-  if (graphQLErrors) {
-    for (const err of graphQLErrors) {
+  // Use normalizeApolloError to get all errors (GraphQL, Network, etc.)
+  const errors = normalizeApolloError(errorResponse);
+
+  if (errors.length > 0) {
+    for (const err of errors) {
       // Check if token is expired or invalid
       if (
         err.message.includes("Invalid Cognito token") ||
         err.message.includes("Token expired") ||
-        err.extensions?.code === "UNAUTHENTICATED"
+        err.code === "UNAUTHENTICATED"
       ) {
         // Don't retry if already refreshing or if this is the refresh mutation itself
         if (operation.operationName === "RefreshToken") {
@@ -163,13 +174,26 @@ const errorLink = onError((errorResponse) => {
           });
         }
 
-        // @ts-expect-error - Apollo Client Observable doesn't have flatMap in types but works
-        return forward$.flatMap(() => forward(operation));
+        // Replace flatMap with manual chaining since Apollo Observable doesn't support flatMap
+        return new Observable((observer) => {
+          let forwardSub: { unsubscribe: () => void } | undefined;
+          const subscription = forward$.subscribe({
+            next: () => {
+              forwardSub = forward(operation).subscribe(observer);
+            },
+            error: observer.error.bind(observer),
+          });
+
+          return () => {
+            subscription.unsubscribe();
+            if (forwardSub) forwardSub.unsubscribe();
+          };
+        });
       }
     }
   }
 
-  const errors = normalizeApolloError(errorResponse);
+  // Log other errors
   errors.forEach((err) => {
     console.error(err.message || "Có lỗi xảy ra khi gọi API");
   });
