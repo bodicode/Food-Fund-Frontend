@@ -186,6 +186,21 @@ export const translateRole = (role?: string): string => {
   return ROLE_TRANSLATIONS[upperRole] || role;
 };
 
+export const translateWalletTransactionType = (type?: string): string => {
+  if (!type) return "-";
+
+  switch (type.toUpperCase()) {
+    case "INCOMING":
+      return "Tiền vào ví Admin";
+    case "WITHDRAW":
+      return "Rút tiền";
+    case "ADMIN_ADJUSTMENT":
+      return "Admin chuyển tiền vào ví";
+    default:
+      return type;
+  }
+};
+
 // Re-export constants for backward compatibility
 export const statusConfig = STATUS_CONFIG;
 export const statusActions = STATUS_ACTIONS;

@@ -225,7 +225,6 @@ export default function CategoryPage() {
                                 <table className="min-w-full border-collapse">
                                     <thead>
                                         <tr className="bg-gray-200 dark:bg-[#334155] text-left text-gray-700 dark:text-gray-200">
-                                            <th className="px-4 py-3">ID</th>
                                             <th className="px-4 py-3">Tên danh mục</th>
                                             <th className="px-4 py-3">Mô tả</th>
                                             <th className="px-4 py-3 text-center text-nowrap">Số chiến dịch</th>
@@ -238,7 +237,6 @@ export default function CategoryPage() {
                                                 key={c.id}
                                                 className="border-t border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 text-sm"
                                             >
-                                                <td className="px-4 py-3">{c.id}</td>
                                                 <td className="px-4 py-3 font-medium">{c.title}</td>
                                                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                                                     {c.description}

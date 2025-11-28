@@ -24,6 +24,7 @@ export interface Representative {
   role?: string;
   phone_number?: string;
   cognito_id?: string;
+  bio?: string;
 }
 
 export interface OrganizationMember {
