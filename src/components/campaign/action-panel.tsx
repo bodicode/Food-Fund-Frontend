@@ -106,7 +106,8 @@ export function ActionPanel({
     if (onDonate) {
       onDonate();
     } else if (campaignId) {
-      router.push(`/donation/${campaignId}`);
+      const slug = campaignTitle ? createCampaignSlug(campaignTitle, campaignId) : campaignId;
+      router.push(`/donation/${slug}`);
     }
   };
 

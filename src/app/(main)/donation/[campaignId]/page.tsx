@@ -17,12 +17,12 @@ import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { DonationResponse } from "@/types/api/donation";
 import { formatCurrency } from "@/lib/utils/currency-utils";
-import { createCampaignSlug } from "@/lib/utils/slug-utils";
+import { createCampaignSlug, getCampaignIdFromSlug } from "@/lib/utils/slug-utils";
 
 const SUGGESTED_AMOUNTS = [50000, 100000, 200000, 500000];
 
 export default function DonationPage() {
-    const { campaignId } = useParams();
+    const { campaignId: paramId } = useParams();
     const router = useRouter();
 
     const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -32,6 +32,9 @@ export default function DonationPage() {
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
     const [donationData, setDonationData] = useState<DonationResponse | null>(null);
+
+    // Resolve campaignId from slug or use param directly
+    const campaignId = getCampaignIdFromSlug(paramId as string) || paramId;
 
     useEffect(() => {
         if (!campaignId) return;
@@ -248,9 +251,9 @@ export default function DonationPage() {
                             <Button
                                 variant="outline"
                                 onClick={() => {
-                                  if (!campaignId) return;
-                                  const slug = campaign?.title ? createCampaignSlug(campaign.title, campaignId as string) : campaignId;
-                                  router.push(`/campaign/${slug}`);
+                                    if (!campaignId) return;
+                                    const slug = campaign?.title ? createCampaignSlug(campaign.title, campaignId as string) : campaignId;
+                                    router.push(`/campaign/${slug}`);
                                 }}
                                 className="flex-1"
                             >
