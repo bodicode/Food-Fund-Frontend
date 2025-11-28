@@ -77,9 +77,26 @@ export function normalizeApolloError(error: unknown): NormalizedError[] {
   if (typeof error === "object" && error !== null && "networkError" in error) {
     const netErr = (error as NetworkErrorContainer).networkError;
     if (netErr) {
-      normalized.push({
-        message: netErr.message || "Network error",
-      });
+      // Check if networkError has a result with errors (often happens with 400/500 responses containing GraphQL errors)
+      if ("result" in netErr && typeof netErr.result === "object" && netErr.result !== null && "errors" in netErr.result) {
+        const resultErrors = (netErr.result as { errors: GraphQLError[] }).errors;
+        if (Array.isArray(resultErrors)) {
+          normalized.push(
+            ...resultErrors.map((e) => ({
+              message: e.message,
+              code: e.extensions?.code as string | undefined,
+              extensions: e.extensions as Record<string, unknown> | undefined,
+            }))
+          );
+        }
+      }
+
+      // If no specific errors found in result, fallback to generic message
+      if (normalized.length === 0) {
+        normalized.push({
+          message: netErr.message || "Network error",
+        });
+      }
     }
   }
 
