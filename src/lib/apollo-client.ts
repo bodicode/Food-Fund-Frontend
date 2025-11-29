@@ -11,31 +11,22 @@ import {
 } from "@apollo/client";
 import type { GraphQLError } from "graphql";
 import { onError } from "@apollo/client/link/error";
-import { toast } from "sonner";
-import { normalizeApolloError, type ServerParseError } from "@/lib/apollo-error";
 import { logout, setCredentials } from "@/store/slices/auth-slice";
 import { store } from "@/store";
 import Cookies from "js-cookie";
-import { API_URLS, COOKIE_NAMES, ERROR_MESSAGES, ROUTES } from "@/constants";
+import { API_URLS, COOKIE_NAMES, ROUTES } from "@/constants";
 import { decodeIdToken } from "@/lib/jwt-utils";
 
+// --- AUTH LINK ---
 const authLink = new ApolloLink((operation, forward) => {
   if (typeof window !== "undefined") {
     const token = Cookies.get(COOKIE_NAMES.ACCESS_TOKEN);
 
     operation.setContext(({ headers = {}, skipAuth }: { headers?: Record<string, string>; skipAuth?: boolean }) => {
-      // Don't send Authorization header for RefreshToken mutation or if skipAuth is true
       if (skipAuth || operation.operationName === "RefreshToken") {
-        // Explicitly remove Authorization header if it exists
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { Authorization, ...restHeaders } = headers;
-        return {
-          headers: {
-            ...restHeaders,
-          },
-        };
+        const { ...restHeaders } = headers;
+        return { headers: { ...restHeaders } };
       }
-
       return {
         headers: {
           ...headers,
@@ -44,93 +35,103 @@ const authLink = new ApolloLink((operation, forward) => {
       };
     });
   }
-
   return forward(operation);
 });
 
+// --- VARIABLES FOR REFRESH LOGIC ---
 let isRefreshing = false;
 let pendingRequests: Array<() => void> = [];
-let lastRefreshTime = 0; // Prevent infinite loops for generic 500 errors
+
+// Lưu timestamp của lần refresh thành công cuối cùng
+let lastRefreshTime = 0;
+// Khoảng thời gian tối thiểu giữa 2 lần refresh (để tránh loop 500 liên tục)
+const REFRESH_COOLDOWN = 5000; // 5 giây
 
 const resolvePendingRequests = () => {
   pendingRequests.map((callback) => callback());
   pendingRequests = [];
 };
 
-const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQLError>; networkError?: Error | ServerError | ServerParseError | null; operation: Operation; forward: (op: Operation) => Observable<FetchResult> }) => {
+const errorLink = onError((errorResponse: {
+  graphQLErrors?: ReadonlyArray<GraphQLError>;
+  networkError?: Error | ServerError | null;
+  operation: Operation;
+  forward: (op: Operation) => Observable<FetchResult>
+}) => {
   const { operation, forward, networkError, graphQLErrors } = errorResponse;
-  const errors = normalizeApolloError(errorResponse);
 
-  // Log full error details for debugging (even in production)
-  console.log("[ApolloError] Error caught:", JSON.stringify({
-    operationName: operation.operationName,
-    graphQLErrors,
-    networkError,
-    cookies: {
-      accessToken: !!Cookies.get(COOKIE_NAMES.ACCESS_TOKEN),
-      refreshToken: !!Cookies.get(COOKIE_NAMES.REFRESH_TOKEN),
-      idToken: !!Cookies.get(COOKIE_NAMES.ID_TOKEN),
-    },
-    normalizedErrors: errors
-  }, null, 2));
+  // --- DEBUG LOGGING (Quan trọng để soi lỗi Prod) ---
+  // Check xem có cookie RefreshToken không
+  const hasRefreshToken = !!Cookies.get(COOKIE_NAMES.REFRESH_TOKEN);
 
-  // --- CHECK LOGIC: Xác định xem có phải lỗi token không ---
+  console.log(`[ApolloError] Op: ${operation.operationName}`);
+  if (graphQLErrors) {
+    graphQLErrors.forEach(err => {
+      console.log(`-- GQL Error: Code=[${err.extensions?.code}] Msg=[${err.message}]`);
+    });
+  }
+  if (networkError) {
+    console.log(`-- Net Error: ${networkError.message} / StatusCode: ${(networkError as ServerError).statusCode}`);
+  }
+  // --------------------------------------------------
+
   let isTokenError = false;
 
-  // 1. Check lỗi GraphQL (message cụ thể & code)
+  // 1. Check GraphQLErrors
   if (graphQLErrors && graphQLErrors.length > 0) {
     for (const err of graphQLErrors) {
+      const code = err.extensions?.code;
+      const msg = (err.message || "").toLowerCase(); // convert to lower case check cho dễ
+
+      // A. Lỗi Token rõ ràng (Dev hoặc Prod nếu backend trả đúng)
       if (
-        err.message.includes("Invalid Cognito token") ||
-        err.message.includes("Token expired") ||
-        (err.extensions?.code === "INTERNAL_ERROR" && err.message.includes("Invalid Cognito token")) ||
-        err.extensions?.code === "UNAUTHENTICATED" ||
-        err.extensions?.code === "FORBIDDEN"
+        code === "UNAUTHENTICATED" ||
+        code === "FORBIDDEN" ||
+        msg.includes("token expired") ||
+        msg.includes("invalid cognito token")
       ) {
+        console.log("-> Detected Explicit Token Error");
         isTokenError = true;
         break;
       }
 
-      // Check for generic "Internal server error" in Production
-      // Only treat as token error if we haven't refreshed recently (loop prevention)
-      if (
-        err.message === "Internal server error" &&
-        err.extensions?.code === "INTERNAL_ERROR" &&
-        Date.now() - lastRefreshTime > 2000 // 2 seconds cooldown
-      ) {
-        console.warn("[ApolloError] Generic Internal Error detected, attempting refresh (cooldown passed)");
-        isTokenError = true;
-        break;
-      }
-    }
-  }
+      // B. Lỗi Production (Internal Server Error)
+      // Chiến thuật: Nếu code là INTERNAL_ERROR, ta nghi ngờ là lỗi Token.
+      // Điều kiện: Chỉ coi là lỗi Token nếu chưa vừa mới refresh xong.
+      if (code === "INTERNAL_ERROR") {
+        const timeSinceLastRefresh = Date.now() - lastRefreshTime;
 
-  // Fallback to normalized errors if not found yet
-  if (!isTokenError && errors.length > 0) {
-    for (const err of errors) {
-      if (
-        err.message.includes("Invalid Cognito token") ||
-        err.message.includes("Token expired") ||
-        err.code === "UNAUTHENTICATED" ||
-        err.code === "FORBIDDEN"
-      ) {
-        isTokenError = true;
-        break;
+        if (timeSinceLastRefresh > REFRESH_COOLDOWN) {
+          console.log(`-> Detected INTERNAL_ERROR. Treating as Token Error (Last refresh: ${timeSinceLastRefresh}ms ago)`);
+          isTokenError = true;
+          break;
+        } else {
+          console.warn(`-> Detected INTERNAL_ERROR but ignored (Cooldown active). Maybe real server error?`);
+        }
       }
     }
   }
 
-  // 2. Check lỗi Network (HTTP 401)
+  // 2. Check Network Error (HTTP 401 hoặc 500 ở tầng network)
   if (!isTokenError && networkError && "statusCode" in networkError) {
-    if ((networkError as ServerError | ServerParseError).statusCode === 401) {
+    const status = (networkError as ServerError).statusCode;
+    if (status === 401) {
       isTokenError = true;
     }
   }
 
+  // --- EXECUTE REFRESH ---
   if (isTokenError) {
-    // Don't retry if already refreshing or if this is the refresh mutation itself
     if (operation.operationName === "RefreshToken") {
-      toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
+      // Nếu chính API Refresh bị lỗi -> Logout
+      store.dispatch(logout());
+      window.location.replace(ROUTES.LOGIN);
+      return;
+    }
+
+    // Nếu không có refresh token trong cookie thì cũng logout luôn (tránh gọi API thừa)
+    if (!hasRefreshToken) {
+      console.log("No refresh token cookie found. Logging out.");
       store.dispatch(logout());
       window.location.replace(ROUTES.LOGIN);
       return;
@@ -144,96 +145,56 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
       forward$ = new Observable((observer) => {
         const refreshToken = Cookies.get(COOKIE_NAMES.REFRESH_TOKEN);
         const idToken = Cookies.get(COOKIE_NAMES.ID_TOKEN);
-
-        if (!refreshToken || !idToken) {
-          console.warn("[ApolloError] Missing tokens for refresh");
-          toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
-          store.dispatch(logout());
-          window.location.replace(ROUTES.LOGIN);
-          observer.complete();
-          return;
-        }
-
-        // Decode idToken to get userName
-        const decoded = decodeIdToken(idToken);
+        const decoded = decodeIdToken(idToken || "");
         const userName = (decoded?.["cognito:username"] as string) || (decoded?.username as string) || "";
 
-        if (!userName) {
-          console.error("No username found in token");
-          toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
+        if (!refreshToken || !userName) {
           store.dispatch(logout());
           window.location.replace(ROUTES.LOGIN);
           observer.complete();
           return;
         }
 
-        // Import dynamically to avoid circular dependency
-        import("@/services/auth.service")
-          .then(({ graphQLAuthService }) =>
-            graphQLAuthService.refreshToken(refreshToken, userName)
-          )
-          .then((response) => {
-            // Update tokens in cookies with expiration
-            Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, response.accessToken, {
-              secure: true,
-              sameSite: "strict",
-              expires: 1 / 24, // 1 hour
-            });
-            Cookies.set(COOKIE_NAMES.ID_TOKEN, response.idToken, {
-              secure: true,
-              sameSite: "strict",
-              expires: 1 / 24, // 1 hour
-            });
+        console.log("-> Calling Refresh Token API...");
 
-            // Decode and update Redux store
-            const decoded = decodeIdToken(response.idToken);
-            if (decoded) {
-              store.dispatch(
-                setCredentials({
-                  user: {
-                    id: decoded.sub!,
-                    name: decoded.name || "",
-                    email: decoded.email || "",
-                    role: decoded["custom:role"],
-                  },
-                  accessToken: response.accessToken,
-                  refreshToken: Cookies.get(COOKIE_NAMES.REFRESH_TOKEN) || "",
-                })
-              );
+        import("@/services/auth.service")
+          .then(({ graphQLAuthService }) => graphQLAuthService.refreshToken(refreshToken, userName))
+          .then((response) => {
+            console.log("-> Refresh Success!");
+
+            // Set Cookies
+            Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, response.accessToken, { secure: true, sameSite: "strict", expires: 1 / 24 });
+            Cookies.set(COOKIE_NAMES.ID_TOKEN, response.idToken, { secure: true, sameSite: "strict", expires: 1 / 24 });
+
+            // Update Store
+            const newDecoded = decodeIdToken(response.idToken);
+            if (newDecoded) {
+              store.dispatch(setCredentials({
+                user: { id: newDecoded.sub!, name: newDecoded.name || "", email: newDecoded.email || "", role: newDecoded["custom:role"] },
+                accessToken: response.accessToken,
+                refreshToken: refreshToken
+              }));
             }
 
-            // Resolve pending requests
-            resolvePendingRequests();
+            // Update timestamp & unlock
+            lastRefreshTime = Date.now();
             isRefreshing = false;
-            lastRefreshTime = Date.now(); // Update last successful refresh time
+            resolvePendingRequests();
 
             observer.next(true);
             observer.complete();
-
-            // Removed window.location.reload() for seamless retry
           })
-          .catch((refreshError) => {
-            console.error("Token refresh failed:", refreshError);
-            pendingRequests = [];
+          .catch((err) => {
+            console.error("-> Refresh Failed:", err);
             isRefreshing = false;
-
-            // Clear auth state but don't force redirect
+            pendingRequests = [];
             store.dispatch(logout());
-
-            // Only show toast once
-            if (!sessionStorage.getItem('refresh_failed')) {
-              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
-              sessionStorage.setItem('refresh_failed', 'true');
-            }
-
-            // Redirect to login
             window.location.replace(ROUTES.LOGIN);
-
-            observer.error(refreshError);
+            observer.error(err);
           });
       });
     } else {
-      // Wait for the current refresh to complete
+      console.log("-> Queuing request...");
       forward$ = new Observable((observer) => {
         pendingRequests.push(() => {
           observer.next(true);
@@ -242,48 +203,31 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
       });
     }
 
-    // Replace flatMap with manual chaining since Apollo Observable doesn't support flatMap
     return new Observable((observer) => {
       let forwardSub: { unsubscribe: () => void } | undefined;
-      const subscription = forward$.subscribe({
+      const sub = forward$.subscribe({
         next: () => {
           forwardSub = forward(operation).subscribe(observer);
         },
         error: observer.error.bind(observer),
       });
-
       return () => {
-        subscription.unsubscribe();
+        sub.unsubscribe();
         if (forwardSub) forwardSub.unsubscribe();
       };
     });
   }
-
-  // Log other errors
-  errors.forEach((err) => {
-    console.error(err.message || "Có lỗi xảy ra khi gọi API");
-  });
 });
 
-const httpLink = new HttpLink({
-  uri: API_URLS.GRAPHQL,
-});
+const httpLink = new HttpLink({ uri: API_URLS.GRAPHQL });
 
 export const client = new ApolloClient({
   link: from([authLink, errorLink, httpLink]),
   cache: new InMemoryCache(),
   defaultOptions: {
-    watchQuery: {
-      fetchPolicy: "cache-and-network",
-      errorPolicy: "all",
-    },
-    query: {
-      fetchPolicy: "cache-first",
-      errorPolicy: "all",
-    },
-    mutate: {
-      errorPolicy: "all",
-    },
+    watchQuery: { fetchPolicy: "cache-and-network", errorPolicy: "all" },
+    query: { fetchPolicy: "cache-first", errorPolicy: "all" },
+    mutate: { errorPolicy: "all" },
   },
 });
 
