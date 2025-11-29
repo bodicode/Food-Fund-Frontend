@@ -11,12 +11,10 @@ import {
 } from "@apollo/client";
 import type { GraphQLError } from "graphql";
 import { onError } from "@apollo/client/link/error";
-import { toast } from "sonner";
-import { normalizeApolloError, type ServerParseError } from "@/lib/apollo-error";
 import { logout, setCredentials } from "@/store/slices/auth-slice";
 import { store } from "@/store";
 import Cookies from "js-cookie";
-import { API_URLS, COOKIE_NAMES, ERROR_MESSAGES, ROUTES } from "@/constants";
+import { API_URLS, COOKIE_NAMES, ROUTES } from "@/constants";
 import { decodeIdToken } from "@/lib/jwt-utils";
 
 // --- AUTH LINK ---
@@ -26,7 +24,7 @@ const authLink = new ApolloLink((operation, forward) => {
 
     operation.setContext(({ headers = {}, skipAuth }: { headers?: Record<string, string>; skipAuth?: boolean }) => {
       if (skipAuth || operation.operationName === "RefreshToken") {
-        const { Authorization, ...restHeaders } = headers;
+        const { ...restHeaders } = headers;
         return { headers: { ...restHeaders } };
       }
       return {
@@ -56,7 +54,7 @@ const resolvePendingRequests = () => {
 
 const errorLink = onError((errorResponse: {
   graphQLErrors?: ReadonlyArray<GraphQLError>;
-  networkError?: Error | ServerError | ServerParseError | null;
+  networkError?: Error | ServerError | null;
   operation: Operation;
   forward: (op: Operation) => Observable<FetchResult>
 }) => {
@@ -73,7 +71,7 @@ const errorLink = onError((errorResponse: {
     });
   }
   if (networkError) {
-    console.log(`-- Net Error: ${networkError.message} / StatusCode: ${(networkError as any).statusCode}`);
+    console.log(`-- Net Error: ${networkError.message} / StatusCode: ${(networkError as ServerError).statusCode}`);
   }
   // --------------------------------------------------
 
