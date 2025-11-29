@@ -26,8 +26,6 @@ const authLink = new ApolloLink((operation, forward) => {
     operation.setContext(({ headers = {}, skipAuth }: { headers?: Record<string, string>; skipAuth?: boolean }) => {
       // Don't send Authorization header for RefreshToken mutation or if skipAuth is true
       if (skipAuth || operation.operationName === "RefreshToken") {
-        // Explicitly remove Authorization header if it exists
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { Authorization, ...restHeaders } = headers;
         return {
           headers: {
@@ -48,88 +46,91 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation);
 });
 
+// --- STATE QUẢN LÝ REFRESH ---
 let isRefreshing = false;
 let pendingRequests: Array<() => void> = [];
-let lastRefreshTime = 0; // Prevent infinite loops for generic 500 errors
+// Biến này giúp chặn vòng lặp vô tận nếu server thực sự bị lỗi 500 liên tục
+let lastRefreshTime = 0;
 
 const resolvePendingRequests = () => {
   pendingRequests.map((callback) => callback());
   pendingRequests = [];
 };
 
-const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQLError>; networkError?: Error | ServerError | ServerParseError | null; operation: Operation; forward: (op: Operation) => Observable<FetchResult> }) => {
+const errorLink = onError((errorResponse: {
+  graphQLErrors?: ReadonlyArray<GraphQLError>;
+  networkError?: Error | ServerError | ServerParseError | null;
+  operation: Operation;
+  forward: (op: Operation) => Observable<FetchResult>
+}) => {
   const { operation, forward, networkError, graphQLErrors } = errorResponse;
   const errors = normalizeApolloError(errorResponse);
 
-  // Log full error details for debugging (even in production)
+  // Log để debug (Bạn có thể comment lại khi production ổn định)
   console.log("[ApolloError] Error caught:", JSON.stringify({
     operationName: operation.operationName,
     graphQLErrors,
     networkError,
+    // Chỉ log xem có cookie không, không log giá trị để bảo mật
     cookies: {
-      accessToken: !!Cookies.get(COOKIE_NAMES.ACCESS_TOKEN),
-      refreshToken: !!Cookies.get(COOKIE_NAMES.REFRESH_TOKEN),
-      idToken: !!Cookies.get(COOKIE_NAMES.ID_TOKEN),
-    },
-    normalizedErrors: errors
+      hasAccess: !!Cookies.get(COOKIE_NAMES.ACCESS_TOKEN),
+      hasRefresh: !!Cookies.get(COOKIE_NAMES.REFRESH_TOKEN),
+    }
   }, null, 2));
 
   // --- CHECK LOGIC: Xác định xem có phải lỗi token không ---
   let isTokenError = false;
 
-  // 1. Check lỗi GraphQL (message cụ thể & code)
+  // 1. Check lỗi GraphQL
   if (graphQLErrors && graphQLErrors.length > 0) {
     for (const err of graphQLErrors) {
+      const code = err.extensions?.code;
+      const msg = err.message || "";
+
+      // A. Các trường hợp lỗi Token rõ ràng (thường gặp ở Dev hoặc nếu BE trả code chuẩn)
       if (
-        err.message.includes("Invalid Cognito token") ||
-        err.message.includes("Token expired") ||
-        (err.extensions?.code === "INTERNAL_ERROR" && err.message.includes("Invalid Cognito token")) ||
-        err.extensions?.code === "UNAUTHENTICATED" ||
-        err.extensions?.code === "FORBIDDEN"
+        code === "UNAUTHENTICATED" ||
+        code === "FORBIDDEN" ||
+        msg.includes("Invalid Cognito token") ||
+        msg.includes("Token expired")
       ) {
         isTokenError = true;
         break;
       }
 
-      // Check for generic "Internal server error" in Production
-      // Only treat as token error if we haven't refreshed recently (loop prevention)
+      // B. Trường hợp Production: Backend giấu lỗi -> trả về "Internal server error" + code "INTERNAL_ERROR"
+      // Logic: Nếu gặp lỗi 500 chung chung VÀ chưa vừa mới refresh xong (cách 3s) thì thử refresh 1 lần.
       if (
-        err.message === "Internal server error" &&
-        err.extensions?.code === "INTERNAL_ERROR" &&
-        Date.now() - lastRefreshTime > 2000 // 2 seconds cooldown
+        code === "INTERNAL_ERROR" &&
+        msg === "Internal server error"
       ) {
-        console.warn("[ApolloError] Generic Internal Error detected, attempting refresh (cooldown passed)");
-        isTokenError = true;
-        break;
-      }
-    }
-  }
+        const TIME_THRESHOLD = 3000; // 3 giây cooldown
+        const now = Date.now();
 
-  // Fallback to normalized errors if not found yet
-  if (!isTokenError && errors.length > 0) {
-    for (const err of errors) {
-      if (
-        err.message.includes("Invalid Cognito token") ||
-        err.message.includes("Token expired") ||
-        err.code === "UNAUTHENTICATED" ||
-        err.code === "FORBIDDEN"
-      ) {
-        isTokenError = true;
-        break;
+        if (now - lastRefreshTime > TIME_THRESHOLD) {
+          console.warn("[ApolloError] Generic Internal Error detected (Production), attempting refresh token...");
+          isTokenError = true;
+          break;
+        } else {
+          console.warn("[ApolloError] Generic Internal Error detected but ignored (Refresh cooldown active).");
+        }
       }
     }
   }
 
-  // 2. Check lỗi Network (HTTP 401)
+  // Fallback: Check network error (HTTP 401)
   if (!isTokenError && networkError && "statusCode" in networkError) {
     if ((networkError as ServerError | ServerParseError).statusCode === 401) {
       isTokenError = true;
     }
   }
 
+  // --- XỬ LÝ REFRESH ---
   if (isTokenError) {
-    // Don't retry if already refreshing or if this is the refresh mutation itself
+    // Nếu chính API RefreshToken bị lỗi thì thôi, logout luôn
     if (operation.operationName === "RefreshToken") {
+      pendingRequests = [];
+      isRefreshing = false;
       toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
       store.dispatch(logout());
       window.location.replace(ROUTES.LOGIN);
@@ -147,45 +148,40 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
 
         if (!refreshToken || !idToken) {
           console.warn("[ApolloError] Missing tokens for refresh");
-          toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
           store.dispatch(logout());
           window.location.replace(ROUTES.LOGIN);
           observer.complete();
           return;
         }
 
-        // Decode idToken to get userName
         const decoded = decodeIdToken(idToken);
         const userName = (decoded?.["cognito:username"] as string) || (decoded?.username as string) || "";
 
         if (!userName) {
-          console.error("No username found in token");
-          toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
           store.dispatch(logout());
           window.location.replace(ROUTES.LOGIN);
           observer.complete();
           return;
         }
 
-        // Import dynamically to avoid circular dependency
         import("@/services/auth.service")
           .then(({ graphQLAuthService }) =>
             graphQLAuthService.refreshToken(refreshToken, userName)
           )
           .then((response) => {
-            // Update tokens in cookies with expiration
+            // Update cookies
             Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, response.accessToken, {
               secure: true,
               sameSite: "strict",
-              expires: 1 / 24, // 1 hour
+              expires: 1 / 24,
             });
             Cookies.set(COOKIE_NAMES.ID_TOKEN, response.idToken, {
               secure: true,
               sameSite: "strict",
-              expires: 1 / 24, // 1 hour
+              expires: 1 / 24,
             });
 
-            // Decode and update Redux store
+            // Update Redux
             const decoded = decodeIdToken(response.idToken);
             if (decoded) {
               store.dispatch(
@@ -202,38 +198,34 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
               );
             }
 
-            // Resolve pending requests
+            // --- QUAN TRỌNG: Cập nhật thời gian refresh thành công ---
+            lastRefreshTime = Date.now();
+            // -------------------------------------------------------
+
             resolvePendingRequests();
             isRefreshing = false;
-            lastRefreshTime = Date.now(); // Update last successful refresh time
 
             observer.next(true);
             observer.complete();
-
-            // Removed window.location.reload() for seamless retry
           })
           .catch((refreshError) => {
             console.error("Token refresh failed:", refreshError);
             pendingRequests = [];
             isRefreshing = false;
 
-            // Clear auth state but don't force redirect
             store.dispatch(logout());
 
-            // Only show toast once
             if (!sessionStorage.getItem('refresh_failed')) {
-              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
+              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
               sessionStorage.setItem('refresh_failed', 'true');
             }
 
-            // Redirect to login
             window.location.replace(ROUTES.LOGIN);
-
             observer.error(refreshError);
           });
       });
     } else {
-      // Wait for the current refresh to complete
+      // Nếu đang refresh thì cho vào hàng chờ
       forward$ = new Observable((observer) => {
         pendingRequests.push(() => {
           observer.next(true);
@@ -242,7 +234,7 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
       });
     }
 
-    // Replace flatMap with manual chaining since Apollo Observable doesn't support flatMap
+    // Retry request gốc sau khi refresh xong
     return new Observable((observer) => {
       let forwardSub: { unsubscribe: () => void } | undefined;
       const subscription = forward$.subscribe({
@@ -259,9 +251,12 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
     });
   }
 
-  // Log other errors
+  // Log lỗi thông thường không phải token
   errors.forEach((err) => {
-    console.error(err.message || "Có lỗi xảy ra khi gọi API");
+    // Chỉ log error message nếu không phải là lỗi Internal Server Error (vì lỗi này đã được xử lý logic ở trên rồi)
+    if (err.message !== "Internal server error") {
+      console.error(err.message || "Có lỗi xảy ra khi gọi API");
+    }
   });
 });
 
