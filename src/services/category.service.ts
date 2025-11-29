@@ -1,7 +1,7 @@
 import { CREATE_CATEGORY_MUTATION } from "@/graphql/mutations/category/create-category-campaign";
 import { UPDATE_CATEGORY_MUTATION } from "@/graphql/mutations/category/update-category-campaign";
 import { DELETE_CATEGORY_MUTATION } from "@/graphql/mutations/category/delete-category-campaign";
-import { GET_CATEGORIES } from "@/graphql/query/category/get-category";
+
 import client from "@/lib/apollo-client";
 import {
     Category,
@@ -13,17 +13,16 @@ import {
     UpdateCategoryResponse,
     DeleteCategoryResponse,
 } from "@/types/api/category";
-import { GET_CATEGORY_BY_ID } from "@/graphql/query/category/get-category-by-id";
 import { GET_CAMPAIGN_CATEGORIES_STATS } from "@/graphql/query/category/get-campaign-categories-stats";
 
 export const categoryService = {
     async getCategories(): Promise<Category[]> {
         try {
-            const { data } = await client.query<{ campaignCategories: Category[] }>({
-                query: GET_CATEGORIES,
+            const { data } = await client.query<CampaignCategoriesStatsResponse>({
+                query: GET_CAMPAIGN_CATEGORIES_STATS,
                 fetchPolicy: "no-cache",
             });
-            return data?.campaignCategories || [];
+            return data?.campaignCategoriesStats || [];
         } catch (err) {
             console.error("Error fetching categories:", err);
             return [];
@@ -32,12 +31,12 @@ export const categoryService = {
 
     async getCategoryById(id: string): Promise<Category | null> {
         try {
-            const { data } = await client.query<{ campaignCategory: Category }>({
-                query: GET_CATEGORY_BY_ID,
-                variables: { id },
+            const { data } = await client.query<CampaignCategoriesStatsResponse>({
+                query: GET_CAMPAIGN_CATEGORIES_STATS,
                 fetchPolicy: "no-cache",
             });
-            return data?.campaignCategory || null;
+            const category = data?.campaignCategoriesStats.find((c) => c.id === id);
+            return category || null;
         } catch (err) {
             console.error(`Error fetching category with id ${id}:`, err);
             return null;
