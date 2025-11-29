@@ -50,6 +50,7 @@ const authLink = new ApolloLink((operation, forward) => {
 
 let isRefreshing = false;
 let pendingRequests: Array<() => void> = [];
+let lastRefreshTime = 0; // Prevent infinite loops for generic 500 errors
 
 const resolvePendingRequests = () => {
   pendingRequests.map((callback) => callback());
@@ -86,6 +87,18 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
         err.extensions?.code === "UNAUTHENTICATED" ||
         err.extensions?.code === "FORBIDDEN"
       ) {
+        isTokenError = true;
+        break;
+      }
+
+      // Check for generic "Internal server error" in Production
+      // Only treat as token error if we haven't refreshed recently (loop prevention)
+      if (
+        err.message === "Internal server error" &&
+        err.extensions?.code === "INTERNAL_ERROR" &&
+        Date.now() - lastRefreshTime > 2000 // 2 seconds cooldown
+      ) {
+        console.warn("[ApolloError] Generic Internal Error detected, attempting refresh (cooldown passed)");
         isTokenError = true;
         break;
       }
@@ -192,6 +205,7 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
             // Resolve pending requests
             resolvePendingRequests();
             isRefreshing = false;
+            lastRefreshTime = Date.now(); // Update last successful refresh time
 
             observer.next(true);
             observer.complete();
