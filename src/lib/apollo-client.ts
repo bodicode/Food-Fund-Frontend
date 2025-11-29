@@ -61,25 +61,30 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
   const errors = normalizeApolloError(errorResponse);
 
   // Log full error details for debugging (even in production)
-  console.error("[ApolloError] Error caught:", JSON.stringify({
+  console.log("[ApolloError] Error caught:", JSON.stringify({
     operationName: operation.operationName,
     graphQLErrors,
     networkError,
+    cookies: {
+      accessToken: !!Cookies.get(COOKIE_NAMES.ACCESS_TOKEN),
+      refreshToken: !!Cookies.get(COOKIE_NAMES.REFRESH_TOKEN),
+      idToken: !!Cookies.get(COOKIE_NAMES.ID_TOKEN),
+    },
     normalizedErrors: errors
   }, null, 2));
 
   // --- CHECK LOGIC: Xác định xem có phải lỗi token không ---
   let isTokenError = false;
 
-  // 1. Check lỗi GraphQL (message cụ thể)
-  // Check directly in graphQLErrors first for most accurate detection
+  // 1. Check lỗi GraphQL (message cụ thể & code)
   if (graphQLErrors && graphQLErrors.length > 0) {
     for (const err of graphQLErrors) {
       if (
         err.message.includes("Invalid Cognito token") ||
         err.message.includes("Token expired") ||
         (err.extensions?.code === "INTERNAL_ERROR" && err.message.includes("Invalid Cognito token")) ||
-        err.extensions?.code === "UNAUTHENTICATED"
+        err.extensions?.code === "UNAUTHENTICATED" ||
+        err.extensions?.code === "FORBIDDEN"
       ) {
         isTokenError = true;
         break;
@@ -90,11 +95,11 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
   // Fallback to normalized errors if not found yet
   if (!isTokenError && errors.length > 0) {
     for (const err of errors) {
-      // Check if token is expired or invalid
       if (
         err.message.includes("Invalid Cognito token") ||
         err.message.includes("Token expired") ||
-        err.code === "UNAUTHENTICATED"
+        err.code === "UNAUTHENTICATED" ||
+        err.code === "FORBIDDEN"
       ) {
         isTokenError = true;
         break;
@@ -128,6 +133,7 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
         const idToken = Cookies.get(COOKIE_NAMES.ID_TOKEN);
 
         if (!refreshToken || !idToken) {
+          console.warn("[ApolloError] Missing tokens for refresh");
           toast.error(ERROR_MESSAGES.SESSION_EXPIRED);
           store.dispatch(logout());
           window.location.replace(ROUTES.LOGIN);
@@ -190,8 +196,7 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
             observer.next(true);
             observer.complete();
 
-            // Reload page to ensure fresh state
-            window.location.reload();
+            // Removed window.location.reload() for seamless retry
           })
           .catch((refreshError) => {
             console.error("Token refresh failed:", refreshError);
@@ -206,6 +211,9 @@ const errorLink = onError((errorResponse: { graphQLErrors?: ReadonlyArray<GraphQ
               toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
               sessionStorage.setItem('refresh_failed', 'true');
             }
+
+            // Redirect to login
+            window.location.replace(ROUTES.LOGIN);
 
             observer.error(refreshError);
           });
