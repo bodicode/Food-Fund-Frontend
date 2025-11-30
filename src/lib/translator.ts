@@ -195,7 +195,7 @@ export const translateWalletTransactionType = (type?: string): string => {
     case "WITHDRAW":
       return "Rút tiền";
     case "ADMIN_ADJUSTMENT":
-      return "Admin chuyển tiền vào ví";
+      return "Hệ thống chuyển tiền";
     default:
       return type;
   }

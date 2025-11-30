@@ -208,6 +208,16 @@ const errorLink = onError((errorResponse) => {
       let forwardSub: { unsubscribe: () => void } | undefined;
       const sub = forward$.subscribe({
         next: () => {
+          // Cập nhật token mới vào header của request cũ trước khi retry
+          const newToken = Cookies.get(COOKIE_NAMES.ACCESS_TOKEN);
+          const oldHeaders = operation.getContext().headers;
+          operation.setContext({
+            headers: {
+              ...oldHeaders,
+              Authorization: newToken ? `Bearer ${newToken}` : "",
+            },
+          });
+
           forwardSub = forward(operation).subscribe(observer);
         },
         error: observer.error.bind(observer),

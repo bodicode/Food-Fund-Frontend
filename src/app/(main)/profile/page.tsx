@@ -48,9 +48,9 @@ const SidebarContent = ({
     { key: "profile", label: "Hồ sơ cá nhân", icon: UserIcon },
     ...(profile?.role === "FUNDRAISER"
       ? [
-          { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
-          { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
-        ]
+        { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
+        { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
+      ]
       : []),
     { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
     { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
@@ -63,10 +63,10 @@ const SidebarContent = ({
         <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-offset-2 ring-[#ad4e28]/50 group">
           <Image
             src={
-              profile?.avatar_url && 
-              profile.avatar_url.trim() !== "" && 
-              (profile.avatar_url.startsWith('http') || profile.avatar_url.startsWith('/'))
-                ? profile.avatar_url 
+              profile?.avatar_url &&
+                profile.avatar_url.trim() !== "" &&
+                (profile.avatar_url.startsWith('http') || profile.avatar_url.startsWith('/'))
+                ? profile.avatar_url
                 : "/images/avatar.webp"
             }
             alt={profile?.full_name || "User avatar"}
@@ -97,8 +97,8 @@ const SidebarContent = ({
             key={tab.key}
             variant="ghost"
             className={`justify-start items-center gap-3 px-3 text-base ${activeTab === tab.key
-                ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
-                : "hover:bg-gray-100 text-gray-700"
+              ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
+              : "hover:bg-gray-100 text-gray-700"
               }`}
             onClick={() => onNavigate(tab.key as TabKey)}
           >
@@ -162,12 +162,12 @@ export default function ProfilePage() {
       campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
       ...(profile?.role === "FUNDRAISER"
         ? {
-            wallet: { component: <WalletTab />, title: "Ví của tôi" },
-            disbursements: {
-              component: <MyDisbursementsTab />,
-              title: "Yêu cầu giải ngân",
-            },
-          }
+          wallet: { component: <WalletTab />, title: "Ví của tôi" },
+          disbursements: {
+            component: <MyDisbursementsTab />,
+            title: "Yêu cầu giải ngân",
+          },
+        }
         : {}),
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
     }),
@@ -175,6 +175,8 @@ export default function ProfilePage() {
   );
 
   useEffect(() => {
+    if (loadingProfile) return;
+
     const tabFromUrl = searchParams.get("tab") as TabKey | null;
     if (tabFromUrl && TABS[tabFromUrl]) {
       setActiveTab(tabFromUrl);
@@ -182,10 +184,9 @@ export default function ProfilePage() {
       (tabFromUrl === "wallet" || tabFromUrl === "disbursements") &&
       profile?.role !== "FUNDRAISER"
     ) {
-      // Redirect to profile if trying to access wallet/disbursements without FUNDRAISER role
       router.push("/profile?tab=profile");
     }
-  }, [searchParams, TABS, profile?.role, router]);
+  }, [searchParams, TABS, profile?.role, router, loadingProfile]);
 
   const handleNavigate = (key: TabKey) => {
     setActiveTab(key);
