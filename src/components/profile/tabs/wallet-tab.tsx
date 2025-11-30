@@ -7,24 +7,24 @@ import { Button } from "@/components/ui/button";
 import { DollarSign, RefreshCw, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { walletService, MyWallet, MyWalletStats, WalletTransaction } from "@/services/wallet.service";
-import { translateRole } from "@/lib/translator";
+import { translateRole, translateWalletTransactionType } from "@/lib/translator";
 
 // Helper function to safely format date
 const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return "N/A";
-  try {
-    // Handle ISO format: "2025-11-08T17:32:16.548Z"
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "N/A";
-    // Format as: "08/11/2025"
-    return new Intl.DateTimeFormat("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(date);
-  } catch {
-    return "N/A";
-  }
+    if (!dateString) return "N/A";
+    try {
+        // Handle ISO format: "2025-11-08T17:32:16.548Z"
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "N/A";
+        // Format as: "08/11/2025"
+        return new Intl.DateTimeFormat("vi-VN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(date);
+    } catch {
+        return "N/A";
+    }
 };
 
 export function WalletTab() {
@@ -237,7 +237,7 @@ export function WalletTab() {
                                                 Ngày
                                             </th>
                                             <th className="text-left py-2 px-3 font-semibold text-gray-700">
-                                                Loại
+                                                Loại giao dịch
                                             </th>
                                             <th className="text-left py-2 px-3 font-semibold text-gray-700">
                                                 Mô tả
@@ -245,8 +245,11 @@ export function WalletTab() {
                                             <th className="text-right py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
                                                 Số tiền
                                             </th>
-                                            <th className="text-left py-2 px-3 font-semibold text-gray-700">
-                                                Gateway
+                                            <th className="text-right py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                                                Số dư trước
+                                            </th>
+                                            <th className="text-right py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                                                Số dư sau
                                             </th>
                                         </tr>
                                     </thead>
@@ -261,31 +264,40 @@ export function WalletTab() {
                                                 </td>
                                                 <td className="py-3 px-3">
                                                     <Badge
-                                                        className={`border-0 ${transaction.transactionType === "DEPOSIT"
-                                                                ? "bg-green-100 text-green-800"
-                                                                : "bg-red-100 text-red-800"
+                                                        className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                            ? "bg-green-100 text-green-800"
+                                                            : transaction.transactionType === "WITHDRAW"
+                                                                ? "bg-red-100 text-red-800"
+                                                                : "bg-gray-100 text-gray-800"
                                                             }`}
                                                     >
-                                                        {transaction.transactionType}
+                                                        {translateWalletTransactionType(transaction.transactionType)}
                                                     </Badge>
                                                 </td>
-                                                <td className="py-3 px-3 text-xs text-gray-600 truncate max-w-xs">
-                                                    {transaction.description}
+                                                <td className="py-3 px-3 text-xs text-gray-600 max-w-xs">
+                                                    <p>
+                                                        {transaction.description}
+                                                    </p>
                                                 </td>
                                                 <td className="py-3 px-3 text-right font-semibold text-gray-900 whitespace-nowrap">
                                                     <span
                                                         className={
-                                                            transaction.transactionType === "DEPOSIT"
+                                                            transaction.transactionType === "ADMIN_ADJUSTMENT"
                                                                 ? "text-green-600"
-                                                                : "text-red-600"
+                                                                : transaction.transactionType === "WITHDRAW"
+                                                                    ? "text-red-600"
+                                                                    : "text-gray-900"
                                                         }
                                                     >
-                                                        {transaction.transactionType === "DEPOSIT" ? "+" : "-"}
+                                                        {transaction.transactionType === "ADMIN_ADJUSTMENT" ? "+" : transaction.transactionType === "WITHDRAW" ? "-" : ""}
                                                         {formatCurrency(Number(transaction.amount))}
                                                     </span>
                                                 </td>
-                                                <td className="py-3 px-3 text-xs text-gray-600">
-                                                    {transaction.gateway}
+                                                <td className="py-3 px-3 text-right text-xs text-gray-600 whitespace-nowrap">
+                                                    {formatCurrency(Number(transaction.balanceBefore))}
+                                                </td>
+                                                <td className="py-3 px-3 text-right text-xs text-gray-600 whitespace-nowrap">
+                                                    {formatCurrency(Number(transaction.balanceAfter))}
                                                 </td>
                                             </tr>
                                         ))}
@@ -302,12 +314,14 @@ export function WalletTab() {
                                     >
                                         <div className="flex items-center justify-between mb-3">
                                             <Badge
-                                                className={`border-0 ${transaction.transactionType === "DEPOSIT"
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
+                                                className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                    ? "bg-green-100 text-green-800"
+                                                    : transaction.transactionType === "WITHDRAW"
+                                                        ? "bg-red-100 text-red-800"
+                                                        : "bg-gray-100 text-gray-800"
                                                     }`}
                                             >
-                                                {transaction.transactionType}
+                                                {translateWalletTransactionType(transaction.transactionType)}
                                             </Badge>
                                             <span className="text-xs text-gray-500">
                                                 {formatDate(transaction.created_at)}
@@ -317,26 +331,34 @@ export function WalletTab() {
                                         <div className="space-y-2">
                                             <div>
                                                 <p className="text-xs text-gray-600 mb-1">Mô tả:</p>
-                                                <p className="text-xs text-gray-900 line-clamp-2">
+                                                <p className="text-xs text-gray-900">
                                                     {transaction.description}
                                                 </p>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-xs text-gray-600">Số tiền:</span>
                                                 <span
-                                                    className={`font-semibold ${transaction.transactionType === "DEPOSIT"
-                                                            ? "text-green-600"
-                                                            : "text-red-600"
+                                                    className={`font-semibold ${transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                        ? "text-green-600"
+                                                        : transaction.transactionType === "WITHDRAW"
+                                                            ? "text-red-600"
+                                                            : "text-gray-900"
                                                         }`}
                                                 >
-                                                    {transaction.transactionType === "DEPOSIT" ? "+" : "-"}
+                                                    {transaction.transactionType === "ADMIN_ADJUSTMENT" ? "+" : transaction.transactionType === "WITHDRAW" ? "-" : ""}
                                                     {formatCurrency(Number(transaction.amount))}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-xs text-gray-600">Gateway:</span>
+                                                <span className="text-xs text-gray-600">Số dư trước:</span>
                                                 <span className="text-xs text-gray-900">
-                                                    {transaction.gateway}
+                                                    {formatCurrency(Number(transaction.balanceBefore))}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs text-gray-600">Số dư sau:</span>
+                                                <span className="text-xs text-gray-900">
+                                                    {formatCurrency(Number(transaction.balanceAfter))}
                                                 </span>
                                             </div>
                                         </div>

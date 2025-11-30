@@ -396,7 +396,7 @@ export default function FundraiserWalletsPage() {
                             </td>
                             <td className="py-3 px-3">
                               <Badge
-                                className={`border-0 ${transaction.transactionType === "DEPOSIT"
+                                className={`border-0 ${transaction.transactionType === "INCOMING"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                                   }`}
@@ -410,12 +410,12 @@ export default function FundraiserWalletsPage() {
                             <td className="py-3 px-3 text-right font-semibold text-gray-900">
                               <span
                                 className={
-                                  transaction.transactionType === "DEPOSIT"
+                                  transaction.transactionType === "INCOMING"
                                     ? "text-green-600"
                                     : "text-red-600"
                                 }
                               >
-                                {transaction.transactionType === "DEPOSIT" ? "+" : "-"}
+                                {transaction.transactionType === "INCOMING" ? "+" : "-"}
                                 {formatCurrency(Number(transaction.amount))}
                               </span>
                             </td>

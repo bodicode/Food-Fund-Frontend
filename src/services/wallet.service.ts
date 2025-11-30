@@ -55,6 +55,8 @@ export interface WalletTransaction {
   paymentTransactionId: string | null;
   transactionType: string;
   walletId: string;
+  balanceAfter: string;
+  balanceBefore: string;
 }
 
 export interface GetFundraiserWalletWithTransactionsResponse {

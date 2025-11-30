@@ -157,9 +157,6 @@ export function MyDisbursementsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Yêu cầu giải ngân của tôi</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Danh sách các yêu cầu giải ngân từ admin
-          </p>
         </div>
         <Button
           variant="outline"
@@ -249,14 +246,14 @@ export function MyDisbursementsTab() {
                         <FileText className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-600 uppercase tracking-wide">Chứng chỉ</p>
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Hóa đơn</p>
                         <Button
                           variant="link"
                           size="sm"
                           onClick={() => openLightbox(disbursement.proof)}
                           className="font-semibold text-blue-600 hover:text-blue-700 p-0 h-auto"
                         >
-                          Xem file →
+                          Xem →
                         </Button>
                       </div>
                     </div>

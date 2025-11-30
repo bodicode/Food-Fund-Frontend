@@ -14,6 +14,8 @@ export const GET_MY_WALLET_TRANSACTIONS = gql`
         paymentTransactionId
         transactionType
         walletId
+        balanceAfter
+        balanceBefore
       }
       wallet {
         balance
