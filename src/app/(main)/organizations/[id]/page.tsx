@@ -214,7 +214,7 @@ export default function OrganizationDetailPage() {
             className="flex items-center gap-2 text-white/80 hover:text-white font-medium mb-8 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            Quay lại danh sách
+            Quay lại
           </motion.button>
 
           <div className="flex flex-col md:flex-row items-start gap-8">

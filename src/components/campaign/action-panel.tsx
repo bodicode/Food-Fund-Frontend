@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   MapPin,
   Target,
@@ -9,6 +8,7 @@ import {
   Info,
   Navigation,
   CheckCircle,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -41,7 +41,7 @@ interface ActionPanelProps {
   goal?: string;
   onDonate?: () => void;
   organizationName?: string;
-  organizationLogo?: string;
+
   onViewStatement?: () => void;
   fundraisingEndDate?: string;
 }
@@ -61,7 +61,7 @@ export function ActionPanel({
   goal,
   onDonate,
   organizationName = "Tổ chức",
-  organizationLogo = "/images/avatar.webp",
+
   onViewStatement,
   fundraisingEndDate,
 }: ActionPanelProps) {
@@ -144,13 +144,9 @@ export function ActionPanel({
         className="bg-color-base rounded-2xl shadow-sm border p-5 md:p-6 space-y-4"
       >
         <div className="flex items-start gap-3 pb-3 border-b border-gray-100">
-          <Image
-            src={organizationLogo}
-            alt={organizationName || ""}
-            width={48}
-            height={48}
-            className="rounded-full object-cover w-12 h-12 border"
-          />
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 shrink-0">
+            <Building2 className="w-6 h-6 text-[#E77731]" />
+          </div>
           <div className="flex-1">
             <p className="text-xs text-gray-500 mb-0.5">
               Tổ chức / Người đại diện
