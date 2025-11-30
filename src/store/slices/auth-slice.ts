@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
+import { COOKIE_NAMES } from "@/constants";
 
 interface User {
   id: string;
@@ -44,24 +45,34 @@ const authSlice = createSlice({
       localStorage.setItem("user", JSON.stringify(user));
 
       // Save tokens & role in cookies (for security + middleware)
-      Cookies.set("accessToken", accessToken, {
+      // Access Token: 1 hour
+      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, accessToken, {
         secure: true,
         sameSite: "strict",
+        expires: 1 / 24,
       });
-      Cookies.set("refreshToken", refreshToken, {
+      // Refresh Token: 30 days
+      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, {
         secure: true,
         sameSite: "strict",
+        expires: 30,
       });
       if (user.role) {
-        Cookies.set("role", user.role, { secure: true, sameSite: "strict" });
+        Cookies.set(COOKIE_NAMES.ROLE, user.role, {
+          secure: true,
+          sameSite: "strict",
+          expires: 30,
+        });
       }
+
+
     },
 
     restoreSession: (state) => {
       try {
         const user = localStorage.getItem("user");
-        const accessToken = Cookies.get("accessToken") || null;
-        const refreshToken = Cookies.get("refreshToken") || null;
+        const accessToken = Cookies.get(COOKIE_NAMES.ACCESS_TOKEN) || null;
+        const refreshToken = Cookies.get(COOKIE_NAMES.REFRESH_TOKEN) || null;
 
         if (user && accessToken && refreshToken) {
           state.user = JSON.parse(user);
@@ -90,10 +101,12 @@ const authSlice = createSlice({
       localStorage.removeItem("user");
 
       // Clear cookies
-      Cookies.remove("accessToken", { secure: true, sameSite: "strict" });
-      Cookies.remove("refreshToken", { secure: true, sameSite: "strict" });
-      Cookies.remove("role", { secure: true, sameSite: "strict" });
-      Cookies.remove("idToken", { secure: true, sameSite: "strict" });
+      Cookies.remove(COOKIE_NAMES.ACCESS_TOKEN, { secure: true, sameSite: "strict" });
+      Cookies.remove(COOKIE_NAMES.REFRESH_TOKEN, { secure: true, sameSite: "strict" });
+      Cookies.remove(COOKIE_NAMES.ROLE, { secure: true, sameSite: "strict" });
+      Cookies.remove(COOKIE_NAMES.ID_TOKEN, { secure: true, sameSite: "strict" });
+
+
     },
   },
 });

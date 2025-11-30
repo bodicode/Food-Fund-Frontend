@@ -114,7 +114,7 @@ export const donationService = {
       throw error;
     }
   },
-  async searchDonations(input: SearchDonationInput): Promise<CampaignDonation[]> {
+  async searchDonations(input: SearchDonationInput): Promise<{ donations: CampaignDonation[]; total: number }> {
     try {
       const { data } = await client.query<SearchDonationResponse>({
         query: SEARCH_DONATIONS,
@@ -123,15 +123,20 @@ export const donationService = {
       });
 
       if (!data?.searchDonationStatements?.transactions) {
-        return [];
+        return { donations: [], total: 0 };
       }
 
       // Map to CampaignDonation interface to maintain compatibility
-      return data.searchDonationStatements.transactions.map(tx => ({
+      const donations = data.searchDonationStatements.transactions.map(tx => ({
         amount: tx.receivedAmount,
         donorName: tx.donorName,
         transactionDatetime: tx.transactionDateTime
       }));
+
+      return {
+        donations,
+        total: data.searchDonationStatements.totalDonations
+      };
     } catch (error) {
       console.error("❌ Error searching donations:", error);
       throw error;

@@ -249,7 +249,7 @@ export default function OrganizationsPage() {
                         <Building2 className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <CardTitle className="text-lg font-semibold truncate">
+                        <CardTitle className="text-lg font-semibold line-clamp-2 leading-tight h-12">
                           {org.name}
                         </CardTitle>
                         {org.description && (

@@ -5,11 +5,7 @@ import {
   ApolloLink,
   from,
   Observable,
-  type Operation,
-  type ServerError,
-  type FetchResult,
 } from "@apollo/client";
-import type { GraphQLError } from "graphql";
 import { onError } from "@apollo/client/link/error";
 import { logout, setCredentials } from "@/store/slices/auth-slice";
 import { store } from "@/store";
