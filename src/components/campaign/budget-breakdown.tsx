@@ -184,7 +184,7 @@ export function BudgetBreakdown({
                         )}
                       </div>
                       <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
-                        <div className="h-1.5 bg-[#E77731] rounded-full" style={{ width: `${ingredientPct}%` }} />
+                        <div className="h-1.5 bg-[#E77731] rounded-full" style={{ width: `${phase.ingredientFundsAmount ? clamp((Number(phase.ingredientFundsAmount) / ((ingredientPct / 100) * targetAmount)) * 100, 0, 100) : 0}%` }} />
                       </div>
                     </div>
                   )}
@@ -212,7 +212,7 @@ export function BudgetBreakdown({
                         )}
                       </div>
                       <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
-                        <div className="h-1.5 bg-[#4F46E5] rounded-full" style={{ width: `${cookingPct}%` }} />
+                        <div className="h-1.5 bg-[#4F46E5] rounded-full" style={{ width: `${phase.cookingFundsAmount ? clamp((Number(phase.cookingFundsAmount) / ((cookingPct / 100) * targetAmount)) * 100, 0, 100) : 0}%` }} />
                       </div>
                     </div>
                   )}
@@ -240,7 +240,7 @@ export function BudgetBreakdown({
                         )}
                       </div>
                       <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2 ml-3">
-                        <div className="h-1.5 bg-[#10B981] rounded-full" style={{ width: `${deliveryPct}%` }} />
+                        <div className="h-1.5 bg-[#10B981] rounded-full" style={{ width: `${phase.deliveryFundsAmount ? clamp((Number(phase.deliveryFundsAmount) / ((deliveryPct / 100) * targetAmount)) * 100, 0, 100) : 0}%` }} />
                       </div>
                     </div>
                   )}
