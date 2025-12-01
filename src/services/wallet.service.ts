@@ -7,6 +7,8 @@ import { GET_FUNDRAISER_WALLET_WITH_TRANSACTIONS } from "@/graphql/query/wallet/
 import { GET_MY_WALLET } from "@/graphql/query/wallet/get-my-wallet";
 import { GET_MY_WALLET_TRANSACTIONS } from "@/graphql/query/wallet/get-my-wallet-transactions";
 import { GET_MY_WALLET_STATS } from "@/graphql/query/wallet/get-my-wallet-stats";
+import { GET_WALLET } from "@/graphql/query/wallet/get-wallet";
+import { GET_WALLET_TRANSACTIONS } from "@/graphql/query/wallet/get-wallet-transactions";
 import client from "@/lib/apollo-client";
 
 export interface PlatformWalletStats {
@@ -97,6 +99,29 @@ export interface MyWalletStats {
   totalDonations: number;
   totalReceived: string;
   totalWithdrawn: string;
+}
+
+export interface SearchWalletTransactionInput {
+  walletId: string;
+  query?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  minAmount?: number | null;
+  maxAmount?: number | null;
+  transactionType?: string | null;
+  sortBy?: "HIGHEST_AMOUNT" | "LOWEST_AMOUNT" | "NEWEST" | "OLDEST";
+  page?: number;
+  limit?: number;
+}
+
+export interface SearchWalletTransactionResponse {
+  searchWalletTransactions: {
+    items: WalletTransaction[];
+    limit: number;
+    page: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export const walletService = {
@@ -202,6 +227,40 @@ export const walletService = {
       return data?.getMyWalletStats || null;
     } catch (error) {
       console.error("❌ Error fetching my wallet stats:", error);
+      return null;
+    }
+  },
+
+  async getWallet(userId: string): Promise<FundraiserWallet | null> {
+    try {
+      const { data } = await client.query<{ getWallet: FundraiserWallet }>({
+        query: GET_WALLET,
+        variables: { userId },
+        fetchPolicy: "no-cache",
+      });
+
+      return data?.getWallet || null;
+    } catch (error) {
+      console.error("❌ Error fetching wallet:", error);
+      return null;
+    }
+  },
+
+  async getWalletTransactions(
+    input: SearchWalletTransactionInput
+  ): Promise<{ items: WalletTransaction[]; total: number; totalPages: number } | null> {
+    try {
+      const { data } = await client.query<SearchWalletTransactionResponse>({
+        query: GET_WALLET_TRANSACTIONS,
+        variables: {
+          input,
+        },
+        fetchPolicy: "no-cache",
+      });
+
+      return data?.searchWalletTransactions || null;
+    } catch (error) {
+      console.error("❌ Error fetching wallet transactions:", error);
       return null;
     }
   },

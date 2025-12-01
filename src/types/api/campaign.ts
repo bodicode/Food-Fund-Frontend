@@ -43,7 +43,9 @@ export interface Campaign {
 
   creator?: {
     id?: string;
+    cognito_id?: string;
     full_name: string;
+    user_name?: string;
     email?: string;
     phone_number?: string;
   };
@@ -51,6 +53,11 @@ export interface Campaign {
   organization?: {
     id: string;
     name: string;
+    representative?: {
+      id: string;
+      email: string;
+      cognito_id: string;
+    };
   };
 
   created_at: string;

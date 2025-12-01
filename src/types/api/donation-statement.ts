@@ -4,8 +4,6 @@ export interface DonationTransaction {
   donorName: string;
   amount: number;
   receivedAmount: number;
-  transactionStatus: string;
-  paymentStatus: string;
   gateway: string;
   orderCode: string;
   bankAccountNumber: string;
