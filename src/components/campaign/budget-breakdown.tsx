@@ -168,7 +168,12 @@ export function BudgetBreakdown({
                           <div className="w-0.5 h-6 rounded-full bg-[#E77731]" />
                           <span className="text-sm font-medium text-gray-700">Nguyên liệu</span>
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{ingredientPct}%</span>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                          {phase.ingredientFundsAmount
+                            ? `${Math.round(clamp((Number(phase.ingredientFundsAmount) / ((ingredientPct / 100) * targetAmount)) * 100, 0, 100))}%`
+                            : '0%'
+                          }
+                        </span>
                       </div>
                       <div className="space-y-1 ml-3">
                         <div className="text-sm font-bold text-gray-900">
@@ -196,7 +201,12 @@ export function BudgetBreakdown({
                           <div className="w-0.5 h-6 rounded-full bg-[#4F46E5]" />
                           <span className="text-sm font-medium text-gray-700">Nấu ăn</span>
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{cookingPct}%</span>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                          {phase.cookingFundsAmount
+                            ? `${Math.round(clamp((Number(phase.cookingFundsAmount) / ((cookingPct / 100) * targetAmount)) * 100, 0, 100))}%`
+                            : '0%'
+                          }
+                        </span>
                       </div>
                       <div className="space-y-1 ml-3">
                         <div className="text-sm font-bold text-gray-900">
@@ -224,7 +234,12 @@ export function BudgetBreakdown({
                           <div className="w-0.5 h-6 rounded-full bg-[#10B981]" />
                           <span className="text-sm font-medium text-gray-700">Vận chuyển</span>
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">{deliveryPct}%</span>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                          {phase.deliveryFundsAmount
+                            ? `${Math.round(clamp((Number(phase.deliveryFundsAmount) / ((deliveryPct / 100) * targetAmount)) * 100, 0, 100))}%`
+                            : '0%'
+                          }
+                        </span>
                       </div>
                       <div className="space-y-1 ml-3">
                         <div className="text-sm font-bold text-gray-900">
