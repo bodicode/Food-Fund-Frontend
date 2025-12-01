@@ -133,12 +133,19 @@ export const campaignService = {
 
   async changeStatus(
     id: string,
-    status: Campaign["status"]
+    status: Campaign["status"],
+    reason?: string
   ): Promise<Campaign | null> {
     try {
       const { data } = await client.mutate<ChangeCampaignStatusResponse>({
         mutation: CHANGE_CAMPAIGN_STATUS,
-        variables: { id, status },
+        variables: {
+          input: {
+            campaignId: id,
+            newStatus: status,
+            reason,
+          },
+        },
         refetchQueries: [{ query: GET_CAMPAIGNS }],
       });
 

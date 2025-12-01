@@ -24,6 +24,15 @@ import {
 import { statusConfig } from "@/lib/translator";
 import { formatDate } from "@/lib/utils/date-utils";
 import { getCampaignIdFromSlug } from "@/lib/utils/slug-utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminCampaignDetailPage() {
   const { id } = useParams();
@@ -32,6 +41,11 @@ export default function AdminCampaignDetailPage() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [pendingStatus, setPendingStatus] = useState<Campaign["status"] | null>(
+    null
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -41,13 +55,13 @@ export default function AdminCampaignDetailPage() {
         // Get actual campaign ID from sessionStorage
         const slug = id as string;
         const campaignId = getCampaignIdFromSlug(slug);
-        
+
         if (!campaignId) {
           toast.error("Không tìm thấy chiến dịch.");
           setLoading(false);
           return;
         }
-        
+
         const data = await campaignService.getCampaignById(campaignId);
         if (!data) throw new Error("Không tìm thấy chiến dịch.");
         setCampaign(data);
@@ -71,6 +85,13 @@ export default function AdminCampaignDetailPage() {
 
   const handleStatusChange = async (status: Campaign["status"]) => {
     if (!campaign) return;
+
+    if (status === "REJECTED" || status === "CANCELLED") {
+      setPendingStatus(status);
+      setIsRejectDialogOpen(true);
+      return;
+    }
+
     setIsUpdating(true);
     try {
       await campaignService.changeStatus(campaign.id, status);
@@ -79,6 +100,37 @@ export default function AdminCampaignDetailPage() {
       );
       const updated = await campaignService.getCampaignById(campaign.id);
       setCampaign(updated);
+    } catch (err) {
+      console.error(err);
+      toast.error("Không thể cập nhật trạng thái.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    if (!campaign || !pendingStatus) return;
+
+    if (!rejectionReason.trim()) {
+      toast.error("Vui lòng nhập lý do");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await campaignService.changeStatus(
+        campaign.id,
+        pendingStatus,
+        rejectionReason
+      );
+      toast.success(
+        `Đã cập nhật trạng thái thành ${statusConfig[pendingStatus].label}`
+      );
+      const updated = await campaignService.getCampaignById(campaign.id);
+      setCampaign(updated);
+      setIsRejectDialogOpen(false);
+      setRejectionReason("");
+      setPendingStatus(null);
     } catch (err) {
       console.error(err);
       toast.error("Không thể cập nhật trạng thái.");
@@ -491,6 +543,57 @@ export default function AdminCampaignDetailPage() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={isRejectDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsRejectDialogOpen(false);
+            setRejectionReason("");
+            setPendingStatus(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {pendingStatus === "CANCELLED"
+                ? "Hủy chiến dịch"
+                : "Từ chối chiến dịch"}
+            </DialogTitle>
+            <DialogDescription>
+              Vui lòng nhập lý do{" "}
+              {pendingStatus === "CANCELLED" ? "hủy" : "từ chối"} chiến dịch này.
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Nhập lý do..."
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectDialogOpen(false)}
+              disabled={isUpdating}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmReject}
+              disabled={isUpdating || !rejectionReason.trim()}
+            >
+              {isUpdating && <Loader animate="spin" className="w-4 h-4 mr-2" />}
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

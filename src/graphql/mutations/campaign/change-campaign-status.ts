@@ -1,10 +1,12 @@
 import { gql } from "@apollo/client";
 
 export const CHANGE_CAMPAIGN_STATUS = gql`
-  mutation ChangeStatus($id: String!, $status: CampaignStatus!) {
-    changeCampaignStatus(id: $id, status: $status) {
+  mutation ChangeCampaignStatus($input: ChangeStatusInput!) {
+    changeCampaignStatus(input: $input) {
       id
       status
+      reason
+      changedStatusAt
     }
   }
 `;
