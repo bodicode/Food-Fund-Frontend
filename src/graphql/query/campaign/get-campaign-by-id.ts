@@ -17,17 +17,25 @@ export const GET_CAMPAIGN_BY_ID = gql`
       targetAmount
       donationCount
       receivedAmount
-      extensionCount
       created_at
-      
       category {
-        id
         title
         description
+      }
+      creator {
+        id
+        cognito_id
+        full_name
+        user_name
       }
       organization {
         id
         name
+        representative {
+          email
+          id
+          cognito_id
+        }
       }
       phases {
         id
