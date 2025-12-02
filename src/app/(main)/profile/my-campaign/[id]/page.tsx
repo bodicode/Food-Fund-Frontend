@@ -46,7 +46,9 @@ import { DonationList } from "@/components/campaign/donation-list";
 import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 import { Info, Plus } from "lucide-react";
 import { CreateOperationRequestDialog } from "@/components/campaign/create-operation-request-dialog";
+import { CreateIngredientRequestDialog } from "@/components/campaign/create-ingredient-request-dialog";
 import { OperationRequestList } from "@/components/campaign/operation-request-list";
+import { IngredientRequestList } from "@/components/campaign/ingredient-request-list";
 import { ShareDialog } from "@/components/campaign/share-dialog";
 import { ExtendCampaignDialog } from "@/components/campaign/extend-campaign-dialog";
 import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
@@ -62,6 +64,7 @@ export default function MyCampaignDetailPage() {
   const [isCreatePostDialogOpen, setIsCreatePostDialogOpen] = useState(false);
   const [refreshPosts, setRefreshPosts] = useState(0);
   const [isCreateOperationRequestDialogOpen, setIsCreateOperationRequestDialogOpen] = useState(false);
+  const [isCreateIngredientRequestDialogOpen, setIsCreateIngredientRequestDialogOpen] = useState(false);
   const [refreshOperationRequests, setRefreshOperationRequests] = useState(0);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
@@ -374,21 +377,52 @@ export default function MyCampaignDetailPage() {
               </TabsContent>
 
               <TabsContent value="operations">
-                <div className="mb-4 flex justify-end">
+                <div className="mb-4 flex justify-end gap-2">
+                  <Button
+                    onClick={() => setIsCreateIngredientRequestDialogOpen(true)}
+                    className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                    disabled={!campaign.phases || campaign.phases.length === 0}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Mua nguyên liệu
+                  </Button>
                   <Button
                     onClick={() => setIsCreateOperationRequestDialogOpen(true)}
                     className="gap-2 btn-color"
                     disabled={!campaign.phases || campaign.phases.length === 0}
                   >
                     <Plus className="w-4 h-4" />
-                    Tạo yêu cầu giải ngân
+                    Chi phí vận hành
                   </Button>
                 </div>
                 <div className="bg-white rounded-2xl border p-6">
-                  <OperationRequestList
-                    campaignId={campaign.id}
-                    refreshKey={refreshOperationRequests}
-                  />
+                  {campaign.phases && campaign.phases.length > 0 ? (
+                    <div className="space-y-8">
+                      {campaign.phases.map((phase) => (
+                        <div key={phase.id}>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span className="w-2 h-8 bg-green-600 rounded-full inline-block"></span>
+                            Giai đoạn: {phase.phaseName}
+                          </h3>
+                          <OperationRequestList
+                            campaignId={campaign.id}
+                            campaignPhaseId={phase.id}
+                            refreshKey={refreshOperationRequests}
+                          />
+                          <div className="mt-4"></div>
+                          <IngredientRequestList
+                            campaignId={campaign.id}
+                            campaignPhaseId={phase.id}
+                            refreshKey={refreshOperationRequests}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500">Chiến dịch này chưa có giai đoạn nào</p>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
@@ -537,6 +571,15 @@ export default function MyCampaignDetailPage() {
         isOpen={isCreateOperationRequestDialogOpen}
         onClose={() => setIsCreateOperationRequestDialogOpen(false)}
         campaignPhases={campaign.phases || []}
+        onSuccess={() => setRefreshOperationRequests((prev) => prev + 1)}
+      />
+
+      {/* Create Ingredient Request Dialog */}
+      <CreateIngredientRequestDialog
+        isOpen={isCreateIngredientRequestDialogOpen}
+        onClose={() => setIsCreateIngredientRequestDialogOpen(false)}
+        campaignId={campaign.id}
+        phases={campaign.phases || []}
         onSuccess={() => setRefreshOperationRequests((prev) => prev + 1)}
       />
 

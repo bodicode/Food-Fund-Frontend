@@ -13,6 +13,7 @@ import { OperationRequestDetailDialog } from "./operation-request-detail-dialog"
 
 interface OperationRequestListProps {
   campaignId: string;
+  campaignPhaseId?: string;
   refreshKey?: number;
 }
 
@@ -29,7 +30,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   DISBURSED: { label: "Đã giải ngân", color: "bg-blue-100 text-blue-800" }
 };
 
-export function OperationRequestList({ campaignId, refreshKey }: OperationRequestListProps) {
+export function OperationRequestList({ campaignId, campaignPhaseId, refreshKey }: OperationRequestListProps) {
   const [requests, setRequests] = useState<OperationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -40,6 +41,7 @@ export function OperationRequestList({ campaignId, refreshKey }: OperationReques
       try {
         const data = await operationRequestService.getOperationRequests({
           campaignId,
+          campaignPhaseId,
           limit: 100,
           offset: 0,
         });
@@ -52,7 +54,7 @@ export function OperationRequestList({ campaignId, refreshKey }: OperationReques
     };
 
     fetchRequests();
-  }, [campaignId, refreshKey]);
+  }, [campaignId, campaignPhaseId, refreshKey]);
 
   if (loading) {
     return (

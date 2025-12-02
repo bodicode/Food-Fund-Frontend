@@ -1,0 +1,318 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { ingredientRequestService } from "@/services/ingredient-request.service";
+import { IngredientRequest, IngredientRequestStatus } from "@/types/api/ingredient-request";
+import { formatCurrency } from "@/lib/utils/currency-utils";
+import { formatDateTime } from "@/lib/utils/date-utils";
+import { Loader } from "@/components/animate-ui/icons/loader";
+import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, Send, CreditCard, Building2, FileText } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
+interface IngredientRequestDetailDialogProps {
+    isOpen: boolean;
+    onClose: () => void;
+    requestId: string;
+}
+
+const statusConfig: Record<
+    IngredientRequestStatus,
+    { label: string; color: string; icon: React.ElementType }
+> = {
+    PENDING: {
+        label: "Chờ duyệt",
+        color: "bg-yellow-100 text-yellow-800",
+        icon: Clock,
+    },
+    APPROVED: {
+        label: "Đã duyệt",
+        color: "bg-green-100 text-green-800",
+        icon: CheckCircle,
+    },
+    REJECTED: {
+        label: "Từ chối",
+        color: "bg-red-100 text-red-800",
+        icon: XCircle,
+    },
+    DISBURSED: {
+        label: "Đã giải ngân",
+        color: "bg-blue-100 text-blue-800",
+        icon: Send,
+    },
+};
+
+export function IngredientRequestDetailDialog({
+    isOpen,
+    onClose,
+    requestId,
+}: IngredientRequestDetailDialogProps) {
+    const [request, setRequest] = useState<IngredientRequest | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (isOpen && requestId) {
+            const fetchRequest = async () => {
+                setLoading(true);
+                try {
+                    const data = await ingredientRequestService.getIngredientRequest(requestId);
+                    setRequest(data);
+                } catch (error) {
+                    console.error("Error fetching ingredient request:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchRequest();
+        }
+    }, [isOpen, requestId]);
+
+    if (!isOpen) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="!w-[98vw] !max-w-[98vw] sm:!max-w-[800px] h-[90vh] overflow-y-auto p-6">
+                <DialogHeader>
+                    <DialogTitle className="text-xl font-bold">
+                        Chi tiết yêu cầu nguyên liệu
+                    </DialogTitle>
+                </DialogHeader>
+
+                {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                        <Loader className="w-8 h-8 animate-spin text-[#ad4e28]" />
+                    </div>
+                ) : request ? (
+                    <div className="space-y-6">
+                        {/* Status */}
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-500">Trạng thái</div>
+                            <Badge
+                                className={`${statusConfig[request.status].color
+                                    } flex items-center gap-1`}
+                            >
+                                {(() => {
+                                    const StatusIcon = statusConfig[request.status].icon;
+                                    return <StatusIcon className="w-4 h-4" />;
+                                })()}
+                                {statusConfig[request.status].label}
+                            </Badge>
+                        </div>
+
+                        {/* Info Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <User className="w-5 h-5 text-gray-700 mt-0.5" />
+                                <div>
+                                    <div className="text-sm text-gray-600 font-medium">Người gửi</div>
+                                    <div className="font-bold text-gray-900 mt-1">
+                                        {request?.kitchenStaff?.full_name}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <Calendar className="w-5 h-5 text-gray-700 mt-0.5" />
+                                <div>
+                                    <div className="text-sm text-gray-600 font-medium">Giai đoạn</div>
+                                    <div className="font-bold text-gray-900 mt-1">
+                                        {request.campaignPhase.phaseName}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                        Ngày nấu: {formatDateTime(request.campaignPhase.cookingDate)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <Calendar className="w-5 h-5 text-gray-700 mt-0.5" />
+                                <div>
+                                    <div className="text-sm text-gray-600 font-medium">Ngày tạo</div>
+                                    <div className="font-bold text-gray-900 mt-1">
+                                        {formatDateTime(request.created_at)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {request.changedStatusAt && (
+                                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                    <Clock className="w-5 h-5 text-gray-700 mt-0.5" />
+                                    <div>
+                                        <div className="text-sm text-gray-600 font-medium">
+                                            Ngày thay đổi trạng thái
+                                        </div>
+                                        <div className="font-bold text-gray-900 mt-1">
+                                            {formatDateTime(request.changedStatusAt)}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Bank Info */}
+                        {request.organization ? (
+                            <div className="border border-green-200 rounded-lg p-6 bg-green-50/30">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5 text-green-600" />
+                                    Thông tin ngân hàng
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-600 mb-1">Ngân hàng</p>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="secondary" className="text-sm font-bold">
+                                                    {request.organization.bank_short_name}
+                                                </Badge>
+                                                <p className="text-sm text-gray-700">
+                                                    {request.organization.bank_name}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600 mb-1">Số tài khoản</p>
+                                            <p className="text-lg font-mono font-bold text-gray-900">
+                                                {request.organization.bank_account_number}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-600 mb-1">Tên tài khoản</p>
+                                        <p className="font-semibold text-gray-900">
+                                            {request.organization.bank_account_name}
+                                        </p>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-green-200">
+                                        <div className="flex items-center gap-2">
+                                            <Building2 className="h-4 w-4 text-gray-600" />
+                                            <p className="text-sm font-semibold text-gray-900">
+                                                {request.organization.name}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="border border-yellow-200 rounded-lg p-6 bg-yellow-50/30">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5 text-yellow-600" />
+                                    Thông tin ngân hàng
+                                </h3>
+                                <p className="text-gray-700 text-sm">
+                                    Yêu cầu này chưa có thông tin tổ chức/ngân hàng.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Total Cost */}
+                        <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200">
+                            <div className="text-sm text-gray-600 mb-1">Tổng chi phí dự kiến</div>
+                            <div className="text-3xl font-bold text-[#ad4e28]">
+                                {formatCurrency(request.totalCost)}
+                            </div>
+                        </div>
+
+                        {/* Items Table */}
+                        {request.items && request.items.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <ShoppingCart className="w-5 h-5 text-gray-700" />
+                                    <h3 className="font-bold text-gray-900 text-lg">
+                                        Danh sách nguyên liệu ({request.items.length})
+                                    </h3>
+                                </div>
+                                <div className="border rounded-lg overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="bg-gray-100">
+                                                    <TableHead className="min-w-[200px] font-bold text-gray-900">
+                                                        Tên nguyên liệu
+                                                    </TableHead>
+                                                    <TableHead className="text-right min-w-[120px] font-bold text-gray-900">
+                                                        Số lượng
+                                                    </TableHead>
+                                                    <TableHead className="text-right min-w-[140px] font-bold text-gray-900">
+                                                        Đơn giá
+                                                    </TableHead>
+                                                    <TableHead className="text-right min-w-[160px] font-bold text-gray-900">
+                                                        Thành tiền
+                                                    </TableHead>
+                                                    <TableHead className="min-w-[180px] font-bold text-gray-900">
+                                                        Nhà cung cấp
+                                                    </TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {request.items.map((item, index) => (
+                                                    <TableRow
+                                                        key={item.id}
+                                                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                                                    >
+                                                        <TableCell className="font-semibold text-gray-900">
+                                                            {item.ingredientName}
+                                                        </TableCell>
+                                                        <TableCell className="text-right text-gray-900">
+                                                            <span className="font-bold">
+                                                                {item.quantity}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="text-right text-gray-800">
+                                                            {formatCurrency(item.estimatedUnitPrice)}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <span className="font-bold text-[#ad4e28]">
+                                                                {formatCurrency(item.estimatedTotalPrice)}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="text-gray-700">
+                                                            {item.supplier || "—"}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                <TableRow className="bg-amber-50 border-t-2 border-amber-200">
+                                                    <TableCell
+                                                        colSpan={3}
+                                                        className="font-bold text-gray-900 text-right text-lg"
+                                                    >
+                                                        Tổng cộng:
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <span className="text-2xl font-bold text-[#ad4e28]">
+                                                            {formatCurrency(request.totalCost)}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell></TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="text-center py-12 text-gray-500">
+                        Không tìm thấy yêu cầu
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}

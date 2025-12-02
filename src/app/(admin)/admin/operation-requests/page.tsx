@@ -59,7 +59,7 @@ const statusLabels: Record<string, { label: string; color: string; icon: React.E
 export default function OperationRequestsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"operation" | "ingredient">("operation");
-  
+
   // Operation requests state
   const [operationRequests, setOperationRequests] = useState<OperationRequest[]>([]);
   const [operationStats, setOperationStats] = useState<OperationRequestStats | null>(null);
@@ -81,10 +81,10 @@ export default function OperationRequestsPage() {
   const [isIngredientDisbursementDialogOpen, setIsIngredientDisbursementDialogOpen] = useState(false);
   const [selectedIngredientForDisbursement, setSelectedIngredientForDisbursement] =
     useState<IngredientRequest | null>(null);
-  
+
   // Disbursement detail state
   const [selectedDisbursementId, setSelectedDisbursementId] = useState<string | null>(null);
-  
+
   // Request detail state (for non-disbursed requests)
   const [selectedRequestDetailId, setSelectedRequestDetailId] = useState<string | null>(null);
   const [selectedRequestDetailType, setSelectedRequestDetailType] = useState<"operation" | "ingredient">("operation");
@@ -149,8 +149,8 @@ export default function OperationRequestsPage() {
   const filteredIngredientRequests = ingredientRequests.filter((request) => {
     const searchLower = ingredientSearchTerm.toLowerCase();
     return (
-      request.campaignPhase.phaseName.toLowerCase().includes(searchLower) ||
-      request.kitchenStaff?.full_name.toLowerCase().includes(searchLower)
+      request.campaignPhase?.phaseName?.toLowerCase().includes(searchLower) ||
+      request.kitchenStaff?.full_name?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -214,9 +214,9 @@ export default function OperationRequestsPage() {
             Duyệt và quản lý các yêu cầu giải ngân và nguyên liệu
           </p>
         </div>
-        <Button 
-          onClick={() => activeTab === "operation" ? fetchOperationData() : fetchIngredientData()} 
-          variant="outline" 
+        <Button
+          onClick={() => activeTab === "operation" ? fetchOperationData() : fetchIngredientData()}
+          variant="outline"
           className="gap-2"
         >
           <RefreshCw className="h-4 w-4" />
@@ -228,11 +228,10 @@ export default function OperationRequestsPage() {
       <div className="flex gap-2 border-b">
         <button
           onClick={() => setActiveTab("operation")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            activeTab === "operation"
-              ? "border-[#E77731] text-[#E77731]"
-              : "border-transparent text-gray-600 hover:text-gray-900"
-          }`}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === "operation"
+            ? "border-[#E77731] text-[#E77731]"
+            : "border-transparent text-gray-600 hover:text-gray-900"
+            }`}
         >
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
@@ -241,11 +240,10 @@ export default function OperationRequestsPage() {
         </button>
         <button
           onClick={() => setActiveTab("ingredient")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            activeTab === "ingredient"
-              ? "border-[#E77731] text-[#E77731]"
-              : "border-transparent text-gray-600 hover:text-gray-900"
-          }`}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === "ingredient"
+            ? "border-[#E77731] text-[#E77731]"
+            : "border-transparent text-gray-600 hover:text-gray-900"
+            }`}
         >
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
@@ -313,14 +311,14 @@ export default function OperationRequestsPage() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder={activeTab === "operation" ? "Tìm kiếm theo tiêu đề, người tạo, chiến dịch..." : "Tìm kiếm theo giai đoạn, người bếp..."}
+              placeholder={activeTab === "operation" ? "Tìm kiếm theo tiêu đề, người tạo, chiến dịch..." : "Tìm kiếm theo giai đoạn, người gửi..."}
               value={activeTab === "operation" ? operationSearchTerm : ingredientSearchTerm}
               onChange={(e) => activeTab === "operation" ? setOperationSearchTerm(e.target.value) : setIngredientSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Select 
-            value={activeTab === "operation" ? operationStatusFilter : ingredientStatusFilter} 
+          <Select
+            value={activeTab === "operation" ? operationStatusFilter : ingredientStatusFilter}
             onValueChange={(val) => activeTab === "operation" ? setOperationStatusFilter(val) : setIngredientStatusFilter(val)}
           >
             <SelectTrigger className="w-full md:w-[200px]">
@@ -516,7 +514,7 @@ export default function OperationRequestsPage() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 mb-1">
-                          {request.campaignPhase.phaseName}
+                          {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                         </h3>
                         <div className="flex flex-wrap items-center gap-2 text-sm">
                           <Badge variant="outline" className="text-xs">
@@ -652,7 +650,7 @@ export default function OperationRequestsPage() {
           requestId={selectedIngredientForDisbursement.id}
           requestType="ingredient"
           amount={String(selectedIngredientForDisbursement.totalCost)}
-          campaignPhaseId={selectedIngredientForDisbursement.campaignPhase.id}
+          campaignPhaseId={selectedIngredientForDisbursement.campaignPhase?.id}
           onSuccess={handleIngredientDisbursementSuccess}
         />
       )}

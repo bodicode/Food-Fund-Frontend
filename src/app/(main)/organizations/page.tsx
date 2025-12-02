@@ -22,6 +22,7 @@ import {
   ArrowRight,
   Search,
   UserPlus,
+  Plus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -182,6 +183,13 @@ export default function OrganizationsPage() {
               <CheckCircle className="w-4 h-4 mr-2" />
               {total} tổ chức đang hoạt động
             </Badge>
+            <Button
+              onClick={() => router.push("/register/organization")}
+              className="bg-[#b55631] hover:bg-[#944322] text-white font-semibold shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Tạo tổ chức ngay
+            </Button>
           </div>
         </motion.div>
 
