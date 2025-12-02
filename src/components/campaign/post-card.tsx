@@ -123,7 +123,7 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
         title: editTitle.trim(),
         content: editContent.trim(),
       });
-      
+
       toast.success("Đã cập nhật bài viết");
       setIsEditing(false);
       onPostUpdate?.();
@@ -198,8 +198,17 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 flex items-center justify-center text-white font-semibold">
-            {post.creator.full_name.charAt(0).toUpperCase()}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 flex items-center justify-center text-white font-semibold overflow-hidden relative">
+            {post.creator.avatar_url ? (
+              <Image
+                src={post.creator.avatar_url}
+                alt={post.creator.full_name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              post.creator.full_name.charAt(0).toUpperCase()
+            )}
           </div>
           <div>
             <div className="font-medium text-gray-800">{post.creator.full_name}</div>
@@ -256,17 +265,17 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
             />
           </div>
           <div className="flex gap-2 pt-2">
-            <Button 
-              onClick={handleUpdatePost} 
+            <Button
+              onClick={handleUpdatePost}
               disabled={isUpdating}
               size="sm"
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
-            <Button 
-              onClick={handleCancelEdit} 
-              variant="outline" 
+            <Button
+              onClick={handleCancelEdit}
+              variant="outline"
               size="sm"
               disabled={isUpdating}
             >

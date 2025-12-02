@@ -9,6 +9,7 @@ export const GET_COMMENTS = gql`
       userId
       user { 
         full_name
+        avatar_url
       }
       created_at
       replies {
@@ -18,6 +19,7 @@ export const GET_COMMENTS = gql`
         userId
         user { 
           full_name
+          avatar_url
         }
         created_at
         replies {
@@ -27,6 +29,7 @@ export const GET_COMMENTS = gql`
           userId
           user { 
             full_name
+            avatar_url
           }
           created_at
         }

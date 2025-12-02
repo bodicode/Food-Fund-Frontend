@@ -11,7 +11,7 @@ import Image from "next/image";
 import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
-import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
+import { getCampaignIdFromSlug, createCampaignSlug, titleToSlug } from "@/lib/utils/slug-utils";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,17 +61,55 @@ export default function CampaignDetailPage() {
 
     if (!id) return;
     (async () => {
-      // Get actual ID from sessionStorage
+      // Get actual ID from sessionStorage or use the slug itself
       const slug = id as string;
-      const actualId = getCampaignIdFromSlug(slug);
+      const idOrSlug = getCampaignIdFromSlug(slug);
 
-      if (!actualId) {
+      if (!idOrSlug) {
         setLoading(false);
         return;
       }
 
-      const data = await campaignService.getCampaignById(actualId);
-      setCampaign(data);
+      // Check if it looks like a UUID (simple check)
+      // If it's a UUID, fetch by ID directly
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+
+      if (isUuid) {
+        const data = await campaignService.getCampaignById(idOrSlug);
+        setCampaign(data);
+      } else {
+        // It's likely a slug, try to search for it
+        // Replace hyphens with spaces for better search results
+        const searchQuery = idOrSlug.replace(/-/g, " ");
+        const searchResult = await campaignService.searchCampaigns({
+          query: searchQuery,
+          limit: 10, // Fetch a few to increase chance of finding the right one
+        });
+
+        if (searchResult && searchResult.items.length > 0) {
+          // Find the best match by comparing slugs
+          // We re-slugify the titles of the results to see if they match the requested slug
+          const match = searchResult.items.find(item => {
+            const itemSlug = titleToSlug(item.title);
+            return itemSlug === idOrSlug;
+          });
+
+          if (match) {
+            // If we found a match in the search list, we need the full details
+            // The search result might be partial, so fetch by ID to be safe
+            const fullCampaign = await campaignService.getCampaignById(match.id);
+            setCampaign(fullCampaign);
+          } else {
+            // If no exact slug match, maybe just take the first one? 
+            // Or fail? Let's take the first one as a fallback if it's a strong match
+            // For now, let's be strict to avoid showing wrong campaign
+            setCampaign(null);
+          }
+        } else {
+          setCampaign(null);
+        }
+      }
+
       setLoading(false);
     })();
   }, [id, dispatch]);

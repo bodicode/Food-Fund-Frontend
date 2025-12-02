@@ -21,6 +21,7 @@ export const GET_CAMPAIGN_POSTS = gql`
       creator {
         id
         full_name
+        avatar_url
       }
       likeCount
       commentCount
