@@ -14,6 +14,7 @@ export interface Post {
   creator: {
     id: string;
     full_name: string;
+    avatar_url?: string;
   };
   likeCount: number;
   commentCount: number;

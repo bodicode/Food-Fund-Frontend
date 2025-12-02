@@ -107,8 +107,17 @@ export function CommentItem({
   return (
     <div className={isReply ? "ml-6 mt-3 pl-4 border-l-2 border-gray-100" : ""}>
       <div className="flex gap-3">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-          U
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0 overflow-hidden relative">
+          {comment.user?.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={comment.user.avatar_url}
+              alt={comment.user.full_name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            "U"
+          )}
         </div>
 
         <div className="flex-1 min-w-0">

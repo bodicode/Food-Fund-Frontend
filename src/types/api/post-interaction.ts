@@ -34,6 +34,7 @@ export interface Comment {
   userId?: string;
   user?: {
     full_name: string;
+    avatar_url?: string;
   };
   content: string;
   parentCommentId?: string | null;
@@ -49,6 +50,7 @@ export interface CommentReply {
   userId?: string;
   user?: {
     full_name: string;
+    avatar_url?: string;
   };
 }
 

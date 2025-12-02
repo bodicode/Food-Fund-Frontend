@@ -28,7 +28,7 @@ export function extractIdFromSlug(slug: string): string {
 
 /**
  * Create campaign URL slug with title only
- * Example: createCampaignSlug("Bữa ăn cho em", "123abc") -> "gop-mi-cho-em"
+ * Example: createCampaignSlug("Bữa ăn cho em", "123abc") -> "bua-an-cho-em"
  * ID is stored in sessionStorage
  */
 export function createCampaignSlug(title: string, id: string): string {
@@ -41,9 +41,19 @@ export function createCampaignSlug(title: string, id: string): string {
 }
 
 /**
- * Get campaign ID from sessionStorage
+ * Get campaign ID from slug
+ * First tries sessionStorage, then returns slug as fallback (for search)
  */
 export function getCampaignIdFromSlug(slug: string): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(`campaign_${slug}`);
+  if (!slug) return null;
+
+  // 1. Check sessionStorage (fastest, most accurate for local navigation)
+  if (typeof window !== "undefined") {
+    const storedId = sessionStorage.getItem(`campaign_${slug}`);
+    if (storedId) return storedId;
+  }
+
+  // 2. If not in session, return the slug itself.
+  // The caller (page.tsx) will decide whether to treat this as an ID or search by slug.
+  return slug;
 }
