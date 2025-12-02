@@ -30,8 +30,11 @@ import {
   SearchCampaignInput,
   SearchCampaignResponse,
   SearchCampaignResult,
+  AssignCampaignToOrganizationsInput,
+  AssignCampaignToOrganizationsResponse,
 } from "@/types/api/campaign";
 import { SEARCH_CAMPAIGNS } from "@/graphql/query/campaign/search-campaigns";
+import { ASSIGN_CAMPAIGN } from "@/graphql/mutations/campaign/assign-campaign";
 
 import { CREATE_INGREDIENT_REQUEST } from "@/graphql/mutations/campaign/create-ingredient-request";
 import {
@@ -277,6 +280,25 @@ export const campaignService = {
     } catch (error) {
       console.error("❌ Error searching campaigns:", error);
       return null;
+    }
+  },
+  async assignCampaignToOrganizations(
+    input: AssignCampaignToOrganizationsInput
+  ): Promise<AssignCampaignToOrganizationsResponse["assignCampaignToOrganizations"]> {
+    try {
+      const { data } = await client.mutate<AssignCampaignToOrganizationsResponse>({
+        mutation: ASSIGN_CAMPAIGN,
+        variables: { input },
+      });
+
+      if (!data?.assignCampaignToOrganizations) {
+        throw new Error("Không nhận được dữ liệu phản hồi từ server");
+      }
+
+      return data.assignCampaignToOrganizations;
+    } catch (error) {
+      console.error("❌ Error assigning campaign:", error);
+      throw error;
     }
   },
 };

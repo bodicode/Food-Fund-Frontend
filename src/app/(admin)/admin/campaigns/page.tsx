@@ -318,8 +318,8 @@ export default function AdminCampaignsPage() {
                 <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-2">
                   <MapPin className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="line-clamp-1">
-                    {campaign.phases && campaign.phases.length > 0 
-                      ? `${campaign.phases.length} địa điểm` 
+                    {campaign.phases && campaign.phases.length > 0
+                      ? `${campaign.phases.length} địa điểm`
                       : "Chưa có địa điểm"}
                   </span>
                 </div>
@@ -407,30 +407,30 @@ export default function AdminCampaignsPage() {
                           campaign.status as keyof typeof statusActions
                         ] || []).length > 0
                       ) && (
-                        <>
-                          <DropdownMenuLabel className="text-xs text-gray-500">
-                            Thay đổi trạng thái
-                          </DropdownMenuLabel>
-                          {(statusActions[
-                            campaign.status as keyof typeof statusActions
-                          ] || []).map((action) => {
-                            const Icon = action.icon;
-                            return (
-                              <DropdownMenuItem
-                                key={action.status}
-                                onClick={() =>
-                                  openStatusDialog(campaign, action.status)
-                                }
-                                className="cursor-pointer"
-                              >
-                                <Icon className="w-4 h-4 mr-2" />
-                                {action.label}
-                              </DropdownMenuItem>
-                            );
-                          })}
-                          <DropdownMenuSeparator />
-                        </>
-                      )}
+                          <>
+                            <DropdownMenuLabel className="text-xs text-gray-500">
+                              Thay đổi trạng thái
+                            </DropdownMenuLabel>
+                            {(statusActions[
+                              campaign.status as keyof typeof statusActions
+                            ] || []).map((action) => {
+                              const Icon = action.icon;
+                              return (
+                                <DropdownMenuItem
+                                  key={action.status}
+                                  onClick={() =>
+                                    openStatusDialog(campaign, action.status)
+                                  }
+                                  className="cursor-pointer"
+                                >
+                                  <Icon className="w-4 h-4 mr-2" />
+                                  {action.label}
+                                </DropdownMenuItem>
+                              );
+                            })}
+                            <DropdownMenuSeparator />
+                          </>
+                        )}
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => {

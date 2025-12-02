@@ -21,8 +21,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, Send, CreditCard, Building2, FileText } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, Send, CreditCard, Building2 } from "lucide-react";
 
 interface IngredientRequestDetailDialogProps {
     isOpen: boolean;

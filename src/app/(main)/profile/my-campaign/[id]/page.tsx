@@ -481,6 +481,7 @@ export default function MyCampaignDetailPage() {
               campaignFundingProgress={campaign.fundingProgress}
               daysLeft={timeLeft}
               fundraisingEndDate={campaign.fundraisingEndDate}
+              reason={campaign.reason}
             />
 
             {/* Timeline */}
@@ -566,19 +567,20 @@ export default function MyCampaignDetailPage() {
 
             </div>
           </aside>
-        </div>
-      </div>
+        </div >
+      </div >
 
       {/* Delete Campaign Dialog */}
-      <DeleteCampaignDialog
+      < DeleteCampaignDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        onClose={() => setIsDeleteDialogOpen(false)
+        }
         onConfirm={handleDeleteCampaign}
         campaignTitle={campaign.title}
       />
 
       {/* Create Post Dialog */}
-      <CreatePostDialog
+      < CreatePostDialog
         isOpen={isCreatePostDialogOpen}
         onClose={() => setIsCreatePostDialogOpen(false)}
         campaignId={campaign.id}
@@ -612,14 +614,16 @@ export default function MyCampaignDetailPage() {
       />
 
       {/* Extend Campaign Dialog */}
-      {campaign.fundraisingEndDate && (
-        <ExtendCampaignDialog
-          isOpen={isExtendDialogOpen}
-          onClose={() => setIsExtendDialogOpen(false)}
-          onConfirm={handleExtendCampaign}
-          currentEndDate={campaign.fundraisingEndDate}
-        />
-      )}
-    </div>
+      {
+        campaign.fundraisingEndDate && (
+          <ExtendCampaignDialog
+            isOpen={isExtendDialogOpen}
+            onClose={() => setIsExtendDialogOpen(false)}
+            onConfirm={handleExtendCampaign}
+            currentEndDate={campaign.fundraisingEndDate}
+          />
+        )
+      }
+    </div >
   );
 }

@@ -28,7 +28,16 @@ import {
   RejectOrganizationRequestResponse,
   RemoveStaffMemberResponse,
   RemovedMember,
+  GetEligibleOrganizationsResponse,
+  EligibleOrganization,
+  ReassignmentRequest,
+  GetPendingReassignmentRequestsResponse,
+  RespondReassignmentInput,
+  RespondReassignmentResponse,
 } from "@/types/api/organization";
+import { GET_ELIGIBLE_ORGS } from "@/graphql/query/organization/get-eligible-orgs";
+import { GET_PENDING_REASSIGNMENT_REQUESTS } from "@/graphql/query/organization/get-pending-reassignment-requests";
+import { RESPOND_TO_REASSIGNMENT } from "@/graphql/mutations/organization/respond-to-reassignment";
 
 export const organizationService = {
   async createOrganization(
@@ -224,5 +233,48 @@ export const organizationService = {
     }
 
     return data.getOrganizationById;
+  },
+
+  async getEligibleOrganizations(campaignId: string): Promise<{
+    organizations: EligibleOrganization[];
+    total: number;
+  }> {
+    const { data } = await client.query<GetEligibleOrganizationsResponse>({
+      query: GET_ELIGIBLE_ORGS,
+      variables: { campaignId },
+      fetchPolicy: "network-only",
+    });
+
+    if (!data?.getEligibleOrganizationsForReassignment) {
+      return { organizations: [], total: 0 };
+    }
+
+    return {
+      organizations: data.getEligibleOrganizationsForReassignment.organizations,
+      total: data.getEligibleOrganizationsForReassignment.total,
+    };
+  },
+  async getPendingReassignmentRequests(): Promise<ReassignmentRequest[]> {
+    const { data } = await client.query<GetPendingReassignmentRequestsResponse>({
+      query: GET_PENDING_REASSIGNMENT_REQUESTS,
+      fetchPolicy: "network-only",
+    });
+
+    return data?.getPendingReassignmentRequests || [];
+  },
+
+  async respondToReassignment(
+    input: RespondReassignmentInput
+  ): Promise<RespondReassignmentResponse["respondToReassignment"]> {
+    const { data } = await client.mutate<RespondReassignmentResponse>({
+      mutation: RESPOND_TO_REASSIGNMENT,
+      variables: { input },
+    });
+
+    if (!data?.respondToReassignment) {
+      throw new Error("No data returned from mutation");
+    }
+
+    return data.respondToReassignment;
   },
 };

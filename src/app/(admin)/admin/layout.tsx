@@ -83,6 +83,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/campaigns" icon={HeartHandshake}>
         Chiến dịch
       </NavLink>
+      <NavLink href="/admin/cancelled-campaigns" icon={HeartHandshake}>
+        Chiến dịch đã hủy
+      </NavLink>
       <NavLink href="/admin/categories" icon={Tag}>
         Danh mục
       </NavLink>

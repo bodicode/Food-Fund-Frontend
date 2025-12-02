@@ -52,6 +52,7 @@ export const GET_CAMPAIGN_BY_ID = gql`
         deliveryFundsAmount
         status
       }
+      reason
     }
   }
 `;

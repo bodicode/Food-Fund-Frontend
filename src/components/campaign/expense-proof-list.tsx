@@ -20,8 +20,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { ExpenseProof, ExpenseProofStatus } from "@/types/api/expense-proof";
 import { ExpenseProofDetailDialog } from "@/components/campaign/expense-proof-detail-dialog";
