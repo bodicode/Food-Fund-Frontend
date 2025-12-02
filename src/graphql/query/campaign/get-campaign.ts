@@ -34,6 +34,9 @@ export const GET_CAMPAIGNS = gql`
         id
         title
       }
+      phases {
+        location
+      }
     }
   }
 `;

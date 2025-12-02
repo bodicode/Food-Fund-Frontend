@@ -448,6 +448,7 @@ export default function CampaignDetailPage() {
               daysLeft={timeLeft}
               fundraisingEndDate={campaign.fundraisingEndDate}
               campaignFundingProgress={campaign.fundingProgress}
+              reason={campaign.reason}
             />
 
             <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">

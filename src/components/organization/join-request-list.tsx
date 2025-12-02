@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, User, Calendar, Phone, Mail, UserPlus } from "lucide-react";
+import { CheckCircle, XCircle, Calendar, Phone, Mail, UserPlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/date-utils";
 import { translateRole } from "@/lib/translator";
 

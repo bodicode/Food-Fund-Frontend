@@ -176,3 +176,58 @@ export interface RemoveStaffMemberResponse {
     removedMember: RemovedMember;
   };
 }
+
+export interface EligibleOrganization {
+  id: string;
+  name: string;
+  representativeName: string;
+  activityField: string;
+  address: string;
+  phoneNumber: string;
+  email: string;
+}
+
+export interface GetEligibleOrganizationsResponse {
+  getEligibleOrganizationsForReassignment: {
+    success: boolean;
+    message: string;
+    total: number;
+    organizations: EligibleOrganization[];
+  };
+}
+
+export interface ReassignmentRequest {
+  id: string;
+  campaign: {
+    id: string;
+    title: string;
+  };
+  organization: {
+    id: string;
+    name: string;
+  };
+  status: string;
+  assignedAt: string;
+  expiresAt: string;
+}
+
+export interface GetPendingReassignmentRequestsResponse {
+  getPendingReassignmentRequests: ReassignmentRequest[];
+}
+
+export interface RespondReassignmentInput {
+  reassignmentId: string;
+  accept: boolean;
+  note?: string;
+}
+
+export interface RespondReassignmentResponse {
+  respondToReassignment: {
+    id: string;
+    campaignId: string;
+    organizationId: string;
+    status: string;
+    respondedAt: string;
+    responseNote?: string;
+  };
+}

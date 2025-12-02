@@ -21,7 +21,6 @@ import {
   MapPin,
   Phone,
   Users,
-  CheckCircle,
   ArrowLeft,
   UserPlus,
   Mail,

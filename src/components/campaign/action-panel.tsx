@@ -44,6 +44,7 @@ interface ActionPanelProps {
 
   onViewStatement?: () => void;
   fundraisingEndDate?: string;
+  reason?: string;
 }
 
 export function ActionPanel({
@@ -64,6 +65,7 @@ export function ActionPanel({
 
   onViewStatement,
   fundraisingEndDate,
+  reason,
 }: ActionPanelProps) {
   const router = useRouter();
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false);
@@ -76,25 +78,24 @@ export function ActionPanel({
   const getDonationButtonText = () => {
     // Handle PROCESSING status
     if (campaignStatus === "PROCESSING") {
-      // If funding is complete and campaign hasn't ended yet
-      if (isFundingComplete && !isCampaignEnded) {
-        return "Chiến dịch đã nhận đủ số tiền gây quỹ";
-      }
-      // If campaign has ended
-      if (isCampaignEnded) {
-        return "Đang trong quá trình vận hành";
-      }
       return "Đang trong quá trình vận hành";
     }
 
-    if (isFundingComplete && !isCampaignEnded) {
-      return "Chiến dịch đã nhận đủ số tiền gây quỹ";
+    if (campaignStatus === "CANCELLED") {
+      return "Chiến dịch đã bị hủy";
     }
+
+    if (isFundingComplete) {
+      return "Đã đạt mục tiêu gây quỹ";
+    }
+
     if (isCampaignEnded) {
-      return "Đang trong quá trình vận hành";
+      return "Đã kết thúc gây quỹ";
     }
+
     return isDonationEnabled ? "Ủng hộ" : "Chiến dịch chưa đến ngày";
   };
+
 
   const handleDonateClick = () => {
     if (!isDonationEnabled) return;
@@ -168,6 +169,26 @@ export function ActionPanel({
             </button>
           </div>
         </div>
+
+        {/* ====== Reason Alert ====== */}
+        {(campaignStatus === "CANCELLED" || campaignStatus === "REJECTED") && reason && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex gap-3">
+            <Info className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-900 mb-1">
+                {campaignStatus === "CANCELLED" ? "Lý do hủy chiến dịch" : "Lý do từ chối"}
+              </p>
+              <p className="text-sm text-red-700 leading-relaxed">
+                {reason}
+                {campaignStatus === "CANCELLED" && (
+                  <span className="block mt-1 font-medium">
+                    (Chờ tổ chức khác đảm nhiệm)
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ====== Campaign Info ====== */}
         <div className="flex items-center gap-3">

@@ -27,9 +27,10 @@ import { UserProfile } from "@/types/api/user";
 import { userService } from "@/services/user.service";
 import { OrganizationTab } from "@/components/profile/tabs/organization-tab";
 import { MyDisbursementsTab } from "@/components/campaign/my-disbursements-tab";
-import { CreditCard } from "lucide-react";
+import { ReassignmentRequestsTab } from "@/components/profile/tabs/reassignment-requests-tab";
+import { CreditCard, FileInput } from "lucide-react";
 
-type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements";
+type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements" | "reassignment";
 
 const SidebarContent = ({
   profile,
@@ -50,10 +51,11 @@ const SidebarContent = ({
       ? [
         { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
         { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
+        { key: "reassignment", label: "Yêu cầu tiếp nhận", icon: FileInput },
+        { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
+        { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
       ]
       : []),
-    { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
-    { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
   ];
 
@@ -158,8 +160,6 @@ export default function ProfilePage() {
   const TABS = useMemo(
     () => ({
       profile: { component: <ProfileTab onProfileUpdate={handleRefreshProfile} />, title: "Hồ sơ cá nhân" },
-      organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
-      campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
       ...(profile?.role === "FUNDRAISER"
         ? {
           wallet: { component: <WalletTab />, title: "Ví của tôi" },
@@ -167,6 +167,12 @@ export default function ProfilePage() {
             component: <MyDisbursementsTab />,
             title: "Yêu cầu giải ngân",
           },
+          reassignment: {
+            component: <ReassignmentRequestsTab />,
+            title: "Yêu cầu tiếp nhận",
+          },
+          organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
+          campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
         }
         : {}),
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },

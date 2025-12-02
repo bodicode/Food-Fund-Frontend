@@ -62,6 +62,7 @@ export interface Campaign {
 
   created_at: string;
   createdBy?: string;
+  reason?: string;
 }
 
 // ==============================
@@ -335,4 +336,28 @@ export interface SearchCampaignResult {
 
 export interface SearchCampaignResponse {
   searchCampaigns: SearchCampaignResult;
+}
+
+export interface AssignCampaignToOrganizationsInput {
+  campaignId: string;
+  organizationIds: string[];
+  reason: string;
+}
+
+export interface Assignment {
+  id: string;
+  organizationId: string;
+  status: string;
+  assignedAt: string;
+  expiresAt: string;
+}
+
+export interface AssignCampaignToOrganizationsResponse {
+  assignCampaignToOrganizations: {
+    success: boolean;
+    message: string;
+    assignedCount: number;
+    expiresAt: string;
+    assignments: Assignment[];
+  };
 }

@@ -44,7 +44,6 @@ interface RequestItemState {
 export function CreateIngredientRequestDialog({
     isOpen,
     onClose,
-    campaignId,
     phases,
     onSuccess,
 }: CreateIngredientRequestDialogProps) {
