@@ -1,6 +1,12 @@
 "use client";
 
 import { CalendarDays, CheckCircle2, Circle, Clock } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TimelineItem {
   label: string;
@@ -46,10 +52,10 @@ export function Timeline({ items }: TimelineProps) {
             <div className="relative z-10 flex-shrink-0">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${status === "completed"
-                    ? "bg-green-500 text-white shadow-lg shadow-green-200"
-                    : status === "current"
-                      ? "bg-orange-500 text-white shadow-lg shadow-orange-200 ring-4 ring-orange-100"
-                      : "bg-gray-200 text-gray-500"
+                  ? "bg-green-500 text-white shadow-lg shadow-green-200"
+                  : status === "current"
+                    ? "bg-orange-500 text-white shadow-lg shadow-orange-200 ring-4 ring-orange-100"
+                    : "bg-gray-200 text-gray-500"
                   }`}
               >
                 {status === "completed" ? (
@@ -66,29 +72,38 @@ export function Timeline({ items }: TimelineProps) {
             <div className="flex-1 pt-1">
               <div
                 className={`rounded-xl border p-4 transition-all duration-300 ${status === "completed"
-                    ? "bg-gradient-to-br from-green-50 to-white border-green-200"
-                    : status === "current"
-                      ? "bg-gradient-to-br from-orange-50 to-white border-orange-300 shadow-md"
-                      : "bg-white border-gray-200"
+                  ? "bg-gradient-to-br from-green-50 to-white border-green-200"
+                  : status === "current"
+                    ? "bg-gradient-to-br from-orange-50 to-white border-orange-300 shadow-md"
+                    : "bg-white border-gray-200"
                   }`}
               >
                 <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
-                  <h4
-                    className={`font-semibold whitespace-nowrap ${status === "completed"
-                        ? "text-green-900"
-                        : status === "current"
-                          ? "text-orange-900"
-                          : "text-gray-700"
-                      }`}
-                  >
-                    {item.label}
-                  </h4>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <h4
+                          className={`font-semibold line-clamp-2 text-left ${status === "completed"
+                            ? "text-green-900"
+                            : status === "current"
+                              ? "text-orange-900"
+                              : "text-gray-700"
+                            }`}
+                        >
+                          {item.label}
+                        </h4>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs break-words">{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
                   {/* Status badge */}
                   {getStatusText(status, item) && (
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap flex-shrink-0 ${status === "current"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-green-100 text-green-700"
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-green-100 text-green-700"
                       }`}>
                       {getStatusText(status, item)}
                     </span>

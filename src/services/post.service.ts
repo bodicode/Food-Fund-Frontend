@@ -11,13 +11,13 @@ import { CREATE_COMMENT } from "@/graphql/mutations/post/create-comment";
 import { UPDATE_COMMENT } from "@/graphql/mutations/post/update-comment";
 import { DELETE_COMMENT } from "@/graphql/mutations/post/delete-comment";
 import { REPLY_COMMENT } from "@/graphql/mutations/post/reply-comment";
-import { 
-  GetPostResponse, 
-  Post, 
-  PostSortOrder, 
-  UpdatePostInput, 
-  UpdatePostResponse, 
-  DeletePostResponse 
+import {
+  GetPostResponse,
+  Post,
+  PostSortOrder,
+  UpdatePostInput,
+  UpdatePostResponse,
+  DeletePostResponse
 } from "@/types/api/post";
 import {
   GeneratePostMediaUploadUrlsResponse,
@@ -47,6 +47,9 @@ function toExtFromMime(mime: string): string {
   if (type.includes("png")) return "png";
   if (type.includes("webp")) return "webp";
   if (type.includes("gif")) return "gif";
+  if (type.includes("mp4")) return "mp4";
+  if (type.includes("webm")) return "webm";
+  if (type.includes("quicktime")) return "mov";
   return "jpeg";
 }
 

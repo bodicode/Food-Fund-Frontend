@@ -58,15 +58,25 @@ export function CreatePostDialog({
     if (selectedFiles.length === 0) return;
 
     if (files.length + selectedFiles.length > 5) {
-      toast.error("Chỉ được tải lên tối đa 5 ảnh");
+      toast.error("Chỉ được tải lên tối đa 5 file (ảnh/video)");
       return;
     }
 
     const validFiles = selectedFiles.filter((file) => {
-      if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} không phải là file ảnh`);
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+
+      if (!isImage && !isVideo) {
+        toast.error(`${file.name} không phải là file ảnh hoặc video`);
         return false;
       }
+
+      // Optional: Check file size for videos if needed (e.g. max 50MB)
+      if (isVideo && file.size > 50 * 1024 * 1024) {
+        toast.error(`${file.name} quá lớn (tối đa 50MB)`);
+        return false;
+      }
+
       return true;
     });
 
@@ -98,7 +108,7 @@ export function CreatePostDialog({
       let mediaFileKeys: string[] = [];
 
       if (files.length > 0) {
-        toast.info("Đang tải ảnh lên...");
+        toast.info("Đang tải media lên...");
         mediaFileKeys = await postService.uploadPostMedia(files);
       }
 
@@ -179,9 +189,9 @@ export function CreatePostDialog({
             <RichTextEditor value={content} onChange={setContent} />
           </div>
 
-          {/* Upload ảnh */}
+          {/* Upload ảnh/video */}
           <div className="space-y-2 pb-4">
-            <Label>Hình ảnh (Tối đa 5 ảnh)</Label>
+            <Label>Hình ảnh/Video (Tối đa 5 file)</Label>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -190,14 +200,14 @@ export function CreatePostDialog({
                 disabled={isSubmitting || files.length >= 5}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Chọn ảnh
+                Chọn ảnh/video
               </Button>
-              <span className="text-sm text-gray-500">{files.length}/5 ảnh</span>
+              <span className="text-sm text-gray-500">{files.length}/5 file</span>
             </div>
             <input
               id="file-upload"
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
               className="hidden"
               onChange={handleFileChange}
@@ -206,25 +216,38 @@ export function CreatePostDialog({
 
             {previewUrls.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                {previewUrls.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <Image
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      width={200}
-                      height={200}
-                      className="w-full h-32 object-cover rounded-lg border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFile(index)}
-                      disabled={isSubmitting}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                {previewUrls.map((url, index) => {
+                  const file = files[index];
+                  const isVideo = file?.type.startsWith("video/");
+
+                  return (
+                    <div key={index} className="relative group">
+                      {isVideo ? (
+                        <video
+                          src={url}
+                          className="w-full h-32 object-cover rounded-lg border bg-black"
+                          controls
+                        />
+                      ) : (
+                        <Image
+                          src={url}
+                          alt={`Preview ${index + 1}`}
+                          width={200}
+                          height={200}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        disabled={isSubmitting}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

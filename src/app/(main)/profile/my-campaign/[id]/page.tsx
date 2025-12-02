@@ -24,6 +24,12 @@ import {
   Share2,
   Trash2,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { ProgressBar } from "@/components/campaign/progress-bar";
 import { Stat } from "@/components/campaign/stat";
@@ -401,8 +407,21 @@ export default function MyCampaignDetailPage() {
                       {campaign.phases.map((phase) => (
                         <div key={phase.id}>
                           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <span className="w-2 h-8 bg-green-600 rounded-full inline-block"></span>
-                            Giai đoạn: {phase.phaseName}
+                            <span className="w-2 h-8 bg-green-600 rounded-full inline-block flex-shrink-0"></span>
+                            <div className="flex-1 min-w-0">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="line-clamp-2 cursor-help text-left font-semibold">
+                                      Giai đoạn: {phase.phaseName}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-xs break-words">Giai đoạn: {phase.phaseName}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                           </h3>
                           <OperationRequestList
                             campaignId={campaign.id}
