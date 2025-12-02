@@ -35,7 +35,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, ExternalLink, Send } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, Calendar, ShoppingCart, ExternalLink, Send, CreditCard, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdminIngredientRequestDetailDialogProps {
@@ -207,7 +207,7 @@ export function AdminIngredientRequestDetailDialog({
                                 <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <User className="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5" />
                                     <div>
-                                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Người bếp</div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Người gửi</div>
                                         <div className="font-bold text-gray-900 dark:text-white mt-1">
                                             {request?.kitchenStaff?.full_name}
                                         </div>
@@ -251,6 +251,63 @@ export function AdminIngredientRequestDetailDialog({
                                     </div>
                                 )}
                             </div>
+
+                            {/* Bank Info */}
+                            {request.organization ? (
+                                <div className="border-4 border-green-500 rounded-lg p-6 bg-green-50/50">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <CreditCard className="h-5 w-5 text-green-600" />
+                                        ⭐ Thông tin ngân hàng để chuyển khoản
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-1">Ngân hàng</p>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="secondary" className="text-sm font-bold">
+                                                        {request.organization.bank_short_name}
+                                                    </Badge>
+                                                    <p className="text-sm text-gray-700">
+                                                        {request.organization.bank_name}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-1">Số tài khoản</p>
+                                                <p className="text-2xl font-mono font-bold text-gray-900 bg-white px-4 py-3 rounded border-2 border-green-500">
+                                                    {request.organization.bank_account_number}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-sm text-gray-600 mb-1">Tên tài khoản</p>
+                                            <p className="font-semibold text-gray-900 text-xl bg-white px-4 py-3 rounded border">
+                                                {request.organization.bank_account_name}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-4 border-t">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Building2 className="h-4 w-4 text-gray-600" />
+                                                <p className="text-sm font-semibold text-gray-900">
+                                                    {request.organization.name}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="border-4 border-yellow-500 rounded-lg p-6 bg-yellow-50/50">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <CreditCard className="h-5 w-5 text-yellow-600" />
+                                        ⚠️ Thông tin ngân hàng
+                                    </h3>
+                                    <p className="text-gray-700">
+                                        Yêu cầu này chưa có thông tin tổ chức/ngân hàng. Vui lòng liên hệ người yêu cầu để cập nhật thông tin trước khi giải ngân.
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Total Cost */}
                             <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">

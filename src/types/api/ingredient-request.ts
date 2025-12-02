@@ -3,10 +3,28 @@ export type IngredientRequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "DIS
 export interface IngredientRequestItem {
   id: string;
   ingredientName: string;
-  quantity: number;
+  quantity: string;
   estimatedUnitPrice: number;
   estimatedTotalPrice: number;
   supplier?: string;
+}
+
+export interface CreateIngredientRequestItemInput {
+  ingredientName: string;
+  quantity: string;
+  estimatedUnitPrice: number;
+  estimatedTotalPrice: number;
+  supplier?: string;
+}
+
+export interface CreateIngredientRequestInput {
+  campaignPhaseId: string;
+  totalCost: string;
+  items: CreateIngredientRequestItemInput[];
+}
+
+export interface CreateIngredientRequestResponse {
+  createIngredientRequest: IngredientRequest;
 }
 
 export interface IngredientRequest {

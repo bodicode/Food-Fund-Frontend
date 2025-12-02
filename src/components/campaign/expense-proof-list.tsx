@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Receipt, FileText, CheckCircle, XCircle, Clock, Eye } from "lucide-react";
+import { Receipt, FileText, CheckCircle, XCircle, Clock, Eye, PlayCircle, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +51,7 @@ const statusConfig: Record<
   },
 };
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 30;
 
 export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
   const [expenseProofs, setExpenseProofs] = useState<ExpenseProof[]>([]);
@@ -62,7 +62,7 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
     "ALL"
   );
   const [selectedProofId, setSelectedProofId] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
 
   const fetchAllExpenseProofs = React.useCallback(async () => {
     setLoading(true);
@@ -105,6 +105,14 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
     setCurrentPage(page);
   };
 
+  const isImage = (url: string) => /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+  const isVideo = (url: string) => /\.(mp4|webm|ogg|mov)$/i.test(url);
+
+  const getMediaUrl = (url: string) => {
+    if (url.startsWith("http")) return url;
+    return `https://foodfund.sgp1.cdn.digitaloceanspaces.com/${url}`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -116,13 +124,13 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
   return (
     <div className="space-y-6">
       {/* Filter */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <span className="text-sm text-gray-600 font-medium">Trạng thái:</span>
         <Select
           value={statusFilter}
           onValueChange={(val) => setStatusFilter(val as typeof statusFilter)}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -149,13 +157,13 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
             return (
               <div
                 key={proof.id}
-                className="bg-white border rounded-lg p-5 hover:shadow-md transition-shadow"
+                className="bg-white border rounded-lg p-4 sm:p-5 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-4">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                       <FileText className="w-5 h-5 text-gray-600" />
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-gray-900 text-sm sm:text-base">
                         Mã yêu cầu: {proof.requestId}
                       </span>
                       <Badge className={`${status.color} flex items-center gap-1`}>
@@ -174,7 +182,7 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedProofId(proof.id)}
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                   >
                     <Eye className="w-4 h-4" />
                     Chi tiết
@@ -185,24 +193,40 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
                 {proof.media && proof.media.length > 0 && (
                   <div className="mb-4">
                     <div className="text-sm font-medium text-gray-700 mb-2">
-                      Hình ảnh chứng từ:
+                      Hình ảnh/Video chứng từ:
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {proof.media.map((url, index) => (
-                        <div
-                          key={index}
-                          className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-[#ad4e28] transition-colors cursor-pointer"
-                          onClick={() => setSelectedImage(url)}
-                        >
-                          <Image
-                            src={url}
-                            alt={`Chứng từ ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                          />
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      {proof.media.map((item, index) => {
+                        const url = getMediaUrl(item);
+                        return (
+                          <div
+                            key={index}
+                            className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-[#ad4e28] transition-colors cursor-pointer group bg-gray-50"
+                            onClick={() => setSelectedMedia(url)}
+                          >
+                            {isImage(url) ? (
+                              <Image
+                                src={url}
+                                alt={`Chứng từ ${index + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                              />
+                            ) : isVideo(url) ? (
+                              <div className="w-full h-full flex items-center justify-center relative">
+                                <video src={url} className="w-full h-full object-cover pointer-events-none" />
+                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                  <PlayCircle className="w-10 h-10 text-white opacity-90 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <FileText className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -278,21 +302,37 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
         />
       )}
 
-      {/* Image Preview Dialog */}
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Xem ảnh chứng từ</DialogTitle>
-            </DialogHeader>
-            <div className="relative w-full h-[70vh]">
-              <Image
-                src={selectedImage}
-                alt="Preview"
-                fill
-                className="object-contain"
-                sizes="100vw"
-              />
+      {/* Media Preview Dialog */}
+      {selectedMedia && (
+        <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
+          <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/95 border-none !h-[80vh] flex flex-col">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <button
+                onClick={() => setSelectedMedia(null)}
+                className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              {isImage(selectedMedia) ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={selectedMedia}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    sizes="100vw"
+                  />
+                </div>
+              ) : isVideo(selectedMedia) ? (
+                <video
+                  src={selectedMedia}
+                  controls
+                  className="max-w-full max-h-full"
+                  autoPlay
+                />
+              ) : (
+                <div className="text-white">Không thể xem trước file này</div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

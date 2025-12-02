@@ -33,7 +33,28 @@ import {
 } from "@/types/api/campaign";
 import { SEARCH_CAMPAIGNS } from "@/graphql/query/campaign/search-campaigns";
 
+import { CREATE_INGREDIENT_REQUEST } from "@/graphql/mutations/campaign/create-ingredient-request";
+import {
+  CreateIngredientRequestInput,
+  CreateIngredientRequestResponse,
+  IngredientRequest,
+} from "@/types/api/ingredient-request";
+
 export const campaignService = {
+  async createIngredientRequest(
+    input: CreateIngredientRequestInput
+  ): Promise<IngredientRequest | null> {
+    try {
+      const { data } = await client.mutate<CreateIngredientRequestResponse>({
+        mutation: CREATE_INGREDIENT_REQUEST,
+        variables: { input },
+      });
+      return data?.createIngredientRequest ?? null;
+    } catch (error) {
+      console.error("Error creating ingredient request:", error);
+      throw error;
+    }
+  },
   async getMyCampaigns(params?: {
     limit?: number;
     offset?: number;

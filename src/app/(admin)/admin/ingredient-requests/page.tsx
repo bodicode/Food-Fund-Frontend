@@ -145,7 +145,7 @@ export default function AdminIngredientRequestsPage() {
             Quản lý Yêu cầu Nguyên liệu
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-            Duyệt và quản lý các yêu cầu mua nguyên liệu từ người bếp
+            Duyệt và quản lý các yêu cầu mua nguyên liệu từ người gửi
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -293,7 +293,7 @@ export default function AdminIngredientRequestsPage() {
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                           <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Người bếp</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Người gửi</div>
                             <div className="font-medium text-gray-900 dark:text-white">
                               {request?.kitchenStaff?.full_name}
                             </div>

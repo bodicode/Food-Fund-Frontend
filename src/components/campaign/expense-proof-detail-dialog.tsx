@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Clock, FileText, Calendar } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, Calendar, PlayCircle, X } from "lucide-react";
 import Image from "next/image";
 
 interface ExpenseProofDetailDialogProps {
@@ -50,7 +50,7 @@ export function ExpenseProofDetailDialog({
 }: ExpenseProofDetailDialogProps) {
   const [expenseProof, setExpenseProof] = useState<ExpenseProof | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
 
   const fetchExpenseProof = React.useCallback(async () => {
     setLoading(true);
@@ -69,6 +69,14 @@ export function ExpenseProofDetailDialog({
       fetchExpenseProof();
     }
   }, [isOpen, expenseProofId, fetchExpenseProof]);
+
+  const isImage = (url: string) => /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+  const isVideo = (url: string) => /\.(mp4|webm|ogg|mov)$/i.test(url);
+
+  const getMediaUrl = (url: string) => {
+    if (url.startsWith("http")) return url;
+    return `https://foodfund.sgp1.cdn.digitaloceanspaces.com/${url}`;
+  };
 
   if (!isOpen) return null;
 
@@ -100,9 +108,8 @@ export function ExpenseProofDetailDialog({
                   </div>
                 </div>
                 <Badge
-                  className={`${
-                    statusConfig[expenseProof.status].color
-                  } flex items-center gap-1`}
+                  className={`${statusConfig[expenseProof.status].color
+                    } flex items-center gap-1`}
                 >
                   {(() => {
                     const StatusIcon = statusConfig[expenseProof.status].icon;
@@ -151,24 +158,40 @@ export function ExpenseProofDetailDialog({
               {expenseProof.media && expenseProof.media.length > 0 && (
                 <div>
                   <div className="text-sm font-medium text-gray-700 mb-3">
-                    Hình ảnh chứng từ ({expenseProof.media.length})
+                    Hình ảnh/Video chứng từ ({expenseProof.media.length})
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {expenseProof.media.map((url, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#ad4e28] transition-colors cursor-pointer"
-                        onClick={() => setSelectedImage(url)}
-                      >
-                        <Image
-                          src={url}
-                          alt={`Chứng từ ${index + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 50vw, 33vw"
-                        />
-                      </div>
-                    ))}
+                    {expenseProof.media.map((item, index) => {
+                      const url = getMediaUrl(item);
+                      return (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#ad4e28] transition-colors cursor-pointer group bg-gray-50"
+                          onClick={() => setSelectedMedia(url)}
+                        >
+                          {isImage(url) ? (
+                            <Image
+                              src={url}
+                              alt={`Chứng từ ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 50vw, 33vw"
+                            />
+                          ) : isVideo(url) ? (
+                            <div className="w-full h-full flex items-center justify-center relative">
+                              <video src={url} className="w-full h-full object-cover pointer-events-none" />
+                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                <PlayCircle className="w-10 h-10 text-white opacity-90 group-hover:scale-110 transition-transform" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <FileText className="w-8 h-8" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -193,21 +216,37 @@ export function ExpenseProofDetailDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Image Preview Dialog */}
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Xem ảnh chứng từ</DialogTitle>
-            </DialogHeader>
-            <div className="relative w-full h-[70vh]">
-              <Image
-                src={selectedImage}
-                alt="Preview"
-                fill
-                className="object-contain"
-                sizes="100vw"
-              />
+      {/* Media Preview Dialog */}
+      {selectedMedia && (
+        <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
+          <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/95 border-none !h-[80vh] flex flex-col">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <button
+                onClick={() => setSelectedMedia(null)}
+                className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              {isImage(selectedMedia) ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={selectedMedia}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    sizes="100vw"
+                  />
+                </div>
+              ) : isVideo(selectedMedia) ? (
+                <video
+                  src={selectedMedia}
+                  controls
+                  className="max-w-full max-h-full"
+                  autoPlay
+                />
+              ) : (
+                <div className="text-white">Không thể xem trước file này</div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CampaignCard } from "@/components/shared/campaign-card";
+import { JoinRequestList } from "@/components/organization/join-request-list";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
@@ -254,11 +255,7 @@ export default function OrganizationDetailPage() {
               >
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
                   <Users className="w-4 h-4" />
-                  {organization.total_members || 0} thành viên
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
-                  <CheckCircle className="w-4 h-4" />
-                  {organization.active_members || 0} đang hoạt động
+                  {organization.active_members || 0} thành viên
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
                   <CalendarIcon className="w-4 h-4" />
@@ -288,19 +285,25 @@ export default function OrganizationDetailPage() {
 
       <div className="container mx-auto max-w-6xl px-4 -mt-8 relative z-20">
         <Tabs defaultValue="campaigns" className="space-y-8">
-          <TabsList className="bg-white p-1 rounded-xl shadow-md border border-gray-100 inline-flex h-auto">
-            <TabsTrigger value="campaigns" className="px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+          <TabsList className="bg-white p-1 rounded-xl shadow-md border border-gray-100 inline-flex h-auto flex-wrap justify-center md:justify-start">
+            <TabsTrigger value="campaigns" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
               <LayoutGrid className="w-4 h-4 mr-2" />
               Chiến dịch ({campaigns.length})
             </TabsTrigger>
-            <TabsTrigger value="about" className="px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+            <TabsTrigger value="about" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
               <Info className="w-4 h-4 mr-2" />
               Thông tin
             </TabsTrigger>
-            <TabsTrigger value="members" className="px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+            <TabsTrigger value="members" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
               <Users className="w-4 h-4 mr-2" />
               Thành viên
             </TabsTrigger>
+            {isRepresentative && (
+              <TabsTrigger value="requests" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Yêu cầu tham gia
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="campaigns" className="focus:outline-none">
@@ -446,52 +449,62 @@ export default function OrganizationDetailPage() {
           </TabsContent>
 
           <TabsContent value="members" className="focus:outline-none">
-            {organization.members && organization.members.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {organization.members.map((membership) => (
-                  <Card key={membership.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {membership.member.avatar_url ? (
-                          <Image
-                            src={membership.member.avatar_url}
-                            alt={membership.member.full_name}
-                            width={48}
-                            height={48}
-                            className="rounded-full object-cover bg-gray-100"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg">
-                            {membership.member.full_name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 truncate">
-                            {membership.member.full_name}
-                          </h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className="text-xs font-normal">
-                              {translateRole(membership.member_role)}
-                            </Badge>
-                            <span className="text-xs text-gray-400">•</span>
-                            <span className="text-xs text-gray-500">
-                              {formatDate(membership.joined_at)}
-                            </span>
+            {(() => {
+              const verifiedMembers = organization.members?.filter(m => m.status === "VERIFIED") || [];
+
+              return verifiedMembers.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {verifiedMembers.map((membership) => (
+                    <Card key={membership.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          {membership.member.avatar_url ? (
+                            <Image
+                              src={membership.member.avatar_url}
+                              alt={membership.member.full_name}
+                              width={48}
+                              height={48}
+                              className="rounded-full object-cover bg-gray-100"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg">
+                              {membership.member.full_name.charAt(0)}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 truncate">
+                              {membership.member.full_name}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="secondary" className="text-xs font-normal">
+                                {translateRole(membership.member_role)}
+                              </Badge>
+                              <span className="text-xs text-gray-400">•</span>
+                              <span className="text-xs text-gray-500">
+                                {formatDate(membership.joined_at)}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
-                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">Chưa có thành viên</h3>
-                <p className="text-gray-500">Tổ chức này chưa có thành viên nào khác.</p>
-              </div>
-            )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900">Chưa có thành viên</h3>
+                  <p className="text-gray-500">Tổ chức này chưa có thành viên nào khác.</p>
+                </div>
+              );
+            })()}
           </TabsContent>
+
+          {isRepresentative && (
+            <TabsContent value="requests" className="focus:outline-none">
+              <JoinRequestList />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
