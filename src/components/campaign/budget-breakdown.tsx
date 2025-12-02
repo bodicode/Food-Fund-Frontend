@@ -1,6 +1,12 @@
 "use client";
 
 import { formatCurrency } from "@/lib/utils/currency-utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
@@ -146,7 +152,18 @@ export function BudgetBreakdown({
 
           return (
             <div key={phase.id} className="rounded-xl border p-6 bg-gradient-to-br from-white to-gray-50 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-bold text-gray-900 mb-6 text-lg">{phase.phaseName}</h4>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <h4 className="font-bold text-gray-900 mb-6 text-lg line-clamp-2 cursor-help text-left break-words">
+                      {phase.phaseName}
+                    </h4>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs break-words">{phase.phaseName}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-8 items-start">
                 {/* Mini Donut Chart */}

@@ -25,6 +25,7 @@ import { CommentSection } from "./comment-section";
 import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
 import { DeleteConfirmationDialog } from "@/components/shared/delete-confirmation-dialog";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
+import { PostLikeSummary } from "./post-like-summary";
 
 interface PostCardProps {
   post: Post;
@@ -449,6 +450,13 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
           <span className="font-medium">{commentCount}</span>
         </div>
       </div>
+
+      {/* Like Summary */}
+      <PostLikeSummary
+        postId={post.id}
+        totalLikes={likeCount}
+        refreshKey={likeCount} // Trigger refetch when like count changes
+      />
 
       {/* Comments Section */}
       <div className="mt-4 pt-4 border-t">
