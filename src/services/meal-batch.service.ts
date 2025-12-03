@@ -6,7 +6,11 @@ import {
   GetMealBatchesParams,
   GetMealBatchesResponse,
   GetMealBatchResponse,
+  AssignTaskToStaffInput,
+  AssignDeliveryTaskResponse,
+  DeliveryTask,
 } from "@/types/api/meal-batch";
+import { ASSIGN_DELIVERY_TASK } from "@/graphql/mutations/meal-batch/assign-delivery-task";
 
 export const mealBatchService = {
   async getMealBatches(params: GetMealBatchesParams = {}): Promise<MealBatch[]> {
@@ -43,6 +47,24 @@ export const mealBatchService = {
       return result.data.getMealBatch;
     } catch (error) {
       console.error("❌ Error fetching meal batch:", error);
+      throw error;
+    }
+  },
+
+  async assignDeliveryTaskToStaff(input: AssignTaskToStaffInput): Promise<DeliveryTask[]> {
+    try {
+      const result = await client.mutate<AssignDeliveryTaskResponse>({
+        mutation: ASSIGN_DELIVERY_TASK,
+        variables: { input },
+      });
+
+      if (!result.data) {
+        throw new Error("No data returned from mutation");
+      }
+
+      return result.data.assignDeliveryTaskToStaff;
+    } catch (error) {
+      console.error("❌ Error assigning delivery task:", error);
       throw error;
     }
   },

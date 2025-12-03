@@ -58,6 +58,7 @@ import { IngredientRequestList } from "@/components/campaign/ingredient-request-
 import { ShareDialog } from "@/components/campaign/share-dialog";
 import { ExtendCampaignDialog } from "@/components/campaign/extend-campaign-dialog";
 import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
+import { DeliveryTaskAssignmentTab } from "@/components/campaign/delivery-task-assignment-tab";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -332,6 +333,7 @@ export default function MyCampaignDetailPage() {
                 <TabsTrigger value="donations" className="text-xs md:text-sm">Danh sách ủng hộ</TabsTrigger>
                 <TabsTrigger value="expenses" className="text-xs md:text-sm">Chứng từ chi phí</TabsTrigger>
                 <TabsTrigger value="operations" className="text-xs md:text-sm">Giải ngân</TabsTrigger>
+                <TabsTrigger value="tasks" className="text-xs md:text-sm">Giao việc</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -443,6 +445,10 @@ export default function MyCampaignDetailPage() {
                     </div>
                   )}
                 </div>
+              </TabsContent>
+
+              <TabsContent value="tasks">
+                <DeliveryTaskAssignmentTab campaignId={campaign.id} />
               </TabsContent>
             </Tabs>
 
