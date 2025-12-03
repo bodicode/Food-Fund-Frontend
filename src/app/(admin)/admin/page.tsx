@@ -24,6 +24,8 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   Calendar,
+  Clock,
+  Building2,
 } from "lucide-react";
 import {
   BarChart as ReBarChart,
@@ -217,6 +219,20 @@ export default function AdminDashboard() {
     ].filter((item) => item.value > 0)
     : [];
 
+  interface ChartData {
+    name: string;
+    value: number;
+    color: string;
+  }
+
+  const systemFinancialsData: ChartData[] = systemWallet
+    ? [
+      { name: "Tổng thu", value: Number(systemWallet.totalIncome), color: "#10b981" },
+      { name: "Tổng chi", value: Number(systemWallet.totalExpense), color: "#ef4444" },
+      { name: "Số dư", value: Number(systemWallet.balance), color: "#0ea5e9" },
+    ]
+    : [];
+
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-6">
       {/* Header with Gradient */}
@@ -281,269 +297,282 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
-              Tổng người dùng
-            </CardTitle>
-            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0 ml-1">
-              <Users className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">
-              {loading ? "..." : walletStats?.totalUsers.toLocaleString() ?? "--"}
-            </div>
-            <p className="text-[10px] xs:text-[11px] sm:text-xs text-green-600 font-medium mt-1 line-clamp-2">
-              Tổng số người dùng trên hệ thống
-            </p>
-          </CardContent>
-        </Card>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Section 1: Platform Overview */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Target className="w-5 h-5 text-blue-600" />
+            Tổng quan nền tảng
+          </h2>
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Tổng người dùng
+                </CardTitle>
+                <div className="p-2 bg-blue-50 rounded-full">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading ? "..." : walletStats?.totalUsers.toLocaleString() ?? "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Người dùng trên hệ thống
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
-              Tổng chiến dịch
-            </CardTitle>
-            <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0 ml-1">
-              <Target className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-              {loading ? "..." : platformStats?.overview.totalCampaigns ?? "--"}
-            </div>
-            <p className="text-[10px] xs:text-[11px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
-              {platformStats
-                ? `${platformStats.overview.activeCampaigns} hoạt động · ${platformStats.byStatus.pending} chờ duyệt`
-                : "Đang tải..."}
-            </p>
-          </CardContent>
-        </Card>
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Tổng chiến dịch
+                </CardTitle>
+                <div className="p-2 bg-green-50 rounded-full">
+                  <Target className="h-4 w-4 text-green-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading ? "..." : platformStats?.overview.totalCampaigns ?? "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {platformStats
+                    ? `${platformStats.overview.activeCampaigns} đang hoạt động`
+                    : "Đang tải..."}
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
-              Tổng quỹ gọi được
-            </CardTitle>
-            <div className="p-1.5 sm:p-2 bg-amber-100 rounded-lg flex-shrink-0 ml-1">
-              <DollarSign className="h-4 sm:h-5 w-4 sm:w-5 text-amber-600" />
-            </div>
-          </CardHeader>
-          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 break-words">
-              {loading
-                ? "..."
-                : platformStats
-                  ? formatCurrency(Number(platformStats.financial.totalReceivedAmount))
-                  : "--"}
-            </div>
-            <p className="text-[10px] xs:text-[11px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
-              Mục tiêu:{" "}
-              {platformStats
-                ? formatCurrency(Number(platformStats.financial.totalTargetAmount))
-                : "--"}
-            </p>
-          </CardContent>
-        </Card>
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Tổng quỹ gọi được
+                </CardTitle>
+                <div className="p-2 bg-amber-50 rounded-full">
+                  <DollarSign className="h-4 w-4 text-amber-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading
+                    ? "..."
+                    : platformStats
+                      ? formatCurrency(Number(platformStats.financial.totalReceivedAmount))
+                      : "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Mục tiêu: {platformStats
+                    ? formatCurrency(Number(platformStats.financial.totalTargetAmount))
+                    : "--"}
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 line-clamp-2">
-              Tỷ lệ thành công
-            </CardTitle>
-            <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg flex-shrink-0 ml-1">
-              <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600" />
-            </div>
-          </CardHeader>
-          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-              {loading
-                ? "..."
-                : platformStats
-                  ? `${Math.round(platformStats.performance.successRate * 100)}%`
-                  : "--"}
-            </div>
-            <p className="text-[10px] xs:text-[11px] sm:text-xs text-gray-600 mt-1 line-clamp-2">
-              TB:{" "}
-              {platformStats
-                ? `${Math.round(platformStats.performance.averageDurationDays)} ngày`
-                : "--"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Wallet Stats */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Số dư hệ thống
-            </CardTitle>
-            <div className="p-2 bg-cyan-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-cyan-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="lg:text-2xl sm:text-3xl font-bold text-gray-900">
-              {loading
-                ? "..."
-                : walletStats
-                  ? formatCurrency(Number(walletStats.systemBalance))
-                  : "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng số dư ví hệ thống
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Tổng thu hệ thống
-            </CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="lg:text-2xl sm:text-3xl font-bold text-green-600">
-              {loading
-                ? "..."
-                : systemWallet
-                  ? formatCurrency(Number(systemWallet.totalIncome))
-                  : "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng thu nhập của hệ thống
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-rose-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Tổng chi hệ thống
-            </CardTitle>
-            <div className="p-2 bg-red-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-red-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="lg:text-2xl sm:text-3xl font-bold text-red-600">
-              {loading
-                ? "..."
-                : systemWallet
-                  ? formatCurrency(Number(systemWallet.totalExpense))
-                  : "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Tổng chi tiêu của hệ thống
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-rose-500 to-red-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Giao dịch hôm nay
-            </CardTitle>
-            <div className="p-2 bg-rose-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-rose-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {loading ? "..." : walletStats?.totalTransactionsToday ?? "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-              Số giao dịch trong ngày
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-emerald-600 opacity-10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-              Giao dịch tháng này
-            </CardTitle>
-            <div className="p-2 bg-teal-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-teal-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {loading ? "..." : walletStats?.totalTransactionsThisMonth ?? "--"}
-            </div>
-            <p className="text-[11px] sm:text-xs text-gray-600 mt-1ok">
-              Số giao dịch trong tháng
-            </p>
-          </CardContent>
-        </Card>
-
-      </div>
-
-      {/* Wallet Stats - Row 2 (2 cards centered) */}
-      <div className="flex justify-center gap-2 sm:gap-3 lg:gap-4">
-        <div className="w-full md:w-1/3">
-          <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-600 opacity-10" />
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-                Tổ chức
-              </CardTitle>
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Users className="h-5 w-5 text-orange-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {loading ? "..." : walletStats?.totalFundraisers ?? "--"}
-              </div>
-              <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-                Tổng số tổ chức
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Tỷ lệ thành công
+                </CardTitle>
+                <div className="p-2 bg-purple-50 rounded-full">
+                  <CheckCircle className="h-4 w-4 text-purple-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">
+                  {loading
+                    ? "..."
+                    : platformStats
+                      ? `${Math.round(platformStats.performance.successRate * 100)}%`
+                      : "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  TB thời gian: {platformStats
+                    ? `${Math.round(platformStats.performance.averageDurationDays)} ngày`
+                    : "--"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        <div className="w-full md:w-1/3">
-          <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10" />
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
-                Số dư tổ chức
-              </CardTitle>
-              <div className="p-2 bg-violet-100 rounded-lg">
-                <DollarSign className="h-5 w-5 text-violet-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">
-                {loading
-                  ? "..."
-                  : walletStats
-                    ? formatCurrency(Number(walletStats.totalFundraiserBalance))
-                    : "--"}
-              </div>
-              <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
-                Tổng số dư của {walletStats?.totalFundraisers || 0} tổ chức
-              </p>
-            </CardContent>
-          </Card>
+        {/* Section 2: Financial Overview */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-emerald-600" />
+            Tài chính hệ thống
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Tổng thu hệ thống
+                </CardTitle>
+                <div className="p-2 bg-emerald-50 rounded-full">
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-emerald-600">
+                  {loading
+                    ? "..."
+                    : systemWallet
+                      ? formatCurrency(Number(systemWallet.totalIncome))
+                      : "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Doanh thu toàn hệ thống
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Tổng chi hệ thống
+                </CardTitle>
+                <div className="p-2 bg-red-50 rounded-full">
+                  <DollarSign className="h-4 w-4 text-red-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {loading
+                    ? "..."
+                    : systemWallet
+                      ? formatCurrency(Number(systemWallet.totalExpense))
+                      : "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Chi phí vận hành & giải ngân
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Số dư hệ thống
+                </CardTitle>
+                <div className="p-2 bg-cyan-50 rounded-full">
+                  <DollarSign className="h-4 w-4 text-cyan-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-cyan-600">
+                  {loading
+                    ? "..."
+                    : walletStats
+                      ? formatCurrency(Number(walletStats.systemBalance))
+                      : "--"}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Số dư hiện tại trong ví
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Section 3: Activity & Organizations */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <RefreshCw className="w-5 h-5 text-orange-600" />
+              Hoạt động giao dịch
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    Hôm nay
+                  </CardTitle>
+                  <div className="p-2 bg-orange-50 rounded-full">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {loading ? "..." : walletStats?.totalTransactionsToday ?? "--"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Giao dịch trong 24h qua
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    Tháng này
+                  </CardTitle>
+                  <div className="p-2 bg-orange-50 rounded-full">
+                    <Calendar className="h-4 w-4 text-orange-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {loading ? "..." : walletStats?.totalTransactionsThisMonth ?? "--"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Giao dịch trong tháng hiện tại
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-violet-600" />
+              Tổ chức từ thiện
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    Tổng tổ chức
+                  </CardTitle>
+                  <div className="p-2 bg-violet-50 rounded-full">
+                    <Users className="h-4 w-4 text-violet-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {loading ? "..." : walletStats?.totalFundraisers ?? "--"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Đối tác đã đăng ký
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    Số dư tổ chức
+                  </CardTitle>
+                  <div className="p-2 bg-violet-50 rounded-full">
+                    <DollarSign className="h-4 w-4 text-violet-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {loading
+                      ? "..."
+                      : walletStats
+                        ? formatCurrency(Number(walletStats.totalFundraiserBalance))
+                        : "--"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tổng số dư ví đối tác
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -697,6 +726,133 @@ export default function AdminDashboard() {
                   </ResponsiveContainer>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Financial Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* System Financials */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Tài chính hệ thống
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Tổng thu, tổng chi và số dư hiện tại của hệ thống
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72 w-full">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {systemFinancialsData.length > 0 ? (
+                    <ReBarChart
+                      data={systemFinancialsData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(value) => {
+                          const num = value as number;
+                          if (num >= 1_000_000_000) {
+                            return `${(num / 1_000_000_000).toFixed(1)}B`;
+                          } else if (num >= 1_000_000) {
+                            return `${(num / 1_000_000).toFixed(1)}M`;
+                          }
+                          return `${num}`;
+                        }}
+                      />
+                      <Tooltip
+                        formatter={(value: number) => [formatCurrency(value), "Số tiền"]}
+                        contentStyle={{
+                          backgroundColor: "rgba(255, 255, 255, 0.95)",
+                          border: "none",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                      <Bar dataKey="value" name="Số tiền" radius={[8, 8, 0, 0]}>
+                        {systemFinancialsData.map((entry: ChartData, index: number) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </ReBarChart>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <BarChart3 className="w-12 h-12 mb-2 opacity-50" />
+                      <p className="text-sm">Chưa có dữ liệu tài chính</p>
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Wallet Distribution */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <PieChartIcon className="h-4 w-4 text-purple-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold">
+                Phân bổ số dư ví
+              </CardTitle>
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-500">
+              Tỷ lệ số dư giữa hệ thống và các tổ chức
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72 w-full">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {walletDistributionData.length > 0 ? (
+                    <PieChart>
+                      <Pie
+                        data={walletDistributionData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        label={({ name, percent }: any) =>
+                          `${name} ${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {walletDistributionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    </PieChart>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <PieChartIcon className="w-12 h-12 mb-2 opacity-50" />
+                      <p className="text-sm">Chưa có dữ liệu ví</p>
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              )}
             </div>
           </CardContent>
         </Card>

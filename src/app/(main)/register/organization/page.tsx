@@ -46,6 +46,7 @@ import type { CreateOrganizationInput } from "@/types/api/organization";
 import { toast } from "sonner";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { formatVietnamesePhone, getPhoneErrorMessage } from "@/lib/utils/phone-utils";
+import { translateOrganizationStatus } from "@/lib/utils/status-utils";
 import { IDCardUploadSection } from "@/components/organization/id-card-upload-section";
 import { OrganizationFormFields } from "@/components/organization/organization-form-fields";
 import { BankAccountSection } from "@/components/organization/bank-account-section";
@@ -372,7 +373,11 @@ export default function OrgRegisterPage() {
       const res = await organizationService.createOrganization(input);
 
       if (res.success) {
-        toast.success(res.message || "Yêu cầu tạo tổ chức thành công!");
+        toast.success(
+          `Yêu cầu đăng ký tổ chức "${input.name}" đã được gửi thành công. Trạng thái: ${translateOrganizationStatus(
+            "PENDING"
+          )}.`
+        );
 
         // Reset form
         setForm({

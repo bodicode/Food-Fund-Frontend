@@ -579,7 +579,7 @@ export default function OrganizationDetailPage() {
                                             // Refresh organization data
                                             const updatedOrg = await organizationService.getOrganizationById(organization.id);
                                             setOrganization(updatedOrg);
-                                          } catch (error) {
+                                          } catch {
                                             toast.error("Không thể xóa thành viên");
                                           }
                                         }}

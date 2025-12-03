@@ -13,7 +13,6 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDate } from "@/lib/utils/date-utils";

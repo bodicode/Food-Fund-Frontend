@@ -53,10 +53,10 @@ const SidebarContent = ({
         { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
         { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
         { key: "reassignment", label: "Yêu cầu tiếp nhận", icon: FileInput },
-        { key: "organization", label: "Tổ chức của tôi", icon: Building2 },
         { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
       ]
       : []),
+    { key: "organization", label: "Yêu cầu tạo tổ chức", icon: Building2 },
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
     { key: "join_requests", label: "Yêu cầu tham gia", icon: UserPlus },
   ];
@@ -173,10 +173,10 @@ export default function ProfilePage() {
             component: <ReassignmentRequestsTab />,
             title: "Yêu cầu tiếp nhận",
           },
-          organization: { component: <OrganizationTab />, title: "Tổ chức của tôi" },
           campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
         }
         : {}),
+      organization: { component: <OrganizationTab />, title: "Yêu cầu tạo tổ chức" },
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
       join_requests: { component: <JoinRequestsTab />, title: "Yêu cầu tham gia" },
     }),
