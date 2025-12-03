@@ -28,6 +28,7 @@ import {
   LayoutGrid,
   Info,
   Trash2,
+  Crown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -462,80 +463,146 @@ export default function OrganizationDetailPage() {
           <TabsContent value="members" className="focus:outline-none">
             {(() => {
               const verifiedMembers = organization.members?.filter(m => m.status === "VERIFIED") || [];
+              const representativeId = organization.representative?.id;
 
-              return verifiedMembers.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {verifiedMembers.map((membership) => (
-                    <Card key={membership.id} className="border-0 shadow-sm hover:shadow-md transition-shadow relative group">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
+              // Filter out representative from regular members list
+              const filteredMembers = verifiedMembers.filter(m => m.member.id !== representativeId);
+
+              const hasMembers = filteredMembers.length > 0 || organization.representative;
+
+              return hasMembers ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {/* Representative Card */}
+                  {organization.representative && (
+                    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 relative group overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-white opacity-100" />
+                      <div className="absolute top-0 right-0 p-3 z-10">
+                        <Badge className="bg-gradient-to-r from-[#b55631] to-[#d9643a] text-white border-0 gap-1.5 px-3 py-1 shadow-sm">
+                          <Crown className="w-3.5 h-3.5 fill-current" />
+                          Người đại diện
+                        </Badge>
+                      </div>
+                      <CardContent className="p-6 relative z-10">
+                        <div className="flex items-start gap-4 pt-2">
+                          <div className="relative">
+                            {organization.representative.avatar_url ? (
+                              <Image
+                                src={organization.representative.avatar_url}
+                                alt={organization.representative.full_name}
+                                width={64}
+                                height={64}
+                                className="rounded-full object-cover ring-4 ring-white shadow-md"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#b6542f] to-[#e37341] text-white flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow-md">
+                                {organization.representative.full_name.charAt(0)}
+                              </div>
+                            )}
+                            <div className="absolute -bottom-1 -right-1 bg-yellow-400 rounded-full p-1 border-2 border-white shadow-sm" title="Representative">
+                              <Crown className="w-3 h-3 text-white fill-current" />
+                            </div>
+                          </div>
+
+                          <div className="flex-1 min-w-0 pt-1">
+                            <h4 className="font-bold text-gray-900 truncate text-lg leading-tight mb-1">
+                              {organization.representative.full_name}
+                            </h4>
+                            <p className="text-sm text-[#b55631] font-medium mb-2">
+                              @{organization.representative.user_name}
+                            </p>
+
+                            {(organization.representative.email || organization.representative.phone_number) && (
+                              <div className="space-y-1">
+                                {organization.representative.email && (
+                                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <Mail className="w-3.5 h-3.5" />
+                                    <span className="truncate">{organization.representative.email}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Other Members */}
+                  {filteredMembers.map((membership) => (
+                    <Card key={membership.id} className="border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group bg-white">
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
                           {membership.member.avatar_url ? (
                             <Image
                               src={membership.member.avatar_url}
                               alt={membership.member.full_name}
-                              width={48}
-                              height={48}
-                              className="rounded-full object-cover bg-gray-100"
+                              width={52}
+                              height={52}
+                              className="rounded-full object-cover bg-gray-50 ring-2 ring-gray-50"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-lg">
+                            <div className="w-[52px] h-[52px] rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-xl ring-2 ring-gray-50">
                               {membership.member.full_name.charAt(0)}
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 truncate">
-                              {membership.member.full_name}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="secondary" className="text-xs font-normal">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-semibold text-gray-900 truncate text-base">
+                                {membership.member.full_name}
+                              </h4>
+                              {isRepresentative && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 -mr-2 text-gray-300 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Xóa thành viên?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Bạn có chắc chắn muốn xóa thành viên <strong>{membership.member.full_name}</strong> khỏi tổ chức không? Hành động này không thể hoàn tác.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                        onClick={async () => {
+                                          try {
+                                            await organizationService.removeStaffMember(membership.id);
+                                            toast.success("Đã xóa thành viên thành công");
+                                            // Refresh organization data
+                                            const updatedOrg = await organizationService.getOrganizationById(organization.id);
+                                            setOrganization(updatedOrg);
+                                          } catch (error) {
+                                            toast.error("Không thể xóa thành viên");
+                                          }
+                                        }}
+                                      >
+                                        Xóa thành viên
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">@{membership.member.user_name}</p>
+
+                            <div className="flex items-center flex-wrap gap-2">
+                              <Badge variant="secondary" className="text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border-0">
                                 {translateRole(membership.member_role)}
                               </Badge>
-                              <span className="text-xs text-gray-400">•</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-[10px] text-gray-400 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-full">
+                                <CalendarIcon className="w-3 h-3" />
                                 {formatDate(membership.joined_at)}
                               </span>
                             </div>
                           </div>
-                          {isRepresentative && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Xóa thành viên?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Bạn có chắc chắn muốn xóa thành viên <strong>{membership.member.full_name}</strong> khỏi tổ chức không? Hành động này không thể hoàn tác.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                    onClick={async () => {
-                                      try {
-                                        await organizationService.removeStaffMember(membership.id);
-                                        toast.success("Đã xóa thành viên thành công");
-                                        // Refresh organization data
-                                        const updatedOrg = await organizationService.getOrganizationById(organization.id);
-                                        setOrganization(updatedOrg);
-                                      } catch (error) {
-                                        toast.error("Không thể xóa thành viên");
-                                      }
-                                    }}
-                                  >
-                                    Xóa thành viên
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
                         </div>
                       </CardContent>
                     </Card>
