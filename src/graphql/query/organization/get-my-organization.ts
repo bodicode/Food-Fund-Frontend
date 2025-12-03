@@ -12,6 +12,7 @@ export const GET_MY_ORGANIZATION = gql`
         id
         member {
           id
+          cognito_id
           full_name
           phone_number
           user_name
@@ -25,6 +26,7 @@ export const GET_MY_ORGANIZATION = gql`
       phone_number
       representative {
         id
+        cognito_id
         full_name
         phone_number
         user_name

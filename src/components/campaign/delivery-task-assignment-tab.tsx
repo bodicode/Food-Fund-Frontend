@@ -36,7 +36,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
             try {
                 setLoading(true);
                 const [batches, org] = await Promise.all([
-                    mealBatchService.getMealBatches({ filter: { campaignId, status: "READY" } }),
+                    mealBatchService.getMealBatches({ filter: { campaignId } }),
                     organizationService.getMyOrganization(),
                 ]);
 
@@ -47,8 +47,8 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                     const staff = org.members
                         .filter(
                             (m) =>
-                                m.member_role === "DELIVERY_STAFF" &&
-                                m.status === "APPROVED" &&
+                                (m.member_role === "DELIVERY_STAFF" || m.member_role === "KITCHEN_STAFF") &&
+                                (m.status === "APPROVED" || m.status === "VERIFIED") &&
                                 m.member.is_active
                         )
                         .map((m) => m.member);
@@ -107,28 +107,36 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
 
     return (
         <div className="bg-white rounded-2xl border p-6">
-            <h3 className="text-lg font-semibold mb-6">Giao việc cho nhân viên giao hàng</h3>
+            <h3 className="text-lg font-semibold mb-6">Giao việc cho nhân viên</h3>
 
             <div className="space-y-6">
                 {/* Meal Batch Selection */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Chọn lô suất ăn (Trạng thái: Sẵn sàng)
+                        Chọn lô suất ăn
                     </label>
                     <Select value={selectedMealBatchId} onValueChange={setSelectedMealBatchId}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Chọn lô suất ăn..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {mealBatches.length > 0 ? (
-                                mealBatches.map((batch) => (
-                                    <SelectItem key={batch.id} value={batch.id}>
-                                        {batch.foodName} - SL: {batch.quantity} - {formatDateTime(batch.cookedDate)}
-                                    </SelectItem>
-                                ))
+                            {mealBatches.filter(b => b.status === "READY" || b.status === "PREPARING").length > 0 ? (
+                                mealBatches
+                                    .filter(b => b.status === "READY" || b.status === "PREPARING")
+                                    .map((batch) => (
+                                        <SelectItem
+                                            key={batch.id}
+                                            value={batch.id}
+                                            disabled={batch.status === "PREPARING"}
+                                        >
+                                            {batch.foodName} - SL: {batch.quantity} - {formatDateTime(batch.cookedDate)}
+                                            {batch.status === "PREPARING" && " (Đang chuẩn bị)"}
+                                            {batch.status === "READY" && " (Sẵn sàng)"}
+                                        </SelectItem>
+                                    ))
                             ) : (
                                 <div className="p-2 text-sm text-gray-500 text-center">
-                                    Không có lô suất ăn nào sẵn sàng.
+                                    Không có lô suất ăn nào khả dụng.
                                 </div>
                             )}
                         </SelectContent>
@@ -138,23 +146,23 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                 {/* Staff Selection */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Chọn nhân viên giao hàng
+                        Chọn nhân viên
                     </label>
                     {deliveryStaff.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-lg p-4 max-h-[300px] overflow-y-auto">
                             {deliveryStaff.map((staff) => (
                                 <div
                                     key={staff.id}
-                                    className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedStaffIds.includes(staff.id)
-                                            ? "bg-blue-50 border-blue-200"
-                                            : "hover:bg-gray-50 border-gray-100"
+                                    className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedStaffIds.includes(staff.cognito_id || staff.id)
+                                        ? "bg-blue-50 border-blue-200"
+                                        : "hover:bg-gray-50 border-gray-100"
                                         }`}
-                                    onClick={() => handleStaffToggle(staff.id)}
+                                    onClick={() => handleStaffToggle(staff.cognito_id || staff.id)}
                                 >
                                     <Checkbox
-                                        checked={selectedStaffIds.includes(staff.id)}
-                                        onCheckedChange={() => handleStaffToggle(staff.id)}
-                                        id={`staff-${staff.id}`}
+                                        checked={selectedStaffIds.includes(staff.cognito_id || staff.id)}
+                                        onCheckedChange={() => handleStaffToggle(staff.cognito_id || staff.id)}
+                                        id={`staff-${staff.cognito_id || staff.id}`}
                                     />
                                     <div className="flex items-center gap-3 flex-1">
                                         <Avatar className="h-8 w-8">
@@ -171,7 +179,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                         </div>
                     ) : (
                         <div className="text-sm text-gray-500 italic border rounded-lg p-4 text-center">
-                            Không có nhân viên giao hàng nào trong tổ chức.
+                            Không có nhân viên nào trong tổ chức.
                         </div>
                     )}
                 </div>
