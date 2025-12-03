@@ -218,6 +218,7 @@ export default function CampaignDetailPage() {
   })();
 
   const fundraisingEndStatus = (() => {
+    if (campaign.status === "PROCESSING" || campaign.status === "COMPLETED" || isFundingComplete) return "completed";
     if (!start || !end) return "upcoming";
     if (isBeforeStart) return "upcoming";
     if (isDuringFundraising) return "upcoming"; // Don't show badge during fundraising
