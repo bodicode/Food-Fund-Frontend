@@ -145,9 +145,6 @@ export default function OrganizationRequestsPage() {
       const updated = await organizationService.approveOrganizationRequest(id);
       setRaw((prev) => prev.map((r) => (r.id === id ? updated : r)));
       toast.success("Đã phê duyệt yêu cầu.");
-      if (selectedOrg?.id === id) {
-        setSelectedOrg(updated);
-      }
     } catch (e) {
       console.error(e);
       toast.error("Phê duyệt thất bại. Vui lòng thử lại!");
@@ -159,9 +156,6 @@ export default function OrganizationRequestsPage() {
       const updated = await organizationService.rejectOrganizationRequest(id);
       setRaw((prev) => prev.map((r) => (r.id === id ? updated : r)));
       toast.success("Đã từ chối yêu cầu.");
-      if (selectedOrg?.id === id) {
-        setSelectedOrg(updated);
-      }
     } catch (e) {
       console.error(e);
       toast.error("Từ chối thất bại. Vui lòng thử lại!");

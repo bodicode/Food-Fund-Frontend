@@ -28,19 +28,13 @@ export function OrganizationTab() {
   const router = useRouter();
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     (async () => {
       try {
         const res = await organizationService.getMyOrganizationRequests();
         setOrgs(res);
-      } catch (err: unknown) {
-        toast.error("Không thể tải danh sách tổ chức", {
-          description:
-            err instanceof Error
-              ? err.message
-              : "Đã xảy ra lỗi không xác định.",
-        });
+      } catch {
+        toast.error("Không thể tải danh sách tổ chức");
       } finally {
         setLoading(false);
       }
@@ -124,7 +118,7 @@ export function OrganizationTab() {
                         // Refresh list
                         const res = await organizationService.getMyOrganizationRequests();
                         setOrgs(res);
-                      } catch (_error) {
+                      } catch {
                         toast.error("Không thể hủy yêu cầu");
                       }
                     }}
