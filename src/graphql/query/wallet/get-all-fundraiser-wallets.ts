@@ -9,6 +9,8 @@ export const GET_ALL_FUNDRAISER_WALLETS = gql`
         id
         updated_at
         walletType
+        totalExpense
+        totalIncome
         user {
           address
           avatar_url

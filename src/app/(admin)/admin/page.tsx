@@ -40,7 +40,7 @@ import {
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
 import { campaignService } from "@/services/campaign.service";
-import { walletService, PlatformWalletStats } from "@/services/wallet.service";
+import { walletService, PlatformWalletStats, FundraiserWallet } from "@/services/wallet.service";
 import { expenseProofService } from "@/services/expense-proof.service";
 import { operationRequestService } from "@/services/operation-request.service";
 import { coverSrc } from "@/lib/utils/utils";
@@ -91,6 +91,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [platformStats, setPlatformStats] = useState<PlatformCampaignStats | null>(null);
   const [walletStats, setWalletStats] = useState<PlatformWalletStats | null>(null);
+  const [systemWallet, setSystemWallet] = useState<FundraiserWallet | null>(null);
   const [expenseProofStats, setExpenseProofStats] = useState<ExpenseProofStats | null>(null);
   const [operationRequestStats, setOperationRequestStats] = useState<OperationRequestStats | null>(null);
   const [recentCampaigns, setRecentCampaigns] = useState<Campaign[]>([]);
@@ -111,7 +112,7 @@ export default function AdminDashboard() {
   const loadData = async (f: CampaignStatsFilterInput) => {
     setLoading(true);
     try {
-      const [platform, campaigns, wallet, expenseProofs, operationRequests] = await Promise.all([
+      const [platform, campaigns, wallet, sysWallet, expenseProofs, operationRequests] = await Promise.all([
         campaignService.getPlatformCampaignStats(f),
         campaignService.getCampaigns({
           sortBy: "NEWEST_FIRST",
@@ -119,12 +120,14 @@ export default function AdminDashboard() {
           offset: 0,
         }),
         walletService.getPlatformWalletStats(),
+        walletService.getSystemWallet(),
         expenseProofService.getExpenseProofStats(),
         operationRequestService.getOperationRequestStats(),
       ]);
       setPlatformStats(platform);
       setRecentCampaigns(campaigns || []);
       setWalletStats(wallet);
+      setSystemWallet(sysWallet);
       setExpenseProofStats(expenseProofs);
       setOperationRequestStats(operationRequests);
     } catch (error) {
@@ -399,6 +402,54 @@ export default function AdminDashboard() {
             </div>
             <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
               Tổng số dư ví hệ thống
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-10" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+              Tổng thu hệ thống
+            </CardTitle>
+            <div className="p-2 bg-green-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-green-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="lg:text-2xl sm:text-3xl font-bold text-green-600">
+              {loading
+                ? "..."
+                : systemWallet
+                  ? formatCurrency(Number(systemWallet.totalIncome))
+                  : "--"}
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+              Tổng thu nhập của hệ thống
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-rose-600 opacity-10" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-700">
+              Tổng chi hệ thống
+            </CardTitle>
+            <div className="p-2 bg-red-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-red-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="lg:text-2xl sm:text-3xl font-bold text-red-600">
+              {loading
+                ? "..."
+                : systemWallet
+                  ? formatCurrency(Number(systemWallet.totalExpense))
+                  : "--"}
+            </div>
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
+              Tổng chi tiêu của hệ thống
             </p>
           </CardContent>
         </Card>

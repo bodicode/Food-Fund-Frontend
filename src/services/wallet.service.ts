@@ -9,6 +9,7 @@ import { GET_MY_WALLET_TRANSACTIONS } from "@/graphql/query/wallet/get-my-wallet
 import { GET_MY_WALLET_STATS } from "@/graphql/query/wallet/get-my-wallet-stats";
 import { GET_WALLET } from "@/graphql/query/wallet/get-wallet";
 import { GET_WALLET_TRANSACTIONS } from "@/graphql/query/wallet/get-wallet-transactions";
+import { GET_SYSTEM_WALLET } from "@/graphql/query/wallet/get-system-wallet";
 import client from "@/lib/apollo-client";
 
 export interface PlatformWalletStats {
@@ -39,6 +40,8 @@ export interface FundraiserWallet {
     is_active: boolean;
     created_at: string;
   };
+  totalExpense: string;
+  totalIncome: string;
 }
 
 export interface GetAllFundraisersWalletsResponse {
@@ -261,6 +264,20 @@ export const walletService = {
       return data?.searchWalletTransactions || null;
     } catch (error) {
       console.error("❌ Error fetching wallet transactions:", error);
+      return null;
+    }
+  },
+
+  async getSystemWallet(): Promise<FundraiserWallet | null> {
+    try {
+      const { data } = await client.query<{ getSystemWallet: FundraiserWallet }>({
+        query: GET_SYSTEM_WALLET,
+        fetchPolicy: "no-cache",
+      });
+
+      return data?.getSystemWallet || null;
+    } catch (error) {
+      console.error("❌ Error fetching system wallet:", error);
       return null;
     }
   },

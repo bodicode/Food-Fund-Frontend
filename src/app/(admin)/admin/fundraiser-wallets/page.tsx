@@ -159,6 +159,12 @@ export default function FundraiserWalletsPage() {
                       <th className="text-left py-2 px-3 font-semibold text-gray-700">
                         Ngày tạo
                       </th>
+                      <th className="text-right py-2 px-3 font-semibold text-gray-700">
+                        Tổng thu
+                      </th>
+                      <th className="text-right py-2 px-3 font-semibold text-gray-700">
+                        Tổng chi
+                      </th>
                       <th className="text-center py-2 px-3 font-semibold text-gray-700">
                         Hành động
                       </th>
@@ -209,6 +215,16 @@ export default function FundraiserWalletsPage() {
                         </td>
                         <td className="py-3 px-3 text-xs text-gray-500">
                           {new Date(wallet.created_at).toLocaleDateString("vi-VN")}
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <p className="font-semibold text-green-600">
+                            {formatCurrency(Number(wallet.totalIncome || 0))}
+                          </p>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <p className="font-semibold text-red-600">
+                            {formatCurrency(Number(wallet.totalExpense || 0))}
+                          </p>
                         </td>
                         <td className="py-3 px-3 text-center">
                           <Button
@@ -276,6 +292,18 @@ export default function FundraiserWalletsPage() {
                         <span className="text-xs text-gray-600">Ngày tạo:</span>
                         <span className="text-xs text-gray-500">
                           {new Date(wallet.created_at).toLocaleDateString("vi-VN")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-600">Tổng thu:</span>
+                        <span className="font-semibold text-green-600">
+                          {formatCurrency(Number(wallet.totalIncome || 0))}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-600">Tổng chi:</span>
+                        <span className="font-semibold text-red-600">
+                          {formatCurrency(Number(wallet.totalExpense || 0))}
                         </span>
                       </div>
                     </div>
