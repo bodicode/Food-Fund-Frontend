@@ -68,6 +68,7 @@ export interface Organization {
   bank_account_number?: string;
   bank_name?: string;
   bank_short_name?: string;
+  reason?: string;
 }
 
 export interface CreateOrganizationResponse {
@@ -229,5 +230,26 @@ export interface RespondReassignmentResponse {
     status: string;
     respondedAt: string;
     responseNote?: string;
+  };
+}
+
+export interface MyJoinRequest {
+  id: string;
+  message: string;
+  organization: Organization;
+  requested_role: string;
+  status: string;
+  success: boolean;
+}
+
+export interface MyJoinRequestResponse {
+  myJoinRequest: MyJoinRequest[];
+}
+
+export interface CancelJoinRequestResponse {
+  cancelJoinRequestOrganization: {
+    cancelledRequestId: string;
+    message: string;
+    success: boolean;
   };
 }

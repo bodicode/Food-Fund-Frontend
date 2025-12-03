@@ -38,8 +38,63 @@ import {
 import { GET_ELIGIBLE_ORGS } from "@/graphql/query/organization/get-eligible-orgs";
 import { GET_PENDING_REASSIGNMENT_REQUESTS } from "@/graphql/query/organization/get-pending-reassignment-requests";
 import { RESPOND_TO_REASSIGNMENT } from "@/graphql/mutations/organization/respond-to-reassignment";
+import { MY_JOIN_REQUEST } from "@/graphql/query/organization/my-join-request";
+import { CANCEL_JOIN_REQUEST_ORGANIZATION } from "@/graphql/mutations/organization/cancel-join-request";
+import {
+  MyJoinRequest,
+  MyJoinRequestResponse,
+  CancelJoinRequestResponse,
+} from "@/types/api/organization";
+import { CANCEL_MY_CREATE_ORGANIZATION_REQUEST } from "@/graphql/mutations/organization/cancel-create-request";
+
+export interface CancelMyCreateOrganizationRequestResponse {
+  cancelMyCreateOrganizationRequest: {
+    cancelledOrganizationId: string;
+    message: string;
+    previousStatus: string;
+    reason: string;
+    success: boolean;
+  };
+}
+import { LEAVE_ORGANIZATION } from "@/graphql/mutations/organization/leave-organization";
+
+export interface LeaveOrganizationResponse {
+  leaveOrganization: {
+    message: string;
+    previousOrganization: {
+      id: string;
+      name: string;
+    };
+    previousRole: string;
+    success: boolean;
+  };
+}
 
 export const organizationService = {
+  async leaveOrganization(): Promise<LeaveOrganizationResponse["leaveOrganization"]> {
+    const { data } = await client.mutate<LeaveOrganizationResponse>({
+      mutation: LEAVE_ORGANIZATION,
+    });
+
+    if (!data?.leaveOrganization) {
+      throw new Error("No data returned from mutation");
+    }
+
+    return data.leaveOrganization;
+  },
+  async cancelMyCreateOrganizationRequest(): Promise<
+    CancelMyCreateOrganizationRequestResponse["cancelMyCreateOrganizationRequest"]
+  > {
+    const { data } = await client.mutate<CancelMyCreateOrganizationRequestResponse>({
+      mutation: CANCEL_MY_CREATE_ORGANIZATION_REQUEST,
+    });
+
+    if (!data?.cancelMyCreateOrganizationRequest) {
+      throw new Error("No data returned from mutation");
+    }
+
+    return data.cancelMyCreateOrganizationRequest;
+  },
   async createOrganization(
     input: CreateOrganizationInput
   ): Promise<CreateOrganizationResponse> {
@@ -276,5 +331,26 @@ export const organizationService = {
     }
 
     return data.respondToReassignment;
+  },
+
+  async myJoinRequest(): Promise<MyJoinRequest[]> {
+    const { data } = await client.query<MyJoinRequestResponse>({
+      query: MY_JOIN_REQUEST,
+      fetchPolicy: "network-only",
+    });
+
+    return data?.myJoinRequest || [];
+  },
+
+  async cancelJoinRequestOrganization(): Promise<CancelJoinRequestResponse["cancelJoinRequestOrganization"]> {
+    const { data } = await client.mutate<CancelJoinRequestResponse>({
+      mutation: CANCEL_JOIN_REQUEST_ORGANIZATION,
+    });
+
+    if (!data?.cancelJoinRequestOrganization) {
+      throw new Error("No data returned from mutation");
+    }
+
+    return data.cancelJoinRequestOrganization;
   },
 };
