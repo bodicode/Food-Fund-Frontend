@@ -7,7 +7,8 @@ export const SUCCESS_MESSAGES = {
   PASSWORD_RESET_SUCCESS: "Thay đổi mật khẩu thành công, bạn có thể đăng nhập ngay bây giờ.",
   USER_SIGNED_OUT: "Đăng xuất thành công.",
   ORGANIZATION_REQUEST_SUBMITTED: "Gửi yêu cầu thành công. Vui lòng chờ quản trị viên duyệt",
-  JOIN_REQUEST_SUBMITTED: "Yêu cầu tham gia tổ chức đã được gửi thành công. Vui lòng chờ quản trị viên duyệt",
+  JOIN_REQUEST_SUBMITTED: "Yêu cầu tham gia tổ chức đã được gửi thành công. Vui lòng chờ tổ chức duyệt",
+  JOIN_REQUEST_PENDING: "Yêu cầu tham gia của bạn đang chờ duyệt.",
 } as const;
 
 // Error messages
@@ -39,7 +40,8 @@ export const MESSAGE_PATTERNS = {
   PASSWORD_RESET_SUCCESS: "Password reset successful. You can now sign in with your new password.",
   USER_SIGNED_OUT: "User signed out successfully",
   ORGANIZATION_REQUEST: "Organization request has been submitted successfully. Waiting for admin approval.",
-  JOIN_REQUEST: "Join request to as Delivery Staff (food distribution) has been submitted successfully. Waiting for approval.",
+  JOIN_REQUEST: "Join request",
+  JOIN_REQUEST_PENDING: "Your join request to",
   ACTIVE_CAMPAIGN_EXISTS: "FundraiserHasActiveCampaignException",
   EXCEEDS_DELIVERY_BUDGET: "exceeds allocated delivery budget",
   EXCEEDS_COOKING_BUDGET: "exceeds allocated cooking budget",

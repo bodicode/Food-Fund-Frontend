@@ -13,7 +13,7 @@ import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date-utils";
-import { translateRole } from "@/lib/translator";
+import { translateRole, translateMessage } from "@/lib/translator";
 import { USER_ROLES } from "@/constants";
 import {
   Building2,
@@ -27,6 +27,7 @@ import {
   Calendar as CalendarIcon,
   LayoutGrid,
   Info,
+  Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CampaignCard } from "@/components/shared/campaign-card";
 import { JoinRequestList } from "@/components/organization/join-request-list";
@@ -148,7 +160,7 @@ export default function OrganizationDetailPage() {
 
       if (result.success) {
         toast.success("Gửi yêu cầu thành công!", {
-          description: result.message || "Vui lòng chờ tổ chức phê duyệt.",
+          description: translateMessage(result.message) || "Vui lòng chờ tổ chức phê duyệt.",
         });
         setJoinDialogOpen(false);
       } else {
@@ -454,7 +466,7 @@ export default function OrganizationDetailPage() {
               return verifiedMembers.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {verifiedMembers.map((membership) => (
-                    <Card key={membership.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={membership.id} className="border-0 shadow-sm hover:shadow-md transition-shadow relative group">
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
                           {membership.member.avatar_url ? (
@@ -484,6 +496,46 @@ export default function OrganizationDetailPage() {
                               </span>
                             </div>
                           </div>
+                          {isRepresentative && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Xóa thành viên?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Bạn có chắc chắn muốn xóa thành viên <strong>{membership.member.full_name}</strong> khỏi tổ chức không? Hành động này không thể hoàn tác.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                    onClick={async () => {
+                                      try {
+                                        await organizationService.removeStaffMember(membership.id);
+                                        toast.success("Đã xóa thành viên thành công");
+                                        // Refresh organization data
+                                        const updatedOrg = await organizationService.getOrganizationById(organization.id);
+                                        setOrganization(updatedOrg);
+                                      } catch (error) {
+                                        toast.error("Không thể xóa thành viên");
+                                      }
+                                    }}
+                                  >
+                                    Xóa thành viên
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

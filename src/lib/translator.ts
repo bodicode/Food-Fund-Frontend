@@ -42,6 +42,10 @@ export const translateMessage = (msg: string) => {
     return SUCCESS_MESSAGES.JOIN_REQUEST_SUBMITTED;
   }
 
+  if (msg.includes(MESSAGE_PATTERNS.JOIN_REQUEST_PENDING)) {
+    return SUCCESS_MESSAGES.JOIN_REQUEST_PENDING;
+  }
+
   return msg;
 };
 

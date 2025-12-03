@@ -10,7 +10,7 @@ import { Organization, OrganizationRole } from "@/types/api/organization";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date-utils";
-import { translateRole } from "@/lib/translator";
+import { translateRole, translateMessage } from "@/lib/translator";
 import { USER_ROLES } from "@/constants";
 import {
   Building2,
@@ -129,12 +129,12 @@ export default function OrganizationsPage() {
 
       if (result.success) {
         toast.success("Gửi yêu cầu thành công!", {
-          description: result.message || "Vui lòng chờ tổ chức phê duyệt.",
+          description: translateMessage(result.message) || "Vui lòng chờ tổ chức phê duyệt.",
         });
         setJoinDialogOpen(false);
       } else {
         toast.error("Không thể gửi yêu cầu", {
-          description: result.message,
+          description: translateMessage(result.message),
         });
       }
     } catch (err) {
@@ -340,19 +340,19 @@ export default function OrganizationsPage() {
                       </div>
                     )}
 
-                    <div className="flex gap-2 mt-5">
+                    <div className="flex flex-wrap gap-2 mt-5">
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleJoinRequest(org);
                         }}
                         variant="outline"
-                        className="flex-1 border-2 border-[#b55631] text-[#b55631] hover:bg-[#b55631] hover:text-white font-semibold py-2.5 rounded-xl transition-all"
+                        className="flex-1 min-w-[140px] border-2 border-[#b55631] text-[#b55631] hover:bg-[#b55631] hover:text-white font-semibold py-2.5 rounded-xl transition-all"
                       >
                         <UserPlus className="w-4 h-4 mr-2" />
-                        Yêu cầu tham gia
+                        Tham gia
                       </Button>
-                      <Button className="flex-1 bg-[#b55631] hover:bg-[#944322] text-white font-semibold py-2.5 rounded-xl transition-all">
+                      <Button className="flex-1 min-w-[140px] bg-[#b55631] hover:bg-[#944322] text-white font-semibold py-2.5 rounded-xl transition-all">
                         Xem chi tiết
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>

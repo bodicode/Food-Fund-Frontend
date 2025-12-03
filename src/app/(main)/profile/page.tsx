@@ -28,9 +28,10 @@ import { userService } from "@/services/user.service";
 import { OrganizationTab } from "@/components/profile/tabs/organization-tab";
 import { MyDisbursementsTab } from "@/components/campaign/my-disbursements-tab";
 import { ReassignmentRequestsTab } from "@/components/profile/tabs/reassignment-requests-tab";
-import { CreditCard, FileInput } from "lucide-react";
+import { CreditCard, FileInput, UserPlus } from "lucide-react";
+import { JoinRequestsTab } from "@/components/profile/tabs/join-requests-tab";
 
-type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements" | "reassignment";
+type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements" | "reassignment" | "join_requests";
 
 const SidebarContent = ({
   profile,
@@ -57,6 +58,7 @@ const SidebarContent = ({
       ]
       : []),
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
+    { key: "join_requests", label: "Yêu cầu tham gia", icon: UserPlus },
   ];
 
   return (
@@ -176,6 +178,7 @@ export default function ProfilePage() {
         }
         : {}),
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
+      join_requests: { component: <JoinRequestsTab />, title: "Yêu cầu tham gia" },
     }),
     [profile?.role]
   );
