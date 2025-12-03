@@ -36,7 +36,7 @@ interface PostCardProps {
 
 export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(post.isLikedByMe);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [likeCount, setLikeCount] = useState(Number(post.likeCount));
   const [commentCount, setCommentCount] = useState(post.commentCount);
   const [isLiking, setIsLiking] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -48,11 +48,30 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Sync state with props
+  useEffect(() => {
+    setIsLiked(post.isLikedByMe);
+    setLikeCount(Number(post.likeCount));
+    setCommentCount(post.commentCount);
+  }, [post.isLikedByMe, post.likeCount, post.commentCount]);
+
   // Auth guard for login required actions
-  const { isLoginDialogOpen, requireAuth, closeLoginDialog } = useAuthGuard();
+  const { isLoginDialogOpen, requireAuth, closeLoginDialog, currentUser } = useAuthGuard();
 
   // Check if current user owns this post
   const isOwner = currentUserId === post.creator.id;
+
+  // ... (rest of the file)
+
+  {/* Like Summary */ }
+  <PostLikeSummary
+    postId={post.id}
+    totalLikes={Number(likeCount)}
+    refreshKey={Number(likeCount)} // Trigger refetch when like count changes
+    currentUserId={currentUserId}
+    currentUser={currentUser}
+    isLikedByMe={isLiked}
+  />
 
   // Parse media JSON string to array
   let mediaUrls: string[] = [];
@@ -78,21 +97,24 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
   const performLikeToggle = async () => {
     setIsLiking(true);
     const previousLiked = isLiked;
-    const previousCount = likeCount;
+    const previousCount = Number(likeCount);
 
     // Optimistic update
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    const newLiked = !previousLiked;
+    const newCount = newLiked ? previousCount + 1 : Math.max(0, previousCount - 1);
+
+    setIsLiked(newLiked);
+    setLikeCount(newCount);
 
     try {
-      if (isLiked) {
-        const result = await postService.unlikePost(post.id);
-        setIsLiked(result.isLiked);
-        setLikeCount(result.likeCount);
+      if (newLiked) {
+        await postService.likePost(post.id);
+        // Don't use result.likeCount as it might be stale
+        // Keep the optimistic values
       } else {
-        const result = await postService.likePost(post.id);
-        setIsLiked(result.isLiked);
-        setLikeCount(result.likeCount);
+        await postService.unlikePost(post.id);
+        // Don't use result.likeCount as it might be stale
+        // Keep the optimistic values
       }
     } catch {
       // Revert on error
@@ -454,8 +476,10 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
       {/* Like Summary */}
       <PostLikeSummary
         postId={post.id}
-        totalLikes={likeCount}
-        refreshKey={likeCount} // Trigger refetch when like count changes
+        totalLikes={Number(likeCount)}
+        refreshKey={Number(likeCount)} // Trigger refetch when like count changes
+        currentUserId={currentUserId}
+        isLikedByMe={isLiked}
       />
 
       {/* Comments Section */}
