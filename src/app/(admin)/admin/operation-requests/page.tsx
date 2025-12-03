@@ -142,7 +142,7 @@ export default function OperationRequestsPage() {
     return (
       request.title.toLowerCase().includes(searchLower) ||
       request.user.full_name.toLowerCase().includes(searchLower) ||
-      request.campaignPhase.campaign?.title.toLowerCase().includes(searchLower)
+      request.campaignPhase?.campaign?.title.toLowerCase().includes(searchLower)
     );
   });
 
@@ -369,7 +369,7 @@ export default function OperationRequestsPage() {
                         </h3>
                         <div className="flex flex-wrap items-center gap-2 text-sm">
                           <Badge variant="outline" className="text-xs">
-                            {request.campaignPhase.phaseName}
+                            {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                           </Badge>
                           <Badge variant="secondary" className="text-xs">
                             Loại: {expenseTypeLabels[request.expenseType]}
