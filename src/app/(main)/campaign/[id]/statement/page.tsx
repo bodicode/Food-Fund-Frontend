@@ -306,11 +306,23 @@ export default function CampaignStatementPage() {
 
         {/* Wallet Overview */}
         {wallet && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-xl shadow-sm border p-5">
               <div className="text-sm text-gray-500 mb-1">Số dư hiện tại</div>
               <div className="text-2xl font-bold text-gray-900">
                 {formatCurrency(Number(wallet.balance))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border p-5">
+              <div className="text-sm text-gray-500 mb-1">Tổng thu</div>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(Number(wallet.totalIncome))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border p-5">
+              <div className="text-sm text-gray-500 mb-1">Tổng chi</div>
+              <div className="text-2xl font-bold text-red-600">
+                {formatCurrency(Number(wallet.totalExpense))}
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-sm border p-5">
