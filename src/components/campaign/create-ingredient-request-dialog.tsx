@@ -210,6 +210,17 @@ export function CreateIngredientRequestDialog({
                                 ))}
                             </SelectContent>
                         </Select>
+                        {campaignPhaseId && (() => {
+                            const phase = phases.find(p => p.id === campaignPhaseId);
+                            if (phase?.ingredientFundsAmount) {
+                                return (
+                                    <p className="text-sm text-blue-600 font-medium mt-1">
+                                        Ngân sách đã nhận: {formatCurrency(Number(phase.ingredientFundsAmount))}
+                                    </p>
+                                );
+                            }
+                            return null;
+                        })()}
                     </div>
 
                     <div className="space-y-4">

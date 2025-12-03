@@ -126,7 +126,7 @@ export function MyCampaignStatsSection() {
                 <XAxis dataKey="key" tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#ad4e28" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" name="Số lượng" fill="#ad4e28" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
