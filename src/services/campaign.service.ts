@@ -42,6 +42,7 @@ import {
   CreateIngredientRequestResponse,
   IngredientRequest,
 } from "@/types/api/ingredient-request";
+import { MARK_CAMPAIGN_COMPLETE } from "@/graphql/mutations/campaign/mark-campaign-complete";
 
 export const campaignService = {
   async createIngredientRequest(
@@ -298,6 +299,24 @@ export const campaignService = {
       return data.assignCampaignToOrganizations;
     } catch (error) {
       console.error("❌ Error assigning campaign:", error);
+      throw error;
+    }
+  },
+
+  async markCampaignComplete(campaignId: string): Promise<Campaign | null> {
+    try {
+      const { data } = await client.mutate<{ markCampaignComplete: Campaign }>({
+        mutation: MARK_CAMPAIGN_COMPLETE,
+        variables: { campaignId },
+        refetchQueries: [
+          { query: GET_CAMPAIGN_BY_ID, variables: { id: campaignId } },
+          { query: GET_CAMPAIGNS },
+        ],
+      });
+
+      return data?.markCampaignComplete ?? null;
+    } catch (error) {
+      console.error("❌ Error marking campaign as complete:", error);
       throw error;
     }
   },

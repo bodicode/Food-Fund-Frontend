@@ -85,6 +85,10 @@ export function ActionPanel({
       return "Chiến dịch đã bị hủy";
     }
 
+    if (campaignStatus === "COMPLETED") {
+      return "Chiến dịch đã hoàn thành";
+    }
+
     if (isFundingComplete) {
       return "Đã đạt mục tiêu gây quỹ";
     }
@@ -262,6 +266,8 @@ export function ActionPanel({
               {getDonationButtonText()}
             </Button>
           )}
+
+
 
           {onDirection && (
             <Button

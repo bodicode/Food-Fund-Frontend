@@ -23,6 +23,7 @@ import {
   GoalIcon,
   Share2,
   Trash2,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -239,6 +240,29 @@ export default function MyCampaignDetailPage() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Chia sẻ
               </Button>
+              {campaign.status === "PROCESSING" && (
+                <Button
+                  onClick={async () => {
+                    if (confirm("Bạn có chắc chắn muốn hoàn thành chiến dịch này không?")) {
+                      try {
+                        await campaignService.markCampaignComplete(campaign.id);
+                        toast.success("Đã hoàn thành chiến dịch thành công!");
+                        // Refresh campaign data
+                        const data = await campaignService.getCampaignById(campaign.id);
+                        if (data) {
+                          setCampaign(data);
+                        }
+                      } catch (error) {
+                        toast.error("Lỗi khi hoàn thành chiến dịch.");
+                      }
+                    }
+                  }}
+                  className="backdrop-blur bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Hoàn thành chiến dịch
+                </Button>
+              )}
               {canExtend && (
                 <Button
                   onClick={() => setIsExtendDialogOpen(true)}
@@ -545,8 +569,11 @@ export default function MyCampaignDetailPage() {
                         label: "Kết thúc gây quỹ",
                         date: formatDateTime(campaign.fundraisingEndDate),
                         status:
-                          fundEnd && fundEnd <= now
-                            ? "current"
+                          (fundEnd && fundEnd <= now) ||
+                            campaign.status === "PROCESSING" ||
+                            campaign.status === "COMPLETED" ||
+                            Math.round(progress) >= 100
+                            ? "completed"
                             : "upcoming",
                       },
                       ...(campaign.phases || []).flatMap((phase) => [
