@@ -46,3 +46,20 @@ export interface GetMealBatchesResponse {
 export interface GetMealBatchResponse {
   getMealBatch: MealBatch;
 }
+
+export interface AssignTaskToStaffInput {
+  mealBatchId: string;
+  deliveryStaffIds: string[];
+}
+
+export interface DeliveryTask {
+  id: string;
+  deliveryStaffId: string;
+  mealBatchId: string;
+  status: string;
+  created_at: string;
+}
+
+export interface AssignDeliveryTaskResponse {
+  assignDeliveryTaskToStaff: DeliveryTask[];
+}
