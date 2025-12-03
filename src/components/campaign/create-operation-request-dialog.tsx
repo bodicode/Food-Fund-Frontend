@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,11 +21,12 @@ import { toast } from "sonner";
 import { operationRequestService } from "@/services/operation-request.service";
 import { translateError } from "@/lib/translator";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import { CampaignPhase } from "@/types/api/phase";
 
 interface CreateOperationRequestDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  campaignPhases: Array<{ id: string; phaseName: string }>;
+  campaignPhases: CampaignPhase[];
   onSuccess: () => void;
 }
 
@@ -45,13 +44,45 @@ export function CreateOperationRequestDialog({
     totalCost: "",
   });
   const [displayCost, setDisplayCost] = useState("");
+  const [isAmountFixed, setIsAmountFixed] = useState(false);
 
   const formatNumber = (value: string) => {
     const number = value.replace(/\D/g, "");
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
+  // Auto-fill amount when phase and type are selected
+  useEffect(() => {
+    if (formData.campaignPhaseId && formData.expenseType) {
+      const phase = campaignPhases.find(p => p.id === formData.campaignPhaseId);
+      if (phase) {
+        let amount = null;
+        if (formData.expenseType === "COOKING") {
+          amount = phase.cookingFundsAmount;
+        } else if (formData.expenseType === "DELIVERY") {
+          amount = phase.deliveryFundsAmount;
+        }
+
+        if (amount) {
+          const amountStr = String(amount);
+          setFormData(prev => ({ ...prev, totalCost: amountStr }));
+          setDisplayCost(formatNumber(amountStr));
+          setIsAmountFixed(true);
+        } else {
+          // If no amount is set (e.g. 0% budget), maybe we should clear it or leave it editable?
+          // If budget is 0, then amount should probably be 0?
+          // But let's assume if null/undefined, it's editable.
+          setIsAmountFixed(false);
+        }
+      }
+    } else {
+      setIsAmountFixed(false);
+    }
+  }, [formData.campaignPhaseId, formData.expenseType, campaignPhases]);
+
   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isAmountFixed) return; // Prevent change if fixed
+
     const rawValue = e.target.value.replace(/,/g, "");
     if (rawValue === "" || /^\d+$/.test(rawValue)) {
       setFormData({ ...formData, totalCost: rawValue });
@@ -178,10 +209,13 @@ export function CreateOperationRequestDialog({
               placeholder="5,000,000"
               value={displayCost}
               onChange={handleCostChange}
+              disabled={isAmountFixed}
+              className={isAmountFixed ? "bg-gray-100" : ""}
             />
             {formData.totalCost && (
               <p className="text-xs text-gray-500">
                 {parseFloat(formData.totalCost).toLocaleString("vi-VN")} đồng
+                {isAmountFixed && " (Đã cố định theo ngân sách)"}
               </p>
             )}
           </div>

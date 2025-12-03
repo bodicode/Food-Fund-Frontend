@@ -11,6 +11,9 @@ export interface CampaignPhase {
   ingredientBudgetPercentage?: string;
   cookingBudgetPercentage?: string;
   deliveryBudgetPercentage?: string;
+  ingredientFundsAmount?: string | null;
+  cookingFundsAmount?: string | null;
+  deliveryFundsAmount?: string | null;
   status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 }
 
