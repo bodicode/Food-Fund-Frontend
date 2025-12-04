@@ -209,9 +209,9 @@ export default function OperationRequestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between pt-10">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý giải ngân & Nguyên liệu</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý giải ngân</h1>
           <p className="text-gray-600 mt-1">
-            Duyệt và quản lý các yêu cầu giải ngân và nguyên liệu
+            Duyệt và quản lý các yêu cầu giải ngân
           </p>
         </div>
         <Button

@@ -196,7 +196,7 @@ export const translateWalletTransactionType = (type?: string): string => {
   switch (type.toUpperCase()) {
     case "INCOMING":
       return "Tiền vào ví Admin";
-    case "WITHDRAW":
+    case "WITHDRAWAL":
       return "Rút tiền";
     case "ADMIN_ADJUSTMENT":
       return "Hệ thống chuyển tiền";

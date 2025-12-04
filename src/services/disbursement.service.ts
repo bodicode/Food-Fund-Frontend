@@ -15,6 +15,9 @@ export interface Disbursement {
   campaignPhaseId: string;
   campaignPhase?: {
     phaseName: string;
+    campaign?: {
+      title: string;
+    };
   };
   created_at: string;
   ingredientRequestId?: string;

@@ -10,6 +10,9 @@ export const GET_MY_DISBURSEMENTS = gql`
         campaignPhaseId
         campaignPhase {
           phaseName
+          campaign {
+            title
+          }
         }
         created_at
         ingredientRequestId

@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { disbursementService, Disbursement, DisbursementStatus, TransactionType } from "@/services/disbursement.service";
-import { operationRequestService } from "@/services/operation-request.service";
-import { ingredientRequestService } from "@/services/ingredient-request.service";
+
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
 import { toast } from "sonner";
@@ -71,40 +70,11 @@ export function MyDisbursementsTab() {
       const result = await disbursementService.getMyDisbursements(100, 1);
 
       // Fetch additional details for each disbursement
-      const disbursementsWithDetails = await Promise.all(
-        result.items.map(async (disbursement) => {
-          let campaignTitle = "N/A";
-          let phaseName = disbursement.campaignPhase?.phaseName || "N/A";
-
-          try {
-            if (disbursement.operationRequestId) {
-              const operationRequest = await operationRequestService.getOperationRequestById(
-                disbursement.operationRequestId
-              );
-              if (operationRequest) {
-                phaseName = operationRequest.campaignPhase?.phaseName || phaseName;
-                campaignTitle = operationRequest.campaignPhase?.campaign?.title || "N/A";
-              }
-            } else if (disbursement.ingredientRequestId) {
-              const ingredientRequest = await ingredientRequestService.getIngredientRequest(
-                disbursement.ingredientRequestId
-              );
-              if (ingredientRequest) {
-                phaseName = ingredientRequest.campaignPhase?.phaseName || phaseName;
-                campaignTitle = ingredientRequest.campaignPhase?.campaign?.title || "N/A";
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching request details:", error);
-          }
-
-          return {
-            ...disbursement,
-            campaignTitle,
-            phaseName,
-          };
-        })
-      );
+      const disbursementsWithDetails = result.items.map((disbursement) => ({
+        ...disbursement,
+        campaignTitle: disbursement.campaignPhase?.campaign?.title || "N/A",
+        phaseName: disbursement.campaignPhase?.phaseName || "N/A",
+      }));
 
       setDisbursements(disbursementsWithDetails);
     } catch (error) {

@@ -266,7 +266,7 @@ export function WalletTab() {
                                                     <Badge
                                                         className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT"
                                                             ? "bg-green-100 text-green-800"
-                                                            : transaction.transactionType === "WITHDRAW"
+                                                            : transaction.transactionType === "WITHDRAWAL"
                                                                 ? "bg-red-100 text-red-800"
                                                                 : "bg-gray-100 text-gray-800"
                                                             }`}
@@ -289,7 +289,7 @@ export function WalletTab() {
                                                                     : "text-gray-900"
                                                         }
                                                     >
-                                                        {transaction.transactionType === "ADMIN_ADJUSTMENT" ? "+" : transaction.transactionType === "WITHDRAW" ? "-" : ""}
+                                                        {transaction.transactionType === "ADMIN_ADJUSTMENT" ? "" : transaction.transactionType === "WITHDRAW" ? "-" : ""}
                                                         {formatCurrency(Number(transaction.amount))}
                                                     </span>
                                                 </td>
