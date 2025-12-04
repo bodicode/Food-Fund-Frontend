@@ -53,10 +53,13 @@ export interface Campaign {
   organization?: {
     id: string;
     name: string;
+    phone_number: string;
     representative?: {
       id: string;
       email: string;
       cognito_id: string;
+      full_name?: string;
+      phone_number?: string;
     };
   };
 

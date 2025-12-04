@@ -31,8 +31,10 @@ export const GET_CAMPAIGN_BY_ID = gql`
       organization {
         id
         name
+        phone_number
         representative {
           email
+          full_name
           id
           cognito_id
         }

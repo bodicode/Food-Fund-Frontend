@@ -89,15 +89,15 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/categories" icon={Tag}>
         Danh mục
       </NavLink>
-      <NavLink href="/admin/donations" icon={DollarSign}>
+      {/* <NavLink href="/admin/donations" icon={DollarSign}>
         Đóng góp
-      </NavLink>
+      </NavLink> */}
       <NavLink href="/admin/users" icon={Users}>
         Người dùng
       </NavLink>
-      <NavLink href="/admin/reports" icon={FileText}>
+      {/* <NavLink href="/admin/reports" icon={FileText}>
         Báo cáo
-      </NavLink>
+      </NavLink> */}
       <NavLink href="/admin/organization-requests" icon={Building2}>
         Yêu cầu tổ chức
       </NavLink>
