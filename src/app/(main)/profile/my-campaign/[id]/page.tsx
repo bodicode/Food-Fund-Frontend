@@ -252,7 +252,7 @@ export default function MyCampaignDetailPage() {
                         if (data) {
                           setCampaign(data);
                         }
-                      } catch (error) {
+                      } catch {
                         toast.error("Lỗi khi hoàn thành chiến dịch.");
                       }
                     }

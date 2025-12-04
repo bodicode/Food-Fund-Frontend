@@ -5,6 +5,8 @@ import { walletService, FundraiserWallet } from "@/services/wallet.service";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
 import { Heart, HandCoins, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 function Counter({ value }: { value: number }) {
     const ref = useRef<HTMLSpanElement>(null);
@@ -132,6 +134,15 @@ export function PlatformStats() {
                             </div>
                         </motion.div>
                     ))}
+                </div>
+
+                <div className="mt-12 text-center">
+                    <Link href="/platform-transactions">
+                        <Button variant="outline" className="group">
+                            Xem chi tiết giao dịch hệ thống
+                            <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </section>
