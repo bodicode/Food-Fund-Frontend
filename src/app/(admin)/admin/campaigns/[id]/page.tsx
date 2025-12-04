@@ -527,15 +527,15 @@ export default function AdminCampaignDetailPage() {
                 <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                   <p>
                     <span className="font-semibold">Họ tên:</span>{" "}
-                    {campaign.creator?.full_name || "—"}
+                    {campaign.organization?.representative?.full_name || "—"}
                   </p>
                   <p>
                     <span className="font-semibold">Email:</span>{" "}
-                    {campaign.creator?.email || "—"}
+                    {campaign.organization?.representative?.email || "—"}
                   </p>
                   <p>
                     <span className="font-semibold">Số điện thoại:</span>{" "}
-                    {campaign.creator?.phone_number || "—"}
+                    {campaign.organization?.phone_number || "—"}
                   </p>
                 </div>
               </CardContent>
