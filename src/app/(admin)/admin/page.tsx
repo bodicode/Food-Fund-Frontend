@@ -53,6 +53,7 @@ import type {
 } from "@/types/api/campaign";
 import type { ExpenseProofStats } from "@/types/api/expense-proof";
 import type { OperationRequestStats } from "@/types/api/operation-request";
+import { AdminTransactionDialog } from "@/components/admin/admin-transaction-dialog";
 
 type DateRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
 
@@ -98,7 +99,9 @@ export default function AdminDashboard() {
   const [operationRequestStats, setOperationRequestStats] = useState<OperationRequestStats | null>(null);
   const [recentCampaigns, setRecentCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [dateRange, setDateRange] = useState<DateRange>("30d");
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
 
   const filter: CampaignStatsFilterInput = useMemo(() => {
     const { dateFrom, dateTo } = getDateRange(dateRange);
@@ -402,7 +405,16 @@ export default function AdminDashboard() {
         <div>
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-emerald-600" />
+
             Tài chính hệ thống
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto h-8 text-xs"
+              onClick={() => setIsTransactionDialogOpen(true)}
+            >
+              Xem chi tiết
+            </Button>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
@@ -1498,6 +1510,13 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-    </div>
+
+
+      <AdminTransactionDialog
+        open={isTransactionDialogOpen}
+        onOpenChange={setIsTransactionDialogOpen}
+        walletId={systemWallet?.id || null}
+      />
+    </div >
   );
 }
