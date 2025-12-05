@@ -1,16 +1,20 @@
 "use client";
 
-import { ComponentType, ReactNode, SVGProps, useState } from "react";
+import { ComponentType, ReactNode, SVGProps, useState, useEffect } from "react";
 import {
   Home,
   Users,
-  FileText,
   HeartHandshake,
   DollarSign,
   Menu,
   Tag,
   Building2,
   Award,
+  XCircle,
+  Receipt,
+  Wallet,
+  User,
+  KeyRound,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -25,7 +29,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useDispatch } from "react-redux";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/slices/auth-slice";
 import { toast } from "sonner";
 import { LogOutIcon } from "@/components/animate-ui/icons/log-out";
@@ -33,6 +46,10 @@ import { MoonIcon } from "@/components/animate-ui/icons/moon";
 import { SunIcon } from "@/components/animate-ui/icons/sun";
 import { cn } from "@/lib/utils/utils";
 import Image from "next/image";
+import { userService } from "@/services/user.service";
+import { UserProfile } from "@/types/api/user";
+import { RootState } from "@/store";
+import { translateRole } from "@/lib/translator";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -83,7 +100,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/campaigns" icon={HeartHandshake}>
         Chiến dịch
       </NavLink>
-      <NavLink href="/admin/cancelled-campaigns" icon={HeartHandshake}>
+      <NavLink href="/admin/cancelled-campaigns" icon={XCircle}>
         Chiến dịch đã hủy
       </NavLink>
       <NavLink href="/admin/categories" icon={Tag}>
@@ -101,13 +118,13 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <NavLink href="/admin/organization-requests" icon={Building2}>
         Yêu cầu tổ chức
       </NavLink>
-      <NavLink href="/admin/expense-proofs" icon={FileText}>
+      <NavLink href="/admin/expense-proofs" icon={Receipt}>
         Xét duyệt hóa đơn
       </NavLink>
       <NavLink href="/admin/operation-requests" icon={DollarSign}>
         Yêu cầu Giải ngân
       </NavLink>
-      <NavLink href="/admin/fundraiser-wallets" icon={DollarSign}>
+      <NavLink href="/admin/fundraiser-wallets" icon={Wallet}>
         Ví người gây quỹ
       </NavLink>
       <NavLink href="/admin/badges" icon={Award}>
@@ -122,6 +139,28 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   const router = useRouter();
   const dispatch = useDispatch();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const authUser = useSelector((state: RootState) => state.auth.user);
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    userService.getMyProfile().then((profile) => {
+      if (profile) {
+        setUserProfile(profile);
+      }
+    });
+  }, []);
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    const name = userProfile?.full_name || authUser?.name || "A";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const handleLogout = async () => {
     try {
@@ -263,21 +302,63 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
             <div className="hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-700 mx-1" />
 
-            {/* Logout nhanh */}
-            <Button
-              size="icon"
-              variant="ghost"
-              className="hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg"
-              onClick={handleLogout}
-              title="Đăng xuất"
-            >
-              <LogOutIcon
-                animate
-                animateOnHover
-                animateOnTap
-                className="w-5 h-5"
-              />
-            </Button>
+            {/* User Avatar Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 rounded-full p-0 hover:ring-2 hover:ring-[#38bdf8]/50 transition-all"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src={userProfile?.avatar_url || authUser?.avatar_url}
+                      alt={userProfile?.full_name || authUser?.name || "Admin"}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-[#38bdf8] to-[#0ea5e9] text-white text-sm font-medium">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {userProfile?.full_name || authUser?.name || "Admin"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {userProfile?.email || authUser?.email}
+                    </p>
+                    <p className="text-xs leading-none text-[#38bdf8] font-medium mt-1">
+                      {translateRole(userProfile?.role || authUser?.role || "ADMIN")}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer gap-2"
+                  onClick={() => router.push("/admin/profile")}
+                >
+                  <User className="h-4 w-4" />
+                  Hồ sơ cá nhân
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer gap-2"
+                  onClick={() => router.push("/admin/profile?action=change-password")}
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Đổi mật khẩu
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
+                  onClick={handleLogout}
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  Đăng xuất
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 

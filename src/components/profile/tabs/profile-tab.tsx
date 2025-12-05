@@ -81,6 +81,14 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
           avatarSection.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
+    } else if (action === "change-password") {
+      setIsChangingPassword(true);
+      setTimeout(() => {
+        const passwordSection = document.querySelector("[data-password-section]");
+        if (passwordSection) {
+          passwordSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
     }
   }, [searchParams]);
 
@@ -218,7 +226,7 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
       const updated = await userService.updateMyProfile(payload);
       if (updated) {
         setUser(updated);
-        
+
         // Update Redux store to sync with header
         if (payload.avatar_url) {
           dispatch(updateUser({ avatar_url: payload.avatar_url }));
@@ -226,7 +234,7 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
         if (payload.full_name) {
           dispatch(updateUser({ name: payload.full_name }));
         }
-        
+
         toast.success("Cập nhật hồ sơ thành công 🎉");
         // Refresh profile in parent component (sidebar)
         onProfileUpdate?.();
@@ -522,7 +530,7 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
       </div>
 
       {/* Change Password Section */}
-      <div className="mt-8 pt-8 border-t">
+      <div className="mt-8 pt-8 border-t" data-password-section>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Đổi mật khẩu</h3>
           {!isChangingPassword && (
