@@ -107,23 +107,6 @@ export function Navigation() {
       yPercent: 0,
       clearProps: "y,x,xPercent" // Clear các transform không cần thiết
     });
-
-    // Animate children
-    const children = headerRef.current.querySelectorAll("nav .flex > *");
-    if (children.length > 0) {
-      gsap.fromTo(
-        children,
-        { opacity: 0, y: -10 },
-        {
-          opacity: 1,
-          y: 0,
-          stagger: 0.08,
-          delay: 0.1,
-          duration: 0.5,
-          ease: "power2.out",
-        }
-      );
-    }
   }, [pathname]);
 
   return (
