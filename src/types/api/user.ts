@@ -1,3 +1,11 @@
+export type Milestone = {
+  name: string;
+  badgeId: string;
+  minAmount: number;
+  priority: number;
+  description: string;
+};
+
 export type Badge = {
   id: string;
   name: string;
@@ -7,6 +15,7 @@ export type Badge = {
   sort_order: number;
   created_at: string;
   updated_at: string;
+  milestone?: Milestone;
 };
 
 export type UserProfile = {

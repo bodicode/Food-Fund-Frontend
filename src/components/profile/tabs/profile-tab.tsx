@@ -17,6 +17,8 @@ import { buildCoverUrl } from "@/lib/build-image";
 import { toast } from "sonner";
 import { Award, Upload, X } from "lucide-react";
 import { updateUser } from "@/store/slices/auth-slice";
+import { BadgeListDialog } from "@/components/profile/dialogs/badge-list-dialog";
+import { HelpCircle } from "lucide-react";
 
 interface ProfileTabProps {
   onProfileUpdate?: () => void;
@@ -46,6 +48,9 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Badge Dialog
+  const [showBadgeDialog, setShowBadgeDialog] = useState(false);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -660,13 +665,14 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
       </div>
 
       {/* Badge Section */}
-      {user.badge && user.badge.is_active && (
-        <div className="mt-8 pt-8 border-t">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5 text-yellow-500" />
-            Huy hiệu
-          </h3>
-          <Card className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-amber-50">
+      <div className="mt-8 pt-8 border-t">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Award className="w-5 h-5 text-yellow-500" />
+          Huy hiệu
+        </h3>
+
+        {user.badge && user.badge.is_active ? (
+          <Card className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-amber-50 cursor-pointer hover:shadow-md transition-all" onClick={() => setShowBadgeDialog(true)}>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 {user.badge.icon_url && (
@@ -692,11 +698,36 @@ export function ProfileTab({ onProfileUpdate }: ProfileTabProps) {
                     {user.badge.description}
                   </p>
                 </div>
+                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-[#ad4e28]">
+                  Xem tất cả <HelpCircle className="w-4 h-4 ml-1" />
+                </Button>
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
+        ) : (
+          <Card
+            className="border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+            onClick={() => setShowBadgeDialog(true)}
+          >
+            <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4 group-hover:bg-[#ad4e28]/10 transition-colors">
+                <Award className="w-8 h-8 text-gray-400 group-hover:text-[#ad4e28] transition-colors" />
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                Bạn chưa có huy hiệu nào
+              </h4>
+              <p className="text-gray-500 max-w-md mb-4">
+                Tích cực tham gia các hoạt động và đóng góp để nhận được những huy hiệu danh giá từ cộng đồng.
+              </p>
+              <Button variant="outline" className="group-hover:border-[#ad4e28] group-hover:text-[#ad4e28]">
+                Xem danh sách huy hiệu
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <BadgeListDialog open={showBadgeDialog} onOpenChange={setShowBadgeDialog} />
     </div>
   );
 }

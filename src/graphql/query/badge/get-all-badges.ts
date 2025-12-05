@@ -11,6 +11,13 @@ export const GET_ALL_BADGES = gql`
       sort_order
       created_at
       updated_at
+      milestone {
+        name
+        badgeId
+        minAmount
+        priority
+        description
+      }
     }
   }
 `;
