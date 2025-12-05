@@ -54,6 +54,7 @@ import type {
 import type { ExpenseProofStats } from "@/types/api/expense-proof";
 import type { OperationRequestStats } from "@/types/api/operation-request";
 import { AdminTransactionDialog } from "@/components/admin/admin-transaction-dialog";
+import { FinancialComparisonChart } from "@/components/admin/financial-comparison-chart";
 
 type DateRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
 
@@ -206,6 +207,18 @@ export default function AdminDashboard() {
       }))
       .sort((a, b) => b.avgRaised - a.avgRaised) ?? [];
 
+  // Category financial comparison for Line Chart
+  const categoryFinancialData = platformStats?.byCategory
+    .slice(0, 6)
+    .map((item) => ({
+      name: item.categoryTitle,
+      amount: Number(item.totalReceivedAmount),
+      avgPerCampaign: item.campaignCount > 0
+        ? Math.round(Number(item.totalReceivedAmount) / item.campaignCount)
+        : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount) ?? [];
+
   const expenseProofChartData = expenseProofStats
     ? [
       { name: "Chờ duyệt", value: expenseProofStats.pendingCount, color: "#f59e0b" },
@@ -239,7 +252,7 @@ export default function AdminDashboard() {
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-6">
       {/* Header with Gradient */}
-      <div className="relative mt-6 sm:mt-8 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-5 sm:p-7 lg:p-8 text-white shadow-xl">
+      <div className="relative mt-6 sm:mt-8 overflow-hidden rounded-2xl bg-gradient-to-r from-sky-500 via-cyan-600 to-teal-600 p-5 sm:p-7 lg:p-8 text-white shadow-xl">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)]" />
         <div className="relative flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -247,7 +260,7 @@ export default function AdminDashboard() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
                 Bảng điều khiển Admin
               </h1>
-              <p className="text-blue-100 text-xs sm:text-sm md:text-base max-w-xl">
+              <p className="text-sky-100 text-xs sm:text-sm md:text-base max-w-xl">
                 Tổng quan hoạt động gây quỹ trên toàn nền tảng
               </p>
             </div>
@@ -1181,6 +1194,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+      {/* Financial Line Chart - Category Comparison */}
+      <FinancialComparisonChart data={categoryFinancialData} loading={loading} />
 
       {/* Expense Proof & Operation Request Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
