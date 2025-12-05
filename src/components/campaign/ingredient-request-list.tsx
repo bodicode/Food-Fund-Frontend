@@ -46,11 +46,11 @@ export function IngredientRequestList({ campaignId, campaignPhaseId, refreshKey 
                     if (!req.campaignPhase) return false;
 
                     if (campaignPhaseId) {
-                        return req.campaignPhase.id === campaignPhaseId;
+                        return req.campaignPhase?.id === campaignPhaseId;
                     }
                     // If no phase ID, we might want to filter by campaign ID if available in the request data
                     // But currently IngredientRequest type has campaignPhase -> campaign
-                    return req.campaignPhase.campaign?.id === campaignId;
+                    return req.campaignPhase?.campaign?.id === campaignId;
                 });
 
                 setRequests(filteredRequests);
@@ -105,7 +105,7 @@ export function IngredientRequestList({ campaignId, campaignPhaseId, refreshKey 
                                     </h4>
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                         <Badge variant="outline" className="text-xs">
-                                            {request.campaignPhase.phaseName}
+                                            {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                                         </Badge>
                                         <Badge variant="secondary" className="text-xs">
                                             Nguyên liệu

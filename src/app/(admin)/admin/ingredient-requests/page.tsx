@@ -305,7 +305,7 @@ export default function AdminIngredientRequestsPage() {
                           <div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">Giai đoạn</div>
                             <div className="font-medium text-gray-900 dark:text-white">
-                              {request.campaignPhase.phaseName}
+                              {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                             </div>
                           </div>
                         </div>
@@ -379,7 +379,7 @@ export default function AdminIngredientRequestsPage() {
           requestId={selectedRequestForDisbursement.id}
           requestType="ingredient"
           amount={String(selectedRequestForDisbursement.totalCost)}
-          campaignPhaseId={selectedRequestForDisbursement.campaignPhase.id}
+          campaignPhaseId={selectedRequestForDisbursement.campaignPhase?.id}
           onSuccess={handleDisbursementSuccess}
         />
       )}

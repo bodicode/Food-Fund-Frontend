@@ -95,7 +95,7 @@ export function OperationRequestList({ campaignId, campaignPhaseId, refreshKey }
                   <h4 className="font-semibold text-gray-900 mb-1">{request.title}</h4>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Badge variant="outline" className="text-xs">
-                      {request.campaignPhase.phaseName}
+                      {request.campaignPhase?.phaseName}
                     </Badge>
                     <Badge variant="secondary" className="text-xs">
                       {expenseTypeLabels[request.expenseType]}

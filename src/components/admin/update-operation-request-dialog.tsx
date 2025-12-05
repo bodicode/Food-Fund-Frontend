@@ -94,7 +94,7 @@ export function UpdateOperationRequestDialog({
               </h3>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
-                  {request.campaignPhase.phaseName}
+                  {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                 </Badge>
                 <Badge variant="secondary" className="text-xs">
                   {expenseTypeLabels[request.expenseType]}
@@ -130,7 +130,7 @@ export function UpdateOperationRequestDialog({
                 <div className="flex-1">
                   <p className="text-sm text-gray-600 mb-1">Chiến dịch</p>
                   <p className="font-medium text-gray-900">
-                    {request.campaignPhase.campaign?.title || "N/A"}
+                    {request.campaignPhase?.campaign?.title || "N/A"}
                   </p>
                 </div>
               </div>
