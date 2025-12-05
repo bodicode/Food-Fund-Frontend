@@ -30,6 +30,7 @@ import { MyDisbursementsTab } from "@/components/campaign/my-disbursements-tab";
 import { ReassignmentRequestsTab } from "@/components/profile/tabs/reassignment-requests-tab";
 import { CreditCard, FileInput, UserPlus } from "lucide-react";
 import { JoinRequestsTab } from "@/components/profile/tabs/join-requests-tab";
+import { Award } from "lucide-react";
 
 type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements" | "reassignment" | "join_requests";
 
