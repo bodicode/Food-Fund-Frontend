@@ -25,7 +25,7 @@ interface CreateDisbursementDialogProps {
   requestId: string;
   requestType: "operation" | "ingredient";
   amount: string;
-  campaignPhaseId: string;
+  campaignPhaseId?: string;
   onSuccess: () => void;
 }
 
@@ -48,7 +48,7 @@ export function CreateDisbursementDialog({
     const file = e.target.files?.[0];
     if (file) {
       setProofFile(file);
-      
+
       // Create preview for images
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
@@ -94,6 +94,11 @@ export function CreateDisbursementDialog({
 
     if (!proofFileKey) {
       toast.error("Vui lòng upload hóa đơn trước");
+      return;
+    }
+
+    if (!campaignPhaseId) {
+      toast.error("Không tìm thấy ID giai đoạn chiến dịch");
       return;
     }
 
@@ -184,9 +189,9 @@ export function CreateDisbursementDialog({
                 </p>
                 {preview && (
                   <div className="border rounded-lg overflow-hidden bg-gray-50 p-3">
-                    <Image 
-                      src={preview} 
-                      alt="Preview" 
+                    <Image
+                      src={preview}
+                      alt="Preview"
                       width={400}
                       height={320}
                       className="max-h-80 max-w-full mx-auto object-contain"

@@ -33,7 +33,7 @@ export interface IngredientRequest {
     id: string;
     full_name: string;
   };
-  campaignPhase: {
+  campaignPhase?: {
     id: string;
     phaseName: string;
     cookingDate: string;
@@ -42,7 +42,7 @@ export interface IngredientRequest {
       id: string;
       title: string;
     };
-  };
+  } | null;
   totalCost: number;
   status: IngredientRequestStatus;
   changedStatusAt?: string;

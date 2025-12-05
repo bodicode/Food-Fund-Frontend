@@ -27,14 +27,14 @@ export interface OperationRequest {
     id: string;
     full_name: string;
   };
-  campaignPhase: {
+  campaignPhase?: {
     id: string;
     phaseName: string;
     campaign?: {
       id: string;
       title: string;
     };
-  };
+  } | null;
   organization?: {
     id: string;
     name: string;

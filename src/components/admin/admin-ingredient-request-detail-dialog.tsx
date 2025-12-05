@@ -179,14 +179,14 @@ export function AdminIngredientRequestDetailDialog({
 
                             {/* Info Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {request.campaignPhase.campaign && (
+                                {request.campaignPhase?.campaign && (
                                     <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200 dark:border-orange-800 md:col-span-2">
                                         <ShoppingCart className="w-5 h-5 text-[#ad4e28] dark:text-orange-500 mt-0.5" />
                                         <div className="flex-1">
                                             <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Chiến dịch</div>
                                             <button
                                                 onClick={() => {
-                                                    if (request.campaignPhase.campaign?.title && request.campaignPhase.campaign?.id) {
+                                                    if (request.campaignPhase?.campaign?.title && request.campaignPhase?.campaign?.id) {
                                                         const slug = createCampaignSlug(
                                                             request.campaignPhase.campaign.title,
                                                             request.campaignPhase.campaign.id
@@ -197,7 +197,7 @@ export function AdminIngredientRequestDetailDialog({
                                                 }}
                                                 className="font-bold text-[#ad4e28] dark:text-orange-500 mt-1 text-lg hover:underline flex items-center gap-2 group"
                                             >
-                                                {request.campaignPhase.campaign.title}
+                                                {request.campaignPhase?.campaign?.title}
                                                 <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </button>
                                         </div>
@@ -219,10 +219,10 @@ export function AdminIngredientRequestDetailDialog({
                                     <div>
                                         <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Giai đoạn</div>
                                         <div className="font-bold text-gray-900 dark:text-white mt-1">
-                                            {request.campaignPhase.phaseName}
+                                            {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                                         </div>
                                         <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                            Ngày nấu: {formatDateTime(request.campaignPhase.cookingDate)}
+                                            Ngày nấu: {request.campaignPhase?.cookingDate ? formatDateTime(request.campaignPhase.cookingDate) : "N/A"}
                                         </div>
                                     </div>
                                 </div>

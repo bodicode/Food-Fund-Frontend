@@ -129,10 +129,10 @@ export function IngredientRequestDetailDialog({
                                 <div>
                                     <div className="text-sm text-gray-600 font-medium">Giai đoạn</div>
                                     <div className="font-bold text-gray-900 mt-1">
-                                        {request.campaignPhase.phaseName}
+                                        {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                                     </div>
                                     <div className="text-xs text-gray-600 mt-1">
-                                        Ngày nấu: {formatDateTime(request.campaignPhase.cookingDate)}
+                                        Ngày nấu: {request.campaignPhase?.cookingDate ? formatDateTime(request.campaignPhase.cookingDate) : "N/A"}
                                     </div>
                                 </div>
                             </div>

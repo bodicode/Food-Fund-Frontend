@@ -142,15 +142,15 @@ export default function OperationRequestsPage() {
     return (
       request.title.toLowerCase().includes(searchLower) ||
       request.user.full_name.toLowerCase().includes(searchLower) ||
-      request.campaignPhase?.campaign?.title.toLowerCase().includes(searchLower)
+      (request.campaignPhase?.campaign?.title || "").toLowerCase().includes(searchLower)
     );
   });
 
   const filteredIngredientRequests = ingredientRequests.filter((request) => {
     const searchLower = ingredientSearchTerm.toLowerCase();
     return (
-      request.campaignPhase?.phaseName?.toLowerCase().includes(searchLower) ||
-      request.kitchenStaff?.full_name?.toLowerCase().includes(searchLower)
+      (request.campaignPhase?.phaseName || "").toLowerCase().includes(searchLower) ||
+      (request.kitchenStaff?.full_name || "").toLowerCase().includes(searchLower)
     );
   });
 
@@ -378,8 +378,8 @@ export default function OperationRequestsPage() {
                             <button
                               onClick={() => {
                                 const slug = createCampaignSlug(
-                                  request.campaignPhase.campaign!.title,
-                                  request.campaignPhase.campaign!.id
+                                  request.campaignPhase?.campaign?.title || "",
+                                  request.campaignPhase?.campaign?.id || ""
                                 );
                                 router.push(`/admin/campaigns/${slug}`);
                               }}
@@ -624,7 +624,7 @@ export default function OperationRequestsPage() {
           requestId={selectedOperationForDisbursement.id}
           requestType="operation"
           amount={String(selectedOperationForDisbursement.totalCost)}
-          campaignPhaseId={selectedOperationForDisbursement.campaignPhase.id}
+          campaignPhaseId={selectedOperationForDisbursement.campaignPhase?.id}
           onSuccess={handleOperationDisbursementSuccess}
         />
       )}

@@ -72,9 +72,9 @@ export function OperationRequestDetailDialog({
 
   const status = request
     ? statusLabels[request.status] || {
-        label: request.status,
-        color: "bg-gray-100 text-gray-800",
-      }
+      label: request.status,
+      color: "bg-gray-100 text-gray-800",
+    }
     : null;
 
   return (
@@ -106,7 +106,7 @@ export function OperationRequestDetailDialog({
                 </h3>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {request.campaignPhase.phaseName}
+                    {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
                     {expenseTypeLabels[request.expenseType]}
@@ -149,7 +149,7 @@ export function OperationRequestDetailDialog({
                 <div className="flex-1">
                   <p className="text-sm text-gray-600 mb-1">Giai đoạn</p>
                   <p className="font-medium text-gray-900">
-                    {request.campaignPhase.phaseName}
+                    {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                   </p>
                 </div>
               </div>
