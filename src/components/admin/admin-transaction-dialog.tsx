@@ -89,11 +89,8 @@ export function AdminTransactionDialog({
                     page,
                     limit,
                     query: debouncedQuery || null,
-                    startDate: startDate || null,
-                    endDate: endDate || null,
                     minAmount: debouncedMinAmount ? Number(debouncedMinAmount) : null,
                     maxAmount: debouncedMaxAmount ? Number(debouncedMaxAmount) : null,
-                    transactionType: transactionType === "ALL" ? null : transactionType,
                     sortBy,
                 });
 
@@ -165,7 +162,7 @@ export function AdminTransactionDialog({
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">Loại giao dịch</label>
                                 <Select value={transactionType} onValueChange={setTransactionType}>
                                     <SelectTrigger className="bg-white">
@@ -180,7 +177,7 @@ export function AdminTransactionDialog({
                                         <SelectItem value="TRANSFER">Chuyển khoản</SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </div> */}
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">Sắp xếp</label>
@@ -220,7 +217,7 @@ export function AdminTransactionDialog({
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">Từ ngày</label>
                                 <DateInput
                                     value={startDate}
@@ -238,7 +235,7 @@ export function AdminTransactionDialog({
                                     placeholder="dd/MM/yyyy"
                                     className="bg-white"
                                 />
-                            </div>
+                            </div> */}
 
                             <div className="flex items-end">
                                 <Button

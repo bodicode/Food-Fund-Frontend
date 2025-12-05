@@ -107,11 +107,8 @@ export interface MyWalletStats {
 export interface SearchWalletTransactionInput {
   walletId: string;
   query?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
   minAmount?: number | null;
   maxAmount?: number | null;
-  transactionType?: string | null;
   sortBy?: "HIGHEST_AMOUNT" | "LOWEST_AMOUNT" | "NEWEST" | "OLDEST";
   page?: number;
   limit?: number;

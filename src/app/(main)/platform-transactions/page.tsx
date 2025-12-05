@@ -85,11 +85,8 @@ export default function PlatformTransactionsPage() {
                     page,
                     limit,
                     query: debouncedQuery || null,
-                    startDate: startDate || null,
-                    endDate: endDate || null,
                     minAmount: debouncedMinAmount ? Number(debouncedMinAmount) : null,
                     maxAmount: debouncedMaxAmount ? Number(debouncedMaxAmount) : null,
-                    transactionType: transactionType === "ALL" ? null : transactionType,
                     sortBy,
                 });
 
@@ -176,7 +173,7 @@ export default function PlatformTransactionsPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Loại giao dịch</label>
                         <Select value={transactionType} onValueChange={setTransactionType}>
                             <SelectTrigger>
@@ -191,7 +188,7 @@ export default function PlatformTransactionsPage() {
                                 <SelectItem value="TRANSFER">Chuyển khoản</SelectItem>
                             </SelectContent>
                         </Select>
-                    </div>
+                    </div> */}
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Sắp xếp</label>
@@ -229,7 +226,7 @@ export default function PlatformTransactionsPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Từ ngày</label>
                         <DateInput
                             value={startDate}
@@ -245,7 +242,7 @@ export default function PlatformTransactionsPage() {
                             onChange={setEndDate}
                             placeholder="dd/MM/yyyy"
                         />
-                    </div>
+                    </div> */}
 
                     <div className="flex items-end">
                         <Button
