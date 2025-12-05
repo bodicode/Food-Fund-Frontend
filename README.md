@@ -1,6 +1,6 @@
-# Foo Fund - Charity & Fundraising Platform
+# Food Fund - Charity & Fundraising Platform
 
-Foo Fund is a comprehensive charity and fundraising platform designed to connect generous donors with meaningful campaigns and organizations. This repository contains the frontend application built with modern web technologies to ensure a seamless, responsive, and engaging user experience.
+Food Fund is a comprehensive charity and fundraising platform designed to connect generous donors with meaningful campaigns and organizations. This repository contains the frontend application built with modern web technologies to ensure a seamless, responsive, and engaging user experience.
 
 ## 🚀 Key Features
 
