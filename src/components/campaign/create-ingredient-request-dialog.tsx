@@ -23,7 +23,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { campaignService } from "@/services/campaign.service";
 import { CampaignPhase } from "@/types/api/phase";
-import { formatCurrency } from "@/lib/utils/currency-utils";
+import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
 import { CreateIngredientRequestItemInput } from "@/types/api/ingredient-request";
 
 interface CreateIngredientRequestDialogProps {
@@ -37,7 +37,8 @@ interface CreateIngredientRequestDialogProps {
 interface RequestItemState {
     ingredientName: string;
     quantity: string;
-    estimatedCost: string; // Changed from estimatedUnitPrice to estimatedCost (Total for item)
+    unit: string;
+    estimatedUnitPrice: string; // Changed from estimatedCost to estimatedUnitPrice with currency formatting
     supplier: string;
 }
 
@@ -53,7 +54,8 @@ export function CreateIngredientRequestDialog({
         {
             ingredientName: "",
             quantity: "",
-            estimatedCost: "",
+            unit: "",
+            estimatedUnitPrice: "",
             supplier: "",
         },
     ]);
@@ -66,7 +68,8 @@ export function CreateIngredientRequestDialog({
                 {
                     ingredientName: "",
                     quantity: "",
-                    estimatedCost: "",
+                    unit: "",
+                    estimatedUnitPrice: "",
                     supplier: "",
                 },
             ]);
@@ -79,7 +82,8 @@ export function CreateIngredientRequestDialog({
             {
                 ingredientName: "",
                 quantity: "",
-                estimatedCost: "",
+                unit: "",
+                estimatedUnitPrice: "",
                 supplier: "",
             },
         ]);
@@ -98,14 +102,26 @@ export function CreateIngredientRequestDialog({
         value: string
     ) => {
         const newItems = [...items];
-        newItems[index] = { ...newItems[index], [field]: value };
+
+        if (field === "estimatedUnitPrice") {
+            // Remove non-digit chars
+            const numericValue = parseCurrency(value);
+            // Format for display
+            const formattedValue = new Intl.NumberFormat("vi-VN").format(Number(numericValue));
+            // Update with formatted value (or empty string if 0/empty)
+            newItems[index] = { ...newItems[index], [field]: numericValue ? formattedValue : "" };
+        } else {
+            newItems[index] = { ...newItems[index], [field]: value };
+        }
+
         setItems(newItems);
     };
 
     // Calculate total cost
     const totalCost = items.reduce((sum, item) => {
-        const cost = parseFloat(item.estimatedCost) || 0;
-        return sum + cost;
+        const qty = parseFloat(item.quantity) || 0;
+        const unitPrice = Number(parseCurrency(item.estimatedUnitPrice)) || 0;
+        return sum + (qty * unitPrice);
     }, 0);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -123,6 +139,10 @@ export function CreateIngredientRequestDialog({
                 toast.error(`Vui lòng nhập tên nguyên liệu cho mục #${i + 1}`);
                 return;
             }
+            if (!item.unit.trim()) {
+                toast.error(`Vui lòng nhập đơn vị tính cho mục #${i + 1}`);
+                return;
+            }
             if (!item.quantity.trim()) {
                 toast.error(`Vui lòng nhập số lượng cho mục #${i + 1}`);
                 return;
@@ -135,19 +155,12 @@ export function CreateIngredientRequestDialog({
             // Transform items to match API expectation
             const requestItems: CreateIngredientRequestItemInput[] = items.map((item) => {
                 const qty = parseFloat(item.quantity) || 0;
-                const total = parseFloat(item.estimatedCost) || 0;
-
-                // Calculate unit price derived from total and quantity
-                let unitPrice = 0;
-                if (qty > 0) {
-                    unitPrice = total / qty;
-                } else {
-                    unitPrice = total; // Fallback
-                }
+                const unitPrice = Number(parseCurrency(item.estimatedUnitPrice)) || 0;
+                const total = qty * unitPrice;
 
                 return {
                     ingredientName: item.ingredientName.trim(),
-                    quantity: item.quantity.trim(),
+                    quantity: `${item.quantity.trim()} ${item.unit.trim()}`,
                     estimatedUnitPrice: unitPrice,
                     estimatedTotalPrice: total,
                     supplier: item.supplier.trim() || undefined,
@@ -252,25 +265,34 @@ export function CreateIngredientRequestDialog({
                                 </div>
 
                                 <div className="col-span-2 space-y-2">
-                                    <Label className="text-xs">Số lượng <span className="text-red-500">*</span></Label>
+                                    <Label className="text-xs">Đơn vị tính <span className="text-red-500">*</span></Label>
                                     <Input
-                                        value={item.quantity}
-                                        onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
-                                        placeholder="VD: 10kg"
+                                        value={item.unit}
+                                        onChange={(e) => handleItemChange(index, "unit", e.target.value)}
+                                        placeholder="VD: kg, lít"
                                     />
                                 </div>
 
-                                <div className="col-span-3 space-y-2">
-                                    <Label className="text-xs">Thành tiền dự kiến</Label>
+                                <div className="col-span-2 space-y-2">
+                                    <Label className="text-xs">Số lượng <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="number"
-                                        value={item.estimatedCost}
-                                        onChange={(e) => handleItemChange(index, "estimatedCost", e.target.value)}
+                                        value={item.quantity}
+                                        onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+                                        placeholder="VD: 10"
+                                    />
+                                </div>
+
+                                <div className="col-span-2 space-y-2">
+                                    <Label className="text-xs">Đơn giá dự kiến</Label>
+                                    <Input
+                                        value={item.estimatedUnitPrice}
+                                        onChange={(e) => handleItemChange(index, "estimatedUnitPrice", e.target.value)}
                                         placeholder="0"
                                     />
                                 </div>
 
-                                <div className="col-span-3 space-y-2">
+                                <div className="col-span-2 space-y-2">
                                     <Label className="text-xs">Nhà cung cấp</Label>
                                     <Input
                                         value={item.supplier}

@@ -52,7 +52,7 @@ const SidebarContent = ({
       ? [
         { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
         { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
-        { key: "reassignment", label: "Yêu cầu tiếp nhận", icon: FileInput },
+        { key: "reassignment", label: "Yêu cầu tiếp nhận chiến dịch", icon: FileInput },
         { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
       ]
       : []),
@@ -171,7 +171,7 @@ export default function ProfilePage() {
           },
           reassignment: {
             component: <ReassignmentRequestsTab />,
-            title: "Yêu cầu tiếp nhận",
+            title: "Yêu cầu tiếp nhận chiến dịch",
           },
           campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
         }
