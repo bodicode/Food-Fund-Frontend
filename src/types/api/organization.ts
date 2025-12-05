@@ -137,6 +137,8 @@ export interface JoinRequest {
   status: string;
 }
 
+export type JoinRequestStatus = "PENDING" | "VERIFIED" | "REJECTED";
+
 export interface GetOrganizationJoinRequestsResponse {
   getOrganizationJoinRequests: {
     joinRequests: JoinRequest[];

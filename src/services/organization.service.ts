@@ -34,6 +34,7 @@ import {
   GetPendingReassignmentRequestsResponse,
   RespondReassignmentInput,
   RespondReassignmentResponse,
+  JoinRequestStatus,
 } from "@/types/api/organization";
 import { GET_ELIGIBLE_ORGS } from "@/graphql/query/organization/get-eligible-orgs";
 import { GET_PENDING_REASSIGNMENT_REQUESTS } from "@/graphql/query/organization/get-pending-reassignment-requests";
@@ -216,12 +217,17 @@ export const organizationService = {
     return data.requestJoinOrganization;
   },
 
-  async getOrganizationJoinRequests(): Promise<{
+  async getOrganizationJoinRequests(
+    limit: number = 10,
+    offset: number = 0,
+    status?: JoinRequestStatus
+  ): Promise<{
     joinRequests: JoinRequest[];
     total: number;
   }> {
     const { data } = await client.query<GetOrganizationJoinRequestsResponse>({
       query: GET_ORGANIZATION_JOIN_REQUESTS,
+      variables: { limit, offset, status },
       fetchPolicy: "network-only",
     });
 

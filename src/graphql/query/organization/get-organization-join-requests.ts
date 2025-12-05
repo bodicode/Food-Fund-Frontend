@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 export const GET_ORGANIZATION_JOIN_REQUESTS = gql`
-  query {
-    getOrganizationJoinRequests {
+  query GetOrganizationJoinRequests($limit: Int, $offset: Int, $status: String) {
+    getOrganizationJoinRequests(limit: $limit, offset: $offset, status: $status) {
       joinRequests {
         id
         joined_at
