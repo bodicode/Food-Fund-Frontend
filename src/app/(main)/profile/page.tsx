@@ -1,25 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { toast } from "sonner";
-import {
-  Menu,
-  User as UserIcon,
-  HeartHandshake,
-  History as HistoryIcon,
-  LogOut,
-  Building2,
-  Wallet as WalletIcon,
-  Plus,
-} from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { ProfileTab } from "@/components/profile/tabs/profile-tab";
-import { CampaignsTab } from "@/components/profile/tabs/campaign-tab";
+import { useRouter, useSearchParams } from "next/navigation";
 import { HistoryTab } from "@/components/profile/tabs/history-tab";
 import { WalletTab } from "@/components/profile/tabs/wallet-tab";
+import { ProfileTab } from "@/components/profile/tabs/profile-tab";
+import { CampaignsTab } from "@/components/profile/tabs/campaign-tab";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { graphQLAuthService } from "@/services/auth.service";
 import { translateMessage } from "@/lib/translator";
@@ -28,9 +15,23 @@ import { userService } from "@/services/user.service";
 import { OrganizationTab } from "@/components/profile/tabs/organization-tab";
 import { MyDisbursementsTab } from "@/components/campaign/my-disbursements-tab";
 import { ReassignmentRequestsTab } from "@/components/profile/tabs/reassignment-requests-tab";
-import { CreditCard, FileInput, UserPlus } from "lucide-react";
+import {
+  CreditCard,
+  FileInput,
+  UserPlus,
+  Award,
+  User as UserIcon,
+  Wallet as WalletIcon,
+  History as HistoryIcon,
+  Building2,
+  HeartHandshake,
+  LogOut,
+  Plus,
+  Menu,
+} from "lucide-react";
 import { JoinRequestsTab } from "@/components/profile/tabs/join-requests-tab";
-import { Award } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type TabKey = "profile" | "campaigns" | "history" | "wallet" | "disbursements" | "reassignment" | "join_requests";
 
