@@ -7,6 +7,15 @@ import { RootState } from "@/store";
 import { updateForm } from "@/store/slices/campaign-form-slice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DateTimeInput } from "@/components/ui/date-time-input";
 import { toast } from "sonner";
 import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
@@ -21,6 +30,28 @@ import { Plus, MapPin, Trash2, Utensils, Leaf, X } from "lucide-react";
 import LocationPicker from "@/components/shared/location-picker";
 
 
+const UNIT_GROUPS = [
+  {
+    label: "Trọng lượng",
+    units: ["kg", "g", "mg", "tấn", "tạ", "yến"]
+  },
+  {
+    label: "Thể tích",
+    units: ["lít", "ml", "cc"]
+  },
+  {
+    label: "Đơn vị đếm",
+    units: ["cái", "chiếc", "quả", "trái", "củ", "hạt", "bó", "mớ", "cây", "nhánh", "tép", "lát", "khúc"]
+  },
+  {
+    label: "Quy cách đóng gói",
+    units: ["hộp", "thùng", "gói", "bao", "túi", "chai", "lọ", "hũ", "lon", "bình", "can", "vỉ", "khay"]
+  },
+  {
+    label: "Khác",
+    units: ["suất", "phần", "bộ", "cặp", "tá"]
+  }
+];
 
 export default function CreateCampaignStepGoal() {
   const router = useRouter();
@@ -749,7 +780,7 @@ export default function CreateCampaignStepGoal() {
 
                         <div className="space-y-2">
                           {phase.plannedIngredients?.map((ing, ingIdx) => (
-                            <div key={ingIdx} className="grid grid-cols-[2fr_1fr_80px_auto] gap-2 items-start">
+                            <div key={ingIdx} className="grid grid-cols-[2fr_1fr_110px_auto] gap-2 items-start">
                               <Input
                                 placeholder="Tên nguyên liệu"
                                 value={ing.name || ""}
@@ -760,11 +791,26 @@ export default function CreateCampaignStepGoal() {
                                 value={ing.quantity || ""}
                                 onChange={(e) => updateIngredient(index, ingIdx, "quantity", e.target.value)}
                               />
-                              <Input
-                                placeholder="Đơn vị"
+                              <Select
                                 value={ing.unit || ""}
-                                onChange={(e) => updateIngredient(index, ingIdx, "unit", e.target.value)}
-                              />
+                                onValueChange={(value) => updateIngredient(index, ingIdx, "unit", value)}
+                              >
+                                <SelectTrigger className="w-[110px]">
+                                  <SelectValue placeholder="Đơn vị" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {UNIT_GROUPS.map((group) => (
+                                    <SelectGroup key={group.label}>
+                                      <SelectLabel>{group.label}</SelectLabel>
+                                      {group.units.map((unit) => (
+                                        <SelectItem key={unit} value={unit}>
+                                          {unit}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectGroup>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <Button
                                 type="button"
                                 variant="ghost"
