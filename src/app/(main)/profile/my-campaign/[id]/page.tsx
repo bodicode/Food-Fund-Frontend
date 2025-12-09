@@ -8,6 +8,7 @@ import { restoreSession } from "@/store/slices/auth-slice";
 import Image from "next/image";
 
 import { campaignService } from "@/services/campaign.service";
+import { phaseService } from "@/services/phase.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
 
@@ -184,6 +185,29 @@ export default function MyCampaignDetailPage() {
     }
   };
 
+  const handleUpdatePhaseStatus = async (phaseId: string, status: "COMPLETED") => {
+    if (!campaign) return;
+    if (!confirm("Bạn có chắc chắn muốn đánh dấu giai đoạn nãy đã hoàn thành?")) return;
+
+    try {
+      await phaseService.updatePhaseStatus({
+        phaseId,
+        status,
+      });
+      toast.success("Cập nhật trạng thái giai đoạn thành công!");
+
+      // Refresh campaign data
+      const data = await campaignService.getCampaignById(campaign.id);
+      if (data) {
+        setCampaign(data);
+      }
+    } catch (error) {
+      toast.error("Cập nhật thất bại!", {
+        description: error instanceof Error ? error.message : "Đã xảy ra lỗi.",
+      });
+    }
+  };
+
   const handleDeleteCampaign = async () => {
     if (!campaign) return;
 
@@ -243,29 +267,6 @@ export default function MyCampaignDetailPage() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Chia sẻ
               </Button>
-              {campaign.status === "PROCESSING" && (
-                <Button
-                  onClick={async () => {
-                    if (confirm("Bạn có chắc chắn muốn hoàn thành chiến dịch này không?")) {
-                      try {
-                        await campaignService.markCampaignComplete(campaign.id);
-                        toast.success("Đã hoàn thành chiến dịch thành công!");
-                        // Refresh campaign data
-                        const data = await campaignService.getCampaignById(campaign.id);
-                        if (data) {
-                          setCampaign(data);
-                        }
-                      } catch {
-                        toast.error("Lỗi khi hoàn thành chiến dịch.");
-                      }
-                    }
-                  }}
-                  className="backdrop-blur bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Hoàn thành chiến dịch
-                </Button>
-              )}
               {canExtend && (
                 <Button
                   onClick={() => setIsExtendDialogOpen(true)}
@@ -639,6 +640,21 @@ export default function MyCampaignDetailPage() {
                           label: `${phase.phaseName} - Giao hàng`,
                           date: formatDateTime(phase.deliveryDate),
                           status: (phase.deliveryDate && parseLocalDateTime(phase.deliveryDate) && parseLocalDateTime(phase.deliveryDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                          content: (
+                            <div className="mt-2 space-y-2">
+                              {phase.status === "DELIVERY" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 mb-2"
+                                  onClick={() => handleUpdatePhaseStatus(phase.id, "COMPLETED")}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Đánh dấu hoàn thành
+                                </Button>
+                              )}
+                            </div>
+                          )
                         },
                       ]),
                     ]}
