@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { disbursementService, Disbursement } from "@/services/disbursement.service";
+import { disbursementService, Disbursement, TransactionType } from "@/services/disbursement.service";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
@@ -30,7 +30,7 @@ interface DisbursementDetailDialogProps {
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  PENDING: { label: "Chờ xử lý", color: "bg-yellow-100 text-yellow-800", icon: Clock },
+  PENDING: { label: "Chờ người nhận xác nhận", color: "bg-yellow-100 text-yellow-800", icon: Clock },
   COMPLETED: { label: "Hoàn thành", color: "bg-green-100 text-green-800", icon: CheckCircle },
   FAILED: { label: "Thất bại", color: "bg-red-100 text-red-800", icon: XCircle },
 };
@@ -57,11 +57,15 @@ export function DisbursementDetailDialog({
         }
       }
     };
-    
+
     loadDetails();
   }, [isOpen, disbursementId]);
 
-
+  const transactionTypeLabels: Record<TransactionType, string> = {
+    INGREDIENT: "Nguyên liệu",
+    COOKING: "Nấu ăn",
+    DELIVERY: "Vận chuyển",
+  };
 
   const status = disbursement ? statusConfig[disbursement.status] : null;
   const StatusIcon = status?.icon;
@@ -101,7 +105,7 @@ export function DisbursementDetailDialog({
                   </Badge>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-600">Giai đoạn</p>
@@ -112,7 +116,7 @@ export function DisbursementDetailDialog({
                 <div>
                   <p className="text-gray-600">Loại giao dịch</p>
                   <p className="font-semibold text-gray-900">
-                    {disbursement.transactionType}
+                    {transactionTypeLabels[disbursement.transactionType]}
                   </p>
                 </div>
               </div>
@@ -171,7 +175,7 @@ export function DisbursementDetailDialog({
                       </p>
                     </div>
                   </div>
-                  
+
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Tên tài khoản</p>
                     <p className="font-semibold text-gray-900 text-lg">
