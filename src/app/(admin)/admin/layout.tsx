@@ -15,6 +15,7 @@ import {
   Wallet,
   User,
   KeyRound,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,9 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </NavLink>
       <NavLink href="/admin/badges" icon={Award}>
         Huy hiệu
+      </NavLink>
+      <NavLink href="/admin/system-configs" icon={Settings}>
+        Cấu hình hệ thống
       </NavLink>
     </nav>
   );

@@ -29,7 +29,6 @@ export function TermsConditionsDialog({
 
   const canProceed = acceptTerms && acceptResponsibility && understandConsequences;
 
-  // ✅ Ngăn scroll body khi dialog mở
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -61,7 +60,7 @@ export function TermsConditionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal>
-      <DialogContent 
+      <DialogContent
         className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
         onWheel={(e) => e.stopPropagation()} // ✅ chặn scroll bubble ra body
       >
@@ -83,8 +82,8 @@ export function TermsConditionsDialog({
                 Vai trò của FoodFund
               </h3>
               <p className="text-gray-700 leading-relaxed">
-                FoodFund là nền tảng kết nối giữa người quyên góp (Donor) và người gây quỹ (Fundraiser). 
-                Chúng tôi <strong>KHÔNG</strong> phải là tổ chức từ thiện, đơn vị quản lý quỹ, 
+                FoodFund là nền tảng kết nối giữa người quyên góp (Donor) và người gây quỹ (Fundraiser).
+                Chúng tôi <strong>KHÔNG</strong> phải là tổ chức từ thiện, đơn vị quản lý quỹ,
                 hay bên đảm bảo tính xác thực của chiến dịch.
               </p>
             </section>
@@ -94,7 +93,7 @@ export function TermsConditionsDialog({
               <h3 className="font-semibold text-base mb-3 text-orange-600">
                 Trách nhiệm của Người tạo chiến dịch (Fundraiser)
               </h3>
-              
+
               <div className="space-y-3">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">1. Thông tin chính xác</h4>
@@ -134,7 +133,7 @@ export function TermsConditionsDialog({
               <h3 className="font-semibold text-base mb-3 text-purple-600">
                 Quyền của FoodFund
               </h3>
-              
+
               <div className="space-y-2 text-gray-700">
                 <p><strong>Kiểm duyệt & Tạm dừng:</strong></p>
                 <ul className="list-disc list-inside space-y-1 ml-2">
@@ -160,14 +159,14 @@ export function TermsConditionsDialog({
                 Quyền & Trách nhiệm của Người quyên góp (Donor)
               </h3>
               <div className="space-y-2 text-gray-700">
-                <p><strong>Rủi ro tự chịu:</strong> Bạn tự đánh giá và quyết định quyên góp. 
-                Platform không đảm bảo 100% tính xác thực của mọi chiến dịch.</p>
-                
-                <p><strong>Quyền khiếu nại:</strong> Được báo cáo chiến dịch đáng ngờ, 
-                yêu cầu minh bạch hóa, và được hỗ trợ khiếu nại nếu phát hiện gian lận.</p>
-                
-                <p><strong>Hoàn tiền:</strong> Chỉ được hoàn tiền khi chiến dịch bị hủy trước khi kết thúc, 
-                phát hiện gian lận và thu hồi được tiền, hoặc lỗi kỹ thuật từ hệ thống.</p>
+                <p><strong>Rủi ro tự chịu:</strong> Bạn tự đánh giá và quyết định quyên góp.
+                  Platform không đảm bảo 100% tính xác thực của mọi chiến dịch.</p>
+
+                <p><strong>Quyền khiếu nại:</strong> Được báo cáo chiến dịch đáng ngờ,
+                  yêu cầu minh bạch hóa, và được hỗ trợ khiếu nại nếu phát hiện gian lận.</p>
+
+                <p><strong>Hoàn tiền:</strong> Chỉ được hoàn tiền khi chiến dịch bị hủy trước khi kết thúc,
+                  phát hiện gian lận và thu hồi được tiền, hoặc lỗi kỹ thuật từ hệ thống.</p>
               </div>
             </section>
 
@@ -199,7 +198,7 @@ export function TermsConditionsDialog({
                 <li>Tranh chấp giữa fundraiser và donor</li>
               </ul>
               <p className="text-gray-700 mt-2">
-                Platform chỉ chịu trách nhiệm: Nỗ lực xác minh thông tin cơ bản, 
+                Platform chỉ chịu trách nhiệm: Nỗ lực xác minh thông tin cơ bản,
                 hỗ trợ quy trình pháp lý khi có gian lận, và bảo mật thông tin người dùng.
               </p>
             </section>
@@ -232,7 +231,7 @@ export function TermsConditionsDialog({
               htmlFor="accept-responsibility"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
-              Tôi cam kết thông tin chiến dịch là trung thực, sử dụng quỹ đúng mục đích, 
+              Tôi cam kết thông tin chiến dịch là trung thực, sử dụng quỹ đúng mục đích,
               và chịu trách nhiệm pháp lý hoàn toàn
             </label>
           </div>
@@ -247,7 +246,7 @@ export function TermsConditionsDialog({
               htmlFor="understand-consequences"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
-              Tôi hiểu rằng hành vi gian lận sẽ bị truy cứu hình sự và thông tin CCCD 
+              Tôi hiểu rằng hành vi gian lận sẽ bị truy cứu hình sự và thông tin CCCD
               của tôi sẽ được cung cấp cho cơ quan chức năng nếu có vi phạm
             </label>
           </div>
