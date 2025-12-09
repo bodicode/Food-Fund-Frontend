@@ -35,7 +35,7 @@ export function CampaignPlanSummary({ phases }: CampaignPlanSummaryProps) {
     );
 }
 
-function PhasePlanItem({ phase, index }: { phase: CampaignPhase; index: number }) {
+function PhasePlanItem({ phase }: { phase: CampaignPhase; index?: number }) {
     const [isExpanded, setIsExpanded] = useState(true);
 
     const hasMeals = phase.plannedMeals && phase.plannedMeals.length > 0;
