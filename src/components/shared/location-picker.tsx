@@ -32,7 +32,7 @@ const MapContainer = dynamic(() => import("react-leaflet").then((m) => m.MapCont
 const TileLayer = dynamic(() => import("react-leaflet").then((m) => m.TileLayer), { ssr: false });
 const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), { ssr: false });
 const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), { ssr: false });
-const Rectangle = dynamic(() => import("react-leaflet").then((m) => m.Rectangle), { ssr: false });
+
 
 // --- Types ---
 type NominatimResult = {
@@ -48,13 +48,14 @@ interface LocationPickerProps {
   disabled?: boolean;
 }
 
-// --- CONSTANT: HCM City bounding box ---
-// Tọa độ khu vực nội thành và ngoại thành TP.HCM
-const HCM_BOUNDS: [[number, number], [number, number]] = [
-  [10.70, 106.50],
-  [10.95, 106.85],
-];
 
+
+
+// --- CONSTANT: Vietnam bounding box ---
+const VIETNAM_BOUNDS: [[number, number], [number, number]] = [
+  [8.18, 102.14], // Southwest coordinates (approx)
+  [23.39, 109.46], // Northeast coordinates (approx)
+];
 
 // --- Component: handle map click events ---
 function MapClickHandler({
@@ -93,8 +94,8 @@ function MapSearch({
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          value + " Ho Chi Minh City"
-        )}&addressdetails=1&limit=10&countrycodes=VN&bounded=1&viewbox=106.45,10.45,106.95,11.00`
+          value
+        )}&addressdetails=1&limit=10&countrycodes=VN`
       );
       const data: NominatimResult[] = await res.json();
       setResults(data);
@@ -197,31 +198,31 @@ export default function LocationPicker({
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=vi&addressdetails=1`
       );
       const data = await res.json();
-      
+
       if (data.address) {
         // Build a more readable address from components
         const parts = [];
-        
+
         // Add house number and road
         if (data.address.house_number) parts.push(data.address.house_number);
         if (data.address.road) parts.push(data.address.road);
-        
+
         // Add ward/suburb
         if (data.address.suburb) parts.push(data.address.suburb);
         else if (data.address.quarter) parts.push(data.address.quarter);
-        
+
         // Add district
         if (data.address.city_district) parts.push(data.address.city_district);
         else if (data.address.district) parts.push(data.address.district);
-        
+
         // Add city
         if (data.address.city) parts.push(data.address.city);
         else if (data.address.province) parts.push(data.address.province);
-        
-        const formattedAddress = parts.length > 0 
-          ? parts.join(", ") 
+
+        const formattedAddress = parts.length > 0
+          ? parts.join(", ")
           : data.display_name;
-        
+
         setAddress(formattedAddress);
         return formattedAddress;
       } else if (data.display_name) {
@@ -246,10 +247,10 @@ export default function LocationPicker({
   const handleMapClick = async (e: L.LeafletMouseEvent) => {
     const { lat, lng } = e.latlng;
 
-    // Kiểm tra nếu nằm ngoài khu vực HCM
-    const bounds = L.latLngBounds(HCM_BOUNDS[0], HCM_BOUNDS[1]);
+    // Kiểm tra nếu nằm ngoài lãnh thổ Việt Nam
+    const bounds = L.latLngBounds(VIETNAM_BOUNDS[0], VIETNAM_BOUNDS[1]);
     if (!bounds.contains([lat, lng])) {
-      setError("⚠️ Vui lòng chọn vị trí trong khu vực Thành phố Hồ Chí Minh.");
+      setError("⚠️ Vui lòng chọn vị trí trong lãnh thổ Việt Nam.");
       return;
     }
 
@@ -260,9 +261,9 @@ export default function LocationPicker({
 
   // --- Khi chọn từ ô tìm kiếm ---
   const handleSearchSelect = async (pos: [number, number], addr: string) => {
-    const bounds = L.latLngBounds(HCM_BOUNDS[0], HCM_BOUNDS[1]);
+    const bounds = L.latLngBounds(VIETNAM_BOUNDS[0], VIETNAM_BOUNDS[1]);
     if (!bounds.contains(pos)) {
-      setError("⚠️ Vui lòng chọn vị trí trong khu vực Thành phố Hồ Chí Minh.");
+      setError("⚠️ Vui lòng chọn vị trí trong lãnh thổ Việt Nam.");
       return;
     }
 
@@ -294,7 +295,7 @@ export default function LocationPicker({
 
       <DialogContent className="!max-w-[95vw] !max-h-[95vh] !w-[95vw] !h-[95vh] flex flex-col p-0 gap-0">
         <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
-          <DialogTitle>Chọn địa điểm tại Thành phố Hồ Chí Minh</DialogTitle>
+          <DialogTitle>Chọn địa điểm tại Việt Nam</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 px-6 pb-4 space-y-4 overflow-hidden flex flex-col">
@@ -302,28 +303,17 @@ export default function LocationPicker({
           <div className="flex-1 w-full rounded-lg overflow-hidden border relative min-h-0">
             <MapContainer
               center={position}
-              zoom={13}
+              zoom={10}
               className="h-full w-full z-0"
-              maxBounds={HCM_BOUNDS}
-              minZoom={11}
+              maxBounds={VIETNAM_BOUNDS}
+              minZoom={5}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
 
-              {/* Giới hạn khu vực HCM */}
-              <Rectangle
-                bounds={HCM_BOUNDS}
-                pathOptions={{
-                  color: "#ad4e28",
-                  weight: 3,
-                  fillColor: "#ad4e28",
-                  fillOpacity: 0.05,
-                  dashArray: "10, 10",
-                }}
-                interactive={false}
-              />
+
 
               <MapSearch onSelect={handleSearchSelect} />
               <MapClickHandler onClick={handleMapClick} />
