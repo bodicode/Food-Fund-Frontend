@@ -26,7 +26,7 @@ export interface CampaignPhase {
   ingredientFundsAmount?: string | null;
   cookingFundsAmount?: string | null;
   deliveryFundsAmount?: string | null;
-  status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "DELIVERY";
   plannedMeals?: PlannedMeal[];
   plannedIngredients?: PlannedIngredient[];
 }
@@ -95,5 +95,18 @@ export interface SyncCampaignPhasesResponse {
     updatedCount: number;
     deletedCount: number;
     phases: CampaignPhase[];
+  };
+}
+
+export interface UpdatePhaseStatusInput {
+  phaseId: string;
+  status: "COMPLETED" | "ACTIVE" | "UPCOMING" | "FAILED";
+}
+
+export interface UpdatePhaseStatusResponse {
+  updatePhaseStatus: {
+    id: string;
+    phaseName: string;
+    status: CampaignPhase["status"];
   };
 }

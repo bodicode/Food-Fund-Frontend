@@ -16,7 +16,10 @@ import {
   DeleteCampaignPhaseResponse,
   DeleteManyCampaignPhasesResponse,
   SyncCampaignPhasesResponse,
+  UpdatePhaseStatusInput,
+  UpdatePhaseStatusResponse,
 } from "@/types/api/phase";
+import { UPDATE_PHASE_STATUS } from "@/graphql/mutations/phase/update-phase-status";
 
 export const phaseService = {
   async addCampaignPhase(
@@ -105,6 +108,24 @@ export const phaseService = {
       return data?.syncCampaignPhases || null;
     } catch (error) {
       console.error("❌ Error syncing campaign phases:", error);
+      throw error;
+    }
+  },
+
+  async updatePhaseStatus(
+    input: UpdatePhaseStatusInput
+  ): Promise<CampaignPhase | null> {
+    try {
+      const { data } = await client.mutate<UpdatePhaseStatusResponse>({
+        mutation: UPDATE_PHASE_STATUS,
+        variables: { input },
+      });
+
+      // We only return partial phase data here based on the mutation definition
+      // Cast it to CampaignPhase or update the return type if strictly necessary
+      return data?.updatePhaseStatus as unknown as CampaignPhase || null;
+    } catch (error) {
+      console.error("❌ Error updating phase status:", error);
       throw error;
     }
   },
