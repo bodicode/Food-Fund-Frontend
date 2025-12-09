@@ -121,7 +121,7 @@ export function FeaturedFundraisers() {
             Tổ chức, cá nhân gây quỹ nổi bật
           </h2>
           <Link
-            href="#"
+            href="/organizations"
             className="inline-flex items-center gap-2 text-white hover:text-white/90 text-sm font-semibold transition-all duration-300 hover:gap-3 group"
           >
             <span>Xem tất cả</span>

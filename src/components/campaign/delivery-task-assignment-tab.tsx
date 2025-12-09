@@ -47,7 +47,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                     const staff = org.members
                         .filter(
                             (m) =>
-                                (m.member_role === "DELIVERY_STAFF" || m.member_role === "KITCHEN_STAFF") &&
+                                m.member_role === "DELIVERY_STAFF" &&
                                 (m.status === "APPROVED" || m.status === "VERIFIED") &&
                                 m.member.is_active
                         )
@@ -179,7 +179,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                         </div>
                     ) : (
                         <div className="text-sm text-gray-500 italic border rounded-lg p-4 text-center">
-                            Không có nhân viên nào trong tổ chức.
+                            Không có nhân viên vận chuyển nào trong tổ chức.
                         </div>
                     )}
                 </div>

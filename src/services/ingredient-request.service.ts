@@ -3,6 +3,7 @@
 import { GET_INGREDIENT_REQUESTS } from "@/graphql/query/ingredient-request/get-ingredient-requests";
 import { GET_INGREDIENT_REQUEST } from "@/graphql/query/ingredient-request/get-ingredient-request";
 import { UPDATE_INGREDIENT_REQUEST_STATUS } from "@/graphql/mutations/ingredient-request/update-ingredient-request-status";
+import { GET_INGREDIENT_REQUEST_STATS } from "@/graphql/query/ingredient-request/get-ingredient-request-stats";
 import client from "@/lib/apollo-client";
 import {
   IngredientRequest,
@@ -11,6 +12,8 @@ import {
   GetIngredientRequestResponse,
   UpdateIngredientRequestStatusInput,
   UpdateIngredientRequestStatusResponse,
+  GetIngredientRequestStatsResponse,
+  IngredientRequestStats,
 } from "@/types/api/ingredient-request";
 
 export const ingredientRequestService = {
@@ -60,6 +63,20 @@ export const ingredientRequestService = {
     } catch (error) {
       console.error("❌ Error updating ingredient request status:", error);
       throw error;
+    }
+  },
+
+  async getIngredientRequestStats(): Promise<IngredientRequestStats | null> {
+    try {
+      const { data } = await client.query<GetIngredientRequestStatsResponse>({
+        query: GET_INGREDIENT_REQUEST_STATS,
+        fetchPolicy: "network-only",
+      });
+
+      return data?.getIngredientRequestStats || null;
+    } catch (error) {
+      console.error("❌ Error fetching ingredient request stats:", error);
+      return null;
     }
   },
 };

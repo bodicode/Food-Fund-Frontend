@@ -47,6 +47,7 @@ export interface IngredientRequest {
   status: IngredientRequestStatus;
   changedStatusAt?: string;
   created_at: string;
+  adminNote?: string;
   items?: IngredientRequestItem[];
   organization?: {
     id: string;
@@ -87,4 +88,16 @@ export interface UpdateIngredientRequestStatusResponse {
     status: IngredientRequestStatus;
     changedStatusAt: string;
   };
+}
+
+export interface IngredientRequestStats {
+  totalRequests: number;
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  disbursedCount: number;
+}
+
+export interface GetIngredientRequestStatsResponse {
+  getIngredientRequestStats: IngredientRequestStats;
 }

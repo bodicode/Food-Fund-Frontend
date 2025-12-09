@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { transactionService } from "@/services/transaction.service";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { formatCurrency } from "@/lib/utils/currency-utils";
-import { Upload, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 
 interface CreateDisbursementDialogProps {
   isOpen: boolean;
@@ -39,9 +39,7 @@ export function CreateDisbursementDialog({
   onSuccess,
 }: CreateDisbursementDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [proofFile, setProofFile] = useState<File | null>(null);
-  const [proofFileKey, setProofFileKey] = useState<string>("");
   const [preview, setPreview] = useState<string>("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,38 +60,11 @@ export function CreateDisbursementDialog({
     }
   };
 
-  const handleUploadProof = async () => {
-    if (!proofFile) {
-      toast.error("Vui lòng chọn file chứng chỉ");
-      return;
-    }
-
-    if (!campaignPhaseId) {
-      toast.error("Không tìm thấy ID giai đoạn chiến dịch");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const { fileKey } = await transactionService.generateProofUploadUrl(
-        proofFile,
-        campaignPhaseId
-      );
-      setProofFileKey(fileKey);
-      toast.success("Upload hóa đơn thành công!");
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Có lỗi xảy ra khi upload";
-      toast.error(errorMessage);
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!proofFileKey) {
-      toast.error("Vui lòng upload hóa đơn trước");
+    if (!proofFile) {
+      toast.error("Vui lòng chọn file hóa đơn");
       return;
     }
 
@@ -104,6 +75,13 @@ export function CreateDisbursementDialog({
 
     setLoading(true);
     try {
+      // 1. Upload proof file first
+      const { fileKey } = await transactionService.generateProofUploadUrl(
+        proofFile,
+        campaignPhaseId
+      );
+
+      // 2. Create transaction with the uploaded file key
       await transactionService.createInflowTransaction({
         campaignPhaseId,
         operationRequestId:
@@ -111,12 +89,11 @@ export function CreateDisbursementDialog({
         ingredientRequestId:
           requestType === "ingredient" ? requestId : undefined,
         amount: parseFloat(amount),
-        proof: proofFileKey,
+        proof: fileKey,
       });
 
       toast.success("Tạo giải ngân thành công!");
       setProofFile(null);
-      setProofFileKey("");
       setPreview("");
       onSuccess();
       onClose();
@@ -128,8 +105,15 @@ export function CreateDisbursementDialog({
     }
   };
 
+  const handleClose = () => {
+    if (loading) return;
+    setProofFile(null);
+    setPreview("");
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Tạo giải ngân</DialogTitle>
@@ -159,27 +143,8 @@ export function CreateDisbursementDialog({
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={handleFileChange}
-                disabled={uploading}
+                disabled={loading}
               />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleUploadProof}
-                disabled={!proofFile || uploading}
-                className="gap-2 whitespace-nowrap"
-              >
-                {uploading ? (
-                  <>
-                    <Loader className="h-4 w-4 animate-spin" />
-                    Đang upload...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4" />
-                    Upload
-                  </>
-                )}
-              </Button>
             </div>
             {proofFile && (
               <div className="space-y-2">
@@ -200,31 +165,26 @@ export function CreateDisbursementDialog({
                 )}
               </div>
             )}
-            {proofFileKey && (
-              <p className="text-xs text-green-600 flex items-center gap-1">
-                ✓ Đã upload thành công
-              </p>
-            )}
           </div>
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
-              disabled={loading || uploading}
+              onClick={handleClose}
+              disabled={loading}
             >
               Hủy
             </Button>
             <Button
               type="submit"
-              disabled={loading || uploading || !proofFileKey}
+              disabled={loading || !proofFile}
               className="btn-color"
             >
               {loading ? (
                 <>
                   <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tạo...
+                  Đang xử lý...
                 </>
               ) : (
                 "Tạo giải ngân"

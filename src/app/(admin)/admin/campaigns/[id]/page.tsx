@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { statusConfig } from "@/lib/translator";
 import { formatDate } from "@/lib/utils/date-utils";
-import { getCampaignIdFromSlug } from "@/lib/utils/slug-utils";
+import { getCampaignIdFromSlug, titleToSlug } from "@/lib/utils/slug-utils";
 import {
   Dialog,
   DialogContent,
@@ -56,15 +56,44 @@ export default function AdminCampaignDetailPage() {
         const slug = id as string;
         const campaignId = getCampaignIdFromSlug(slug);
 
-        if (!campaignId) {
-          toast.error("Không tìm thấy chiến dịch.");
-          setLoading(false);
-          return;
+        // If no ID found from session/slug, try to find by searching with the slug
+        if (!campaignId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaignId)) {
+          // It's likely a slug, not an ID. Try to search for it.
+          // 1. Convert slug back to approximate title (replace hyphens with spaces)
+          const searchTerm = slug.replace(/-/g, " ");
+
+          try {
+            const searchResult = await campaignService.searchCampaigns({
+              query: searchTerm,
+              limit: 20 // Fetch a few to ensure we find the right one
+            });
+
+            if (searchResult && searchResult.items.length > 0) {
+              // 2. Find the exact match by re-slugifying the titles
+              const matchedCampaign = searchResult.items.find(c => titleToSlug(c.title) === slug);
+              if (matchedCampaign) {
+                setCampaign(matchedCampaign);
+                setLoading(false);
+                return;
+              }
+            }
+          } catch (searchError) {
+            console.error("Fallback search failed:", searchError);
+          }
         }
 
-        const data = await campaignService.getCampaignById(campaignId);
-        if (!data) throw new Error("Không tìm thấy chiến dịch.");
-        setCampaign(data);
+        // If we still have an ID (either original or we failed to find by slug but want to try anyway)
+        // Note: If campaignId was just the slug and search failed, this getCampaignById will likely fail too or return null, which is fine.
+        if (campaignId) {
+          const data = await campaignService.getCampaignById(campaignId);
+          if (data) {
+            setCampaign(data);
+            setLoading(false);
+            return;
+          }
+        }
+
+        throw new Error("Không tìm thấy chiến dịch.");
       } catch (error) {
         console.error(error);
         toast.error("Không thể tải thông tin chiến dịch.");

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { operationRequestService } from "@/services/operation-request.service";
 import { ingredientRequestService } from "@/services/ingredient-request.service";
 import { OperationRequest, OperationRequestStats } from "@/types/api/operation-request";
-import { IngredientRequest } from "@/types/api/ingredient-request";
+import { IngredientRequest, IngredientRequestStats } from "@/types/api/ingredient-request";
 import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +57,6 @@ const statusLabels: Record<string, { label: string; color: string; icon: React.E
 };
 
 export default function OperationRequestsPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"operation" | "ingredient">("operation");
 
   // Operation requests state
@@ -74,6 +73,7 @@ export default function OperationRequestsPage() {
 
   // Ingredient requests state
   const [ingredientRequests, setIngredientRequests] = useState<IngredientRequest[]>([]);
+  const [ingredientStats, setIngredientStats] = useState<IngredientRequestStats | null>(null);
   const [ingredientLoading, setIngredientLoading] = useState(true);
   const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
   const [ingredientStatusFilter, setIngredientStatusFilter] = useState<string>("ALL");
@@ -112,14 +112,18 @@ export default function OperationRequestsPage() {
   const fetchIngredientData = async () => {
     setIngredientLoading(true);
     try {
-      const data = await ingredientRequestService.getIngredientRequests({
-        filter: {
-          status: ingredientStatusFilter === "ALL" ? null : (ingredientStatusFilter as "PENDING" | "APPROVED" | "REJECTED" | "DISBURSED"),
-        },
-        limit: 100,
-        offset: 0,
-      });
-      setIngredientRequests(data);
+      const [requestsData, statsData] = await Promise.all([
+        ingredientRequestService.getIngredientRequests({
+          filter: {
+            status: ingredientStatusFilter === "ALL" ? null : (ingredientStatusFilter as "PENDING" | "APPROVED" | "REJECTED" | "DISBURSED"),
+          },
+          limit: 100,
+          offset: 0,
+        }),
+        ingredientRequestService.getIngredientRequestStats(),
+      ]);
+      setIngredientRequests(requestsData);
+      setIngredientStats(statsData);
     } catch (error) {
       console.error("Error fetching ingredient data:", error);
     } finally {
@@ -305,6 +309,58 @@ export default function OperationRequestsPage() {
         </div>
       )}
 
+      {activeTab === "ingredient" && ingredientStats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg border p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Tổng yêu cầu</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {ingredientStats.totalRequests}
+                </p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-blue-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Chờ duyệt</p>
+                <p className="text-2xl font-bold text-yellow-600 mt-1">
+                  {ingredientStats.pendingCount}
+                </p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Đã duyệt</p>
+                <p className="text-2xl font-bold text-green-600 mt-1">
+                  {ingredientStats.approvedCount}
+                </p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Từ chối</p>
+                <p className="text-2xl font-bold text-red-600 mt-1">
+                  {ingredientStats.rejectedCount}
+                </p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-600" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-col md:flex-row gap-4">
@@ -375,19 +431,17 @@ export default function OperationRequestsPage() {
                             Loại: {expenseTypeLabels[request.expenseType]}
                           </Badge>
                           {request.campaignPhase?.campaign && (
-                            <button
-                              onClick={() => {
-                                const slug = createCampaignSlug(
-                                  request.campaignPhase?.campaign?.title || "",
-                                  request.campaignPhase?.campaign?.id || ""
-                                );
-                                router.push(`/admin/campaigns/${slug}`);
-                              }}
+                            <Link
+                              href={`/admin/campaigns/${createCampaignSlug(
+                                request.campaignPhase?.campaign?.title || "",
+                                request.campaignPhase?.campaign?.id || ""
+                              )}`}
+                              target="_blank"
                               className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium"
                             >
                               • {request.campaignPhase.campaign.title}
                               <ExternalLink className="h-3 w-3" />
-                            </button>
+                            </Link>
                           )}
                         </div>
                       </div>
@@ -520,6 +574,22 @@ export default function OperationRequestsPage() {
                           <Badge variant="outline" className="text-xs">
                             {request.kitchenStaff?.full_name}
                           </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            Loại: Nguyên liệu
+                          </Badge>
+                          {request.campaignPhase?.campaign && (
+                            <Link
+                              href={`/admin/campaigns/${createCampaignSlug(
+                                request.campaignPhase?.campaign?.title || "",
+                                request.campaignPhase?.campaign?.id || ""
+                              )}`}
+                              target="_blank"
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium"
+                            >
+                              • {request.campaignPhase.campaign.title}
+                              <ExternalLink className="h-3 w-3" />
+                            </Link>
+                          )}
                         </div>
                       </div>
                       <Badge className={`${status.color} border-0 gap-1`}>

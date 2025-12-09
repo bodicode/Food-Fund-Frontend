@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ingredientRequestService } from "@/services/ingredient-request.service";
 import { IngredientRequest, IngredientRequestStatus } from "@/types/api/ingredient-request";
 import { formatCurrency } from "@/lib/utils/currency-utils";
@@ -77,7 +77,6 @@ export function AdminIngredientRequestDetailDialog({
     requestId,
     onUpdated,
 }: AdminIngredientRequestDetailDialogProps) {
-    const router = useRouter();
     const [request, setRequest] = useState<IngredientRequest | null>(null);
     const [loading, setLoading] = useState(true);
     const [adminNote, setAdminNote] = useState("");
@@ -201,22 +200,21 @@ export function AdminIngredientRequestDetailDialog({
                                             <ShoppingCart className="w-5 h-5 text-[#ad4e28] dark:text-orange-500 mt-0.5" />
                                             <div className="flex-1">
                                                 <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Chiến dịch</div>
-                                                <button
-                                                    onClick={() => {
-                                                        if (request.campaignPhase?.campaign?.title && request.campaignPhase?.campaign?.id) {
-                                                            const slug = createCampaignSlug(
-                                                                request.campaignPhase.campaign.title,
-                                                                request.campaignPhase.campaign.id
-                                                            );
-                                                            router.push(`/admin/campaigns/${slug}`);
-                                                            onClose();
-                                                        }
-                                                    }}
+                                                <Link
+                                                    href={
+                                                        request.campaignPhase?.campaign?.title && request.campaignPhase?.campaign?.id
+                                                            ? `/admin/campaigns/${createCampaignSlug(
+                                                                request.campaignPhase.campaign.title || "",
+                                                                request.campaignPhase.campaign.id || ""
+                                                            )}`
+                                                            : "#"
+                                                    }
+                                                    target="_blank"
                                                     className="font-bold text-[#ad4e28] dark:text-orange-500 mt-1 text-lg hover:underline flex items-center gap-2 group"
                                                 >
                                                     {request.campaignPhase?.campaign?.title}
                                                     <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </button>
+                                                </Link>
                                             </div>
                                         </div>
                                     )}
