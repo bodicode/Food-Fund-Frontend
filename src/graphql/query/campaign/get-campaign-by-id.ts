@@ -53,6 +53,17 @@ export const GET_CAMPAIGN_BY_ID = gql`
         cookingFundsAmount
         deliveryFundsAmount
         status
+        plannedIngredients {
+          id
+          name
+          quantity
+          unit
+        }
+        plannedMeals {
+          id
+          name
+          quantity
+        }
       }
       reason
     }

@@ -24,6 +24,8 @@ import {
   GoalIcon,
   Info,
   Share2,
+  Utensils,
+  Leaf,
 } from "lucide-react";
 
 import { ProgressBar } from "@/components/campaign/progress-bar";
@@ -41,6 +43,7 @@ import { MealBatchList } from "@/components/campaign/meal-batch-list";
 import { DisbursementList } from "@/components/campaign/disbursement-list";
 
 import { ShareDialog } from "@/components/campaign/share-dialog";
+import { CampaignPlanSummary } from "@/components/campaign/campaign-plan-summary";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -429,6 +432,12 @@ export default function CampaignDetailPage() {
                 />
               </div>
             )}
+
+            {/* Campaign Plan Summary */}
+            {campaign.phases && campaign.phases.length > 0 && (
+              <CampaignPlanSummary phases={campaign.phases} />
+            )}
+
           </div>
 
           <aside className="space-y-6 sticky top-28 h-fit self-start">
@@ -494,11 +503,51 @@ export default function CampaignDetailPage() {
                       label: `${phase.phaseName} - Mua nguyên liệu`,
                       date: formatDateTime(phase.ingredientPurchaseDate),
                       status: statusFor(phase.ingredientPurchaseDate),
+                      content: (
+                        <div className="mt-2 space-y-2">
+                          {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
+                            <div className="bg-green-50 p-2 rounded border border-green-100">
+                              <div className="flex items-center gap-1 text-xs font-medium text-green-700 mb-1">
+                                <Leaf className="w-3 h-3" />
+                                <span>Nguyên liệu dự kiến</span>
+                              </div>
+                              <ul className="space-y-1">
+                                {phase.plannedIngredients.map((ing, idx) => (
+                                  <li key={idx} className="text-xs text-gray-700 flex justify-between">
+                                    <span className="truncate max-w-[120px]" title={ing.name}>{ing.name}</span>
+                                    <span className="font-medium whitespace-nowrap">{ing.quantity} {ing.unit}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )
                     },
                     {
                       label: `${phase.phaseName} - Nấu ăn`,
                       date: formatDateTime(phase.cookingDate),
                       status: statusFor(phase.cookingDate),
+                      content: (
+                        <div className="mt-2 space-y-2">
+                          {phase.plannedMeals && phase.plannedMeals.length > 0 && (
+                            <div className="bg-orange-50 p-2 rounded border border-orange-100">
+                              <div className="flex items-center gap-1 text-xs font-medium text-orange-700 mb-1">
+                                <Utensils className="w-3 h-3" />
+                                <span>Món ăn dự kiến</span>
+                              </div>
+                              <ul className="space-y-1">
+                                {phase.plannedMeals.map((meal, idx) => (
+                                  <li key={idx} className="text-xs text-gray-700 flex justify-between">
+                                    <span>{meal.name}</span>
+                                    <span className="font-medium">x{meal.quantity}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )
                     },
                     {
                       label: `${phase.phaseName} - Giao hàng`,

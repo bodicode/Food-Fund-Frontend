@@ -24,6 +24,16 @@ export const CREATE_CAMPAIGN = gql`
         cookingBudgetPercentage
         deliveryBudgetPercentage
         status
+        plannedMeals {
+          name
+          quantity
+        }
+        plannedIngredients {
+          id
+          name
+          quantity
+          unit
+        }
       }
       category {
         id

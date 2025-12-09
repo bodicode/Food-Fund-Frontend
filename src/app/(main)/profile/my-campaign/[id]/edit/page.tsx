@@ -61,12 +61,12 @@ export default function EditCampaignPage() {
         // Get actual campaign ID from sessionStorage
         const slug = id as string;
         const campaignId = getCampaignIdFromSlug(slug);
-        
+
         if (!campaignId) {
           setLoading(false);
           return;
         }
-        
+
         const [campaignData, categoryData] = await Promise.all([
           campaignService.getCampaignById(campaignId),
           categoryService.getCategories(),
@@ -95,6 +95,8 @@ export default function EditCampaignPage() {
                   ingredientBudgetPercentage: phase?.ingredientBudgetPercentage || "",
                   cookingBudgetPercentage: phase?.cookingBudgetPercentage || "",
                   deliveryBudgetPercentage: phase?.deliveryBudgetPercentage || "",
+                  plannedMeals: phase?.plannedMeals || [],
+                  plannedIngredients: phase?.plannedIngredients || [],
                 }))
               );
             } else {
@@ -123,6 +125,8 @@ export default function EditCampaignPage() {
                   ingredientBudgetPercentage: "0",
                   cookingBudgetPercentage: "0",
                   deliveryBudgetPercentage: "0",
+                  plannedMeals: [],
+                  plannedIngredients: [],
                 },
               ]);
             }
@@ -151,6 +155,8 @@ export default function EditCampaignPage() {
                 ingredientBudgetPercentage: "0",
                 cookingBudgetPercentage: "0",
                 deliveryBudgetPercentage: "0",
+                plannedMeals: [],
+                plannedIngredients: [],
               },
             ]);
           }
@@ -235,6 +241,8 @@ export default function EditCampaignPage() {
         ingredientBudgetPercentage: "0",
         cookingBudgetPercentage: "0",
         deliveryBudgetPercentage: "0",
+        plannedMeals: [],
+        plannedIngredients: [],
       },
     ]);
   };
@@ -329,7 +337,7 @@ export default function EditCampaignPage() {
         if (!isoString) return "";
         const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
         if (!match) return isoString;
-        
+
         const date = new Date(
           parseInt(match[1]),
           parseInt(match[2]) - 1,
@@ -355,7 +363,7 @@ export default function EditCampaignPage() {
       }));
 
       await phaseService.syncCampaignPhases(campaignId, syncPhases);
-      
+
     } catch (error) {
       console.error("❌ Error syncing phases:", error);
       throw error;
@@ -409,7 +417,7 @@ export default function EditCampaignPage() {
     }
 
     const errors: string[] = [];
-    
+
     // Parse ISO strings without timezone conversion
     const parseLocalDateTime = (isoString: string): Date => {
       const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
@@ -428,7 +436,7 @@ export default function EditCampaignPage() {
     const fundStartDate = parseLocalDateTime(fundStart);
     const fundEndDate = parseLocalDateTime(fundEnd);
     const now = new Date();
-    
+
     // Set now to start of today for comparison
     now.setHours(0, 0, 0, 0);
     const fundStartDateOnly = new Date(fundStartDate);
@@ -929,16 +937,15 @@ export default function EditCampaignPage() {
                       </div>
                     </div>
                     <p
-                      className={`text-xs mt-2 ${
-                        Math.abs(
-                          parsePercent(phase.ingredientBudgetPercentage || "0") +
-                          parsePercent(phase.cookingBudgetPercentage || "0") +
-                          parsePercent(phase.deliveryBudgetPercentage || "0") -
-                          100
-                        ) <= 0.5
+                      className={`text-xs mt-2 ${Math.abs(
+                        parsePercent(phase.ingredientBudgetPercentage || "0") +
+                        parsePercent(phase.cookingBudgetPercentage || "0") +
+                        parsePercent(phase.deliveryBudgetPercentage || "0") -
+                        100
+                      ) <= 0.5
                           ? "text-green-600"
                           : "text-red-600"
-                      }`}
+                        }`}
                     >
                       Tổng giai đoạn này: {formatPercent(
                         parsePercent(phase.ingredientBudgetPercentage || "0") +
@@ -978,17 +985,17 @@ export default function EditCampaignPage() {
                       %
                     </span>
                     <span className={`text-sm ${Math.abs(
-                        phases.reduce((sum, phase) => {
-                          return (
-                            sum +
-                            parsePercent(phase.ingredientBudgetPercentage || "0") +
-                            parsePercent(phase.cookingBudgetPercentage || "0") +
-                            parsePercent(phase.deliveryBudgetPercentage || "0")
-                          );
-                        }, 0) - 100
-                      ) <= 0.5
-                        ? "text-green-700"
-                        : "text-red-700"}`}
+                      phases.reduce((sum, phase) => {
+                        return (
+                          sum +
+                          parsePercent(phase.ingredientBudgetPercentage || "0") +
+                          parsePercent(phase.cookingBudgetPercentage || "0") +
+                          parsePercent(phase.deliveryBudgetPercentage || "0")
+                        );
+                      }, 0) - 100
+                    ) <= 0.5
+                      ? "text-green-700"
+                      : "text-red-700"}`}
                     >
                       {Math.abs(
                         phases.reduce((sum, phase) => {

@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { buildCoverUrl } from "@/lib/build-image";
-import { BookOpen, CalendarDays, Goal, MapPin, Tag } from "lucide-react";
+import { BookOpen, CalendarDays, Goal, MapPin, Tag, Utensils, Leaf } from "lucide-react";
 import { CreateCampaignInput } from "@/types/api/campaign";
 import { TermsConditionsDialog } from "@/components/campaign/terms-conditions-dialog";
 import { translateError } from "@/lib/translator";
@@ -181,7 +181,7 @@ export default function CreateCampaignStepPreview() {
         if (!isoString) return "";
         const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
         if (!match) return isoString;
-        
+
         const date = new Date(
           parseInt(match[1]),
           parseInt(match[2]) - 1,
@@ -203,6 +203,8 @@ export default function CreateCampaignStepPreview() {
         ingredientBudgetPercentage: p.ingredientBudgetPercentage,
         cookingBudgetPercentage: p.cookingBudgetPercentage,
         deliveryBudgetPercentage: p.deliveryBudgetPercentage,
+        plannedMeals: p.plannedMeals,
+        plannedIngredients: p.plannedIngredients,
       }));
 
       const input: CreateCampaignInput = {
@@ -390,7 +392,7 @@ export default function CreateCampaignStepPreview() {
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Phase Budget */}
                     <div className="border-t pt-3 mt-3">
                       <div className="flex items-center justify-between mb-2">
@@ -398,9 +400,8 @@ export default function CreateCampaignStepPreview() {
                           Phân bổ ngân sách giai đoạn
                         </span>
                         <span
-                          className={`text-xs ${
-                            phaseBudgetValid ? "text-gray-600" : "text-red-600"
-                          }`}
+                          className={`text-xs ${phaseBudgetValid ? "text-gray-600" : "text-red-600"
+                            }`}
                         >
                           Tổng: {phaseBudgetSum.toFixed(2)}%
                         </span>
@@ -426,6 +427,48 @@ export default function CreateCampaignStepPreview() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Planned Meals */}
+                    {phase.plannedMeals && phase.plannedMeals.length > 0 && (
+                      <div className="border-t pt-3 mt-3">
+                        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                          <Utensils className="w-4 h-4 text-orange-500" />
+                          <span>Món ăn dự kiến</span>
+                        </div>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {phase.plannedMeals.map((meal, idx) => (
+                            <li key={idx} className="bg-white px-3 py-2 rounded border border-gray-100 text-sm flex justify-between items-center">
+                              <span className="font-medium text-gray-800">{meal.name}</span>
+                              <span className="text-gray-500 bg-gray-50 px-2 py-0.5 rounded text-xs border">
+                                x{meal.quantity}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Planned Ingredients */}
+                    {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
+                      <div className="border-t pt-3 mt-3">
+                        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                          <Leaf className="w-4 h-4 text-green-500" />
+                          <span>Nguyên liệu dự kiến</span>
+                        </div>
+                        <div className="bg-white rounded border p-3">
+                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            {phase.plannedIngredients.map((ing, idx) => (
+                              <li key={idx} className="flex items-center justify-between border-b last:border-0 border-gray-100 border-dashed pb-1">
+                                <span className="text-gray-600 truncate mr-2" title={ing.name}>{ing.name}</span>
+                                <span className="font-medium text-gray-900 whitespace-nowrap">
+                                  {ing.quantity} {ing.unit}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -541,9 +584,8 @@ export default function CreateCampaignStepPreview() {
           <Button
             onClick={handleCreateCampaign}
             disabled={loading}
-            className={`h-12 px-6 w-full sm:w-auto text-base font-semibold flex items-center justify-center gap-2 ${
-              loading ? "bg-gray-300 text-gray-500" : "btn-color text-white"
-            }`}
+            className={`h-12 px-6 w-full sm:w-auto text-base font-semibold flex items-center justify-center gap-2 ${loading ? "bg-gray-300 text-gray-500" : "btn-color text-white"
+              }`}
           >
             {loading && <Loader className="animate-spin w-5 h-5" />}
             {loading ? "Đang tạo..." : "Tạo chiến dịch"}
