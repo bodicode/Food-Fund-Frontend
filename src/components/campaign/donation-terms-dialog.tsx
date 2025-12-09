@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { systemConfigService } from "@/services/system-config.service";
 
 interface DonationTermsDialogProps {
     isOpen: boolean;
@@ -22,13 +24,25 @@ export function DonationTermsDialog({
     onClose,
     onConfirm,
 }: DonationTermsDialogProps) {
+    const [minFundingPercentage, setMinFundingPercentage] = useState<string>("50");
+
+    useEffect(() => {
+        if (isOpen) {
+            systemConfigService.getSystemConfig("MIN_FUNDING_PERCENTAGE").then((config) => {
+                if (config) {
+                    setMinFundingPercentage(config.value);
+                }
+            });
+        }
+    }, [isOpen]);
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl text-color">
                         <ShieldCheck className="w-6 h-6 text-[#E77731]" />
-                        Quy định về hoàn tiền và sử dụng quỹ
+                        Quy định về sử dụng quỹ
                     </DialogTitle>
                     <DialogDescription>
                         Vui lòng đọc kỹ các quy định dưới đây trước khi tiến hành ủng hộ.
@@ -42,7 +56,7 @@ export function DonationTermsDialog({
                             Trường hợp chiến dịch bị hủy
                         </h4>
                         <p className="text-sm text-gray-700 leading-relaxed">
-                            Nếu chiến dịch bị hủy do phát hiện gian lận hoặc vi phạm chính sách của nền tảng (do Admin hủy), toàn bộ số tiền bạn đã ủng hộ sẽ được <strong>hoàn trả lại 100%</strong>.
+                            Nếu chiến dịch bị hủy do phát hiện gian lận hoặc vi phạm chính sách của nền tảng (do Hệ thống hủy), chiến dịch sẽ được chuyển sang cho tổ chức khác <strong>và số tiền ủng hộ vẫn sẽ ở trong chiến dịch đó</strong>.
                         </p>
                     </div>
 
@@ -52,7 +66,7 @@ export function DonationTermsDialog({
                             Trường hợp không đạt mục tiêu
                         </h4>
                         <p className="text-sm text-gray-700 leading-relaxed">
-                            Nếu chiến dịch kết thúc mà <strong>không đạt được 50%</strong> mục tiêu gây quỹ ban đầu, số tiền bạn đã ủng hộ sẽ được chuyển vào <strong>Quỹ chung của hệ thống</strong> để hỗ trợ các chiến dịch khó khăn khác (Sung công quỹ).
+                            Nếu chiến dịch kết thúc mà <strong>không đạt được <span className="text-red-600 font-bold text-lg">{minFundingPercentage}%</span></strong> mục tiêu gây quỹ ban đầu, số tiền bạn đã ủng hộ sẽ được chuyển vào <strong>Quỹ chung của hệ thống</strong> để hỗ trợ các chiến dịch khó khăn khác (Sung công quỹ).
                         </p>
                     </div>
                 </div>
