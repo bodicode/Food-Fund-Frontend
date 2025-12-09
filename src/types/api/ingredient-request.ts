@@ -7,14 +7,17 @@ export interface IngredientRequestItem {
   estimatedUnitPrice: number;
   estimatedTotalPrice: number;
   supplier?: string;
+  plannedIngredientId?: string;
 }
 
 export interface CreateIngredientRequestItemInput {
   ingredientName: string;
   quantity: string;
+  unit: string;
   estimatedUnitPrice: number;
   estimatedTotalPrice: number;
   supplier?: string;
+  plannedIngredientId?: string;
 }
 
 export interface CreateIngredientRequestInput {

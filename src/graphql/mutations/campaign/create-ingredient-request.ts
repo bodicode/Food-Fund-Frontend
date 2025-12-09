@@ -16,6 +16,7 @@ export const CREATE_INGREDIENT_REQUEST = gql`
         estimatedUnitPrice
         estimatedTotalPrice
         supplier
+        plannedIngredientId
       }
     }
   }
