@@ -401,7 +401,7 @@ export default function AdminDashboard() {
                   {loading
                     ? "..."
                     : platformStats
-                      ? `${Math.round(platformStats.performance.successRate * 100)}%`
+                      ? `${Number(platformStats.performance.successRate).toFixed(2)}%`
                       : "--"}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">

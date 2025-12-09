@@ -8,7 +8,7 @@ export const GET_INGREDIENT_REQUEST = gql`
       status
       changedStatusAt
       created_at
-      adminNote
+
       kitchenStaff {
         id
         full_name
