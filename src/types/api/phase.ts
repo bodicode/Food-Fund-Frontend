@@ -1,6 +1,18 @@
 // ==============================
 // PHASE TYPES
 // ==============================
+export interface PlannedMeal {
+  name: string;
+  quantity: number;
+}
+
+export interface PlannedIngredient {
+  id?: string;
+  name: string;
+  quantity: string;
+  unit: string;
+}
+
 export interface CampaignPhase {
   id: string;
   phaseName: string;
@@ -15,6 +27,8 @@ export interface CampaignPhase {
   cookingFundsAmount?: string | null;
   deliveryFundsAmount?: string | null;
   status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  plannedMeals?: PlannedMeal[];
+  plannedIngredients?: PlannedIngredient[];
 }
 
 export interface CreatePhaseInput {
@@ -26,6 +40,8 @@ export interface CreatePhaseInput {
   ingredientBudgetPercentage: string;
   cookingBudgetPercentage: string;
   deliveryBudgetPercentage: string;
+  plannedMeals: PlannedMeal[];
+  plannedIngredients: PlannedIngredient[];
 }
 
 export interface UpdatePhaseInput {

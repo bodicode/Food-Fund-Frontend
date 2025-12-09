@@ -20,6 +20,8 @@ import {
   ArrowLeft,
   TrendingUp,
   Clock,
+  Utensils,
+  Leaf,
 } from "lucide-react";
 import { statusConfig } from "@/lib/translator";
 import { formatDate } from "@/lib/utils/date-utils";
@@ -498,6 +500,54 @@ export default function AdminCampaignDetailPage() {
                                   </div>
                                 )}
                               </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Planned Items */}
+                        {/* Planned Items */}
+                        <div className="mt-4 space-y-3">
+                          {phase.plannedMeals && phase.plannedMeals.length > 0 && (
+                            <div className="bg-orange-50/80 border border-orange-100 rounded-lg p-4">
+                              <h5 className="text-sm font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                                <div className="p-1 bg-white rounded-full shadow-sm">
+                                  <Utensils className="w-3.5 h-3.5" />
+                                </div>
+                                Món ăn dự kiến
+                              </h5>
+                              <ul className="space-y-2">
+                                {phase.plannedMeals.map((meal, idx) => (
+                                  <li key={idx} className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-700 font-medium">{meal.name}</span>
+                                    <span className="text-xs bg-white text-orange-700 px-2 py-0.5 rounded-full border border-orange-200 font-semibold shadow-sm">
+                                      x{meal.quantity}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
+                            <div className="bg-green-50/80 border border-green-100 rounded-lg p-4">
+                              <h5 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
+                                <div className="p-1 bg-white rounded-full shadow-sm">
+                                  <Leaf className="w-3.5 h-3.5" />
+                                </div>
+                                Nguyên liệu dự kiến
+                              </h5>
+                              <ul className="space-y-2">
+                                {phase.plannedIngredients.map((ing, idx) => (
+                                  <li key={idx} className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-700 font-medium truncate mr-2" title={ing.name}>
+                                      {ing.name}
+                                    </span>
+                                    <span className="text-xs bg-white text-green-700 px-2 py-0.5 rounded-full border border-green-200 font-semibold shadow-sm whitespace-nowrap">
+                                      {ing.quantity} {ing.unit}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           )}
                         </div>

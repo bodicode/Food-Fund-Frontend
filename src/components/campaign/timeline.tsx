@@ -15,6 +15,7 @@ interface TimelineItem {
   status?: "completed" | "current" | "upcoming";
   startDate?: string; // For items that have a duration (like fundraising period)
   endDate?: string;
+  content?: React.ReactNode;
 }
 
 interface TimelineProps {
@@ -113,6 +114,11 @@ export function Timeline({ items }: TimelineProps) {
                   <CalendarDays className="w-4 h-4" />
                   <span>{item.date}</span>
                 </div>
+                {item.content && (
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    {item.content}
+                  </div>
+                )}
               </div>
             </div>
           </div>

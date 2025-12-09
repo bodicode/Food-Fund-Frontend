@@ -26,6 +26,8 @@ const initialState: CampaignFormState = {
       ingredientBudgetPercentage: "",
       cookingBudgetPercentage: "",
       deliveryBudgetPercentage: "",
+      plannedMeals: [],
+      plannedIngredients: [],
     },
   ],
 };

@@ -16,8 +16,8 @@ import {
   normalizePercentOnBlur,
   parsePercent,
 } from "@/lib/utils/percent-utils";
-import { CreatePhaseInput } from "@/types/api/phase";
-import { Plus, MapPin, Trash2 } from "lucide-react";
+import { CreatePhaseInput, PlannedMeal, PlannedIngredient } from "@/types/api/phase";
+import { Plus, MapPin, Trash2, Utensils, Leaf, X } from "lucide-react";
 import LocationPicker from "@/components/shared/location-picker";
 
 
@@ -50,6 +50,8 @@ export default function CreateCampaignStepGoal() {
         ingredientBudgetPercentage: p.ingredientBudgetPercentage || "",
         cookingBudgetPercentage: p.cookingBudgetPercentage || "",
         deliveryBudgetPercentage: p.deliveryBudgetPercentage || "",
+        plannedMeals: (p.plannedMeals || []).map(m => ({ ...m, name: m.name || "", quantity: m.quantity || 0 })),
+        plannedIngredients: (p.plannedIngredients || []).map(i => ({ ...i, name: i.name || "", quantity: i.quantity || "", unit: i.unit || "" })),
       }))
       : [
         {
@@ -61,6 +63,8 @@ export default function CreateCampaignStepGoal() {
           ingredientBudgetPercentage: "",
           cookingBudgetPercentage: "",
           deliveryBudgetPercentage: "",
+          plannedMeals: [],
+          plannedIngredients: [],
         },
       ]
   );
@@ -87,6 +91,8 @@ export default function CreateCampaignStepGoal() {
         ingredientBudgetPercentage: "",
         cookingBudgetPercentage: "",
         deliveryBudgetPercentage: "",
+        plannedMeals: [],
+        plannedIngredients: [],
       },
     ]);
   };
@@ -95,6 +101,86 @@ export default function CreateCampaignStepGoal() {
     if (phases.length > 1) {
       setPhases(phases.filter((_, i) => i !== index));
     }
+  };
+
+
+
+
+
+  // ===== Meals & Ingredients Handlers =====
+  const addMeal = (phaseIndex: number) => {
+    const newPhases = [...phases];
+    newPhases[phaseIndex] = {
+      ...newPhases[phaseIndex],
+      plannedMeals: [
+        ...(newPhases[phaseIndex].plannedMeals || []),
+        { name: "", quantity: 0 },
+      ],
+    };
+    setPhases(newPhases);
+  };
+
+  const removeMeal = (phaseIndex: number, mealIndex: number) => {
+    const newPhases = [...phases];
+    const meals = [...(newPhases[phaseIndex].plannedMeals || [])];
+    meals.splice(mealIndex, 1);
+    newPhases[phaseIndex] = { ...newPhases[phaseIndex], plannedMeals: meals };
+    setPhases(newPhases);
+  };
+
+  const updateMeal = (
+    phaseIndex: number,
+    mealIndex: number,
+    field: keyof PlannedMeal,
+    value: string | number
+  ) => {
+    const newPhases = [...phases];
+    const meals = [...(newPhases[phaseIndex].plannedMeals || [])];
+    meals[mealIndex] = { ...meals[mealIndex], [field]: value };
+    newPhases[phaseIndex] = { ...newPhases[phaseIndex], plannedMeals: meals };
+    setPhases(newPhases);
+  };
+
+  const addIngredient = (phaseIndex: number) => {
+    const newPhases = [...phases];
+    newPhases[phaseIndex] = {
+      ...newPhases[phaseIndex],
+      plannedIngredients: [
+        ...(newPhases[phaseIndex].plannedIngredients || []),
+        { name: "", quantity: "", unit: "" },
+      ],
+    };
+    setPhases(newPhases);
+  };
+
+  const removeIngredient = (phaseIndex: number, ingredientIndex: number) => {
+    const newPhases = [...phases];
+    const ingredients = [...(newPhases[phaseIndex].plannedIngredients || [])];
+    ingredients.splice(ingredientIndex, 1);
+    newPhases[phaseIndex] = {
+      ...newPhases[phaseIndex],
+      plannedIngredients: ingredients,
+    };
+    setPhases(newPhases);
+  };
+
+  const updateIngredient = (
+    phaseIndex: number,
+    ingredientIndex: number,
+    field: keyof PlannedIngredient,
+    value: string
+  ) => {
+    const newPhases = [...phases];
+    const ingredients = [...(newPhases[phaseIndex].plannedIngredients || [])];
+    ingredients[ingredientIndex] = {
+      ...ingredients[ingredientIndex],
+      [field]: value,
+    };
+    newPhases[phaseIndex] = {
+      ...newPhases[phaseIndex],
+      plannedIngredients: ingredients,
+    };
+    setPhases(newPhases);
   };
 
   // ====== Derived validations  ======
@@ -118,7 +204,13 @@ export default function CreateCampaignStepGoal() {
         phase.deliveryDate?.trim() &&
         (phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "") &&
         (phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "") &&
-        (phase.deliveryBudgetPercentage !== undefined && phase.deliveryBudgetPercentage !== "")
+        (phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "") &&
+        (phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "") &&
+        (phase.deliveryBudgetPercentage !== undefined && phase.deliveryBudgetPercentage !== "") &&
+        phase.plannedMeals?.length > 0 &&
+        phase.plannedMeals.every((m) => m.name.trim() && m.quantity > 0) &&
+        phase.plannedIngredients?.length > 0 &&
+        phase.plannedIngredients.every((i) => i.name.trim() && i.quantity.trim() && i.unit.trim())
       );
     });
 
@@ -573,6 +665,119 @@ export default function CreateCampaignStepGoal() {
                           />
                         </div>
                       </div>
+
+                      {/* Planned Meals */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                            <Utensils className="w-4 h-4" />
+                            Danh sách món ăn dự kiến
+                          </label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => addMeal(index)}
+                            className="text-blue-600 hover:text-blue-700 h-8"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Thêm món
+                          </Button>
+                        </div>
+
+                        {(!phase.plannedMeals || phase.plannedMeals.length === 0) && (
+                          <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded border border-dashed text-center">
+                            Chưa có món ăn nào. Vui lòng thêm ít nhất 1 món.
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          {phase.plannedMeals?.map((meal, mealIdx) => (
+                            <div key={mealIdx} className="flex gap-2 items-start">
+                              <Input
+                                placeholder="Tên món ăn"
+                                value={meal.name}
+                                onChange={(e) => updateMeal(index, mealIdx, "name", e.target.value)}
+                                className="flex-1"
+                              />
+                              <Input
+                                type="number"
+                                placeholder="SL"
+                                value={meal.quantity || ""}
+                                onChange={(e) => updateMeal(index, mealIdx, "quantity", parseInt(e.target.value) || 0)}
+                                className="w-20"
+                                min={1}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeMeal(index, mealIdx)}
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Planned Ingredients */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                            <Leaf className="w-4 h-4" />
+                            Danh sách nguyên liệu dự kiến
+                          </label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => addIngredient(index)}
+                            className="text-blue-600 hover:text-blue-700 h-8"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Thêm nguyên liệu
+                          </Button>
+                        </div>
+
+                        {(!phase.plannedIngredients || phase.plannedIngredients.length === 0) && (
+                          <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded border border-dashed text-center">
+                            Chưa có nguyên liệu nào. Vui lòng thêm ít nhất 1 nguyên liệu.
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          {phase.plannedIngredients?.map((ing, ingIdx) => (
+                            <div key={ingIdx} className="grid grid-cols-[2fr_1fr_80px_auto] gap-2 items-start">
+                              <Input
+                                placeholder="Tên nguyên liệu"
+                                value={ing.name || ""}
+                                onChange={(e) => updateIngredient(index, ingIdx, "name", e.target.value)}
+                              />
+                              <Input
+                                placeholder="Số lượng"
+                                value={ing.quantity || ""}
+                                onChange={(e) => updateIngredient(index, ingIdx, "quantity", e.target.value)}
+                              />
+                              <Input
+                                placeholder="Đơn vị"
+                                value={ing.unit || ""}
+                                onChange={(e) => updateIngredient(index, ingIdx, "unit", e.target.value)}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeIngredient(index, ingIdx)}
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -599,17 +804,17 @@ export default function CreateCampaignStepGoal() {
                       %
                     </span>
                     <span className={`text-sm ${Math.abs(
-                        phases.reduce((sum, phase) => {
-                          return (
-                            sum +
-                            parsePercent(phase.ingredientBudgetPercentage || "0") +
-                            parsePercent(phase.cookingBudgetPercentage || "0") +
-                            parsePercent(phase.deliveryBudgetPercentage || "0")
-                          );
-                        }, 0) - 100
-                      ) <= 0.5
-                        ? "text-green-700"
-                        : "text-red-700"}`}
+                      phases.reduce((sum, phase) => {
+                        return (
+                          sum +
+                          parsePercent(phase.ingredientBudgetPercentage || "0") +
+                          parsePercent(phase.cookingBudgetPercentage || "0") +
+                          parsePercent(phase.deliveryBudgetPercentage || "0")
+                        );
+                      }, 0) - 100
+                    ) <= 0.5
+                      ? "text-green-700"
+                      : "text-red-700"}`}
                     >
                       {Math.abs(
                         phases.reduce((sum, phase) => {
@@ -688,8 +893,8 @@ export default function CreateCampaignStepGoal() {
 
               <Button
                 className={`h-12 px-8 text-base font-semibold w-full sm:w-auto ${!canContinue
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "btn-color text-white"
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "btn-color text-white"
                   }`}
                 disabled={!canContinue}
                 onClick={handleNextStep}

@@ -3,7 +3,7 @@ import { z } from "zod";
 // Campaign status enum
 const campaignStatusSchema = z.enum([
   "PENDING",
-  "APPROVED", 
+  "APPROVED",
   "ACTIVE",
   "REJECTED",
   "COMPLETED",
@@ -49,25 +49,37 @@ export const createCampaignSchema = z.object({
     .min(5, "Địa điểm phải có ít nhất 5 ký tự")
     .max(200, "Địa điểm không được quá 200 ký tự"),
   targetAmount: amountSchema,
-  
+
+  // Budget percentages
   // Budget percentages
   ingredientBudgetPercentage: percentageSchema,
   cookingBudgetPercentage: percentageSchema,
   deliveryBudgetPercentage: percentageSchema,
-  
+
+  plannedMeals: z.array(z.object({
+    name: z.string().min(1, "Tên món ăn không được để trống"),
+    quantity: z.number().min(1, "Số lượng phải lớn hơn 0"),
+  })).min(1, "Cần ít nhất 1 món ăn"),
+
+  plannedIngredients: z.array(z.object({
+    name: z.string().min(1, "Tên nguyên liệu không được để trống"),
+    quantity: z.string().min(1, "Số lượng không được để trống"), // using string for decimal
+    unit: z.string().min(1, "Đơn vị tính không được để trống"),
+  })).min(1, "Cần ít nhất 1 nguyên liệu"),
+
   // Dates
   fundraisingStartDate: dateStringSchema,
   fundraisingEndDate: dateStringSchema,
   ingredientPurchaseDate: dateStringSchema,
   cookingDate: dateStringSchema,
   deliveryDate: dateStringSchema,
-  
+
   categoryId: z.string().uuid("ID danh mục không hợp lệ"),
 }).refine((data) => {
   // Check if percentages sum to 100
-  const total = parseFloat(data.ingredientBudgetPercentage) + 
-                parseFloat(data.cookingBudgetPercentage) + 
-                parseFloat(data.deliveryBudgetPercentage);
+  const total = parseFloat(data.ingredientBudgetPercentage) +
+    parseFloat(data.cookingBudgetPercentage) +
+    parseFloat(data.deliveryBudgetPercentage);
   return Math.abs(total - 100) < 0.01;
 }, {
   message: "Tổng phần trăm phân bổ phải bằng 100%",
@@ -86,10 +98,10 @@ export const createCampaignSchema = z.object({
   const ingredientPurchase = new Date(data.ingredientPurchaseDate);
   const cooking = new Date(data.cookingDate);
   const delivery = new Date(data.deliveryDate);
-  
-  return fundraisingEnd <= ingredientPurchase && 
-         ingredientPurchase <= cooking && 
-         cooking <= delivery;
+
+  return fundraisingEnd <= ingredientPurchase &&
+    ingredientPurchase <= cooking &&
+    cooking <= delivery;
 }, {
   message: "Thứ tự ngày phải hợp lý: Kết thúc gây quỹ → Mua nguyên liệu → Nấu ăn → Giao hàng",
   path: ["deliveryDate"],
@@ -115,14 +127,14 @@ export const updateCampaignSchema = z.object({
     .min(5, "Địa điểm phải có ít nhất 5 ký tự")
     .max(200, "Địa điểm không được quá 200 ký tự")
     .optional(),
-    
+
   // Dates
   fundraisingStartDate: dateStringSchema.optional(),
   fundraisingEndDate: dateStringSchema.optional(),
   ingredientPurchaseDate: dateStringSchema.optional(),
   cookingDate: dateStringSchema.optional(),
   deliveryDate: dateStringSchema.optional(),
-  
+
   // Budget percentages
   ingredientBudgetPercentage: percentageSchema.optional(),
   cookingBudgetPercentage: percentageSchema.optional(),
