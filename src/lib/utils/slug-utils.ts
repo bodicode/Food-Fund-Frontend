@@ -22,6 +22,15 @@ export function titleToSlug(title: string): string {
  * Example: "bua-an-cho-em-123abc" -> "123abc"
  */
 export function extractIdFromSlug(slug: string): string {
+  // Try to find a UUID at the end of the string
+  const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const match = slug.match(uuidRegex);
+
+  if (match) {
+    return match[0];
+  }
+
+  // Fallback for non-UUID IDs (if any) or existing logic
   const parts = slug.split("-");
   return parts[parts.length - 1];
 }
@@ -33,27 +42,31 @@ export function extractIdFromSlug(slug: string): string {
  */
 export function createCampaignSlug(title: string, id: string): string {
   const titleSlug = titleToSlug(title);
-  // Store ID in sessionStorage for later retrieval
+
+  // Store ID in sessionStorage for later retrieval (optimization for local nav)
   if (typeof window !== "undefined") {
     sessionStorage.setItem(`campaign_${titleSlug}`, id);
   }
+
   return titleSlug;
 }
 
 /**
  * Get campaign ID from slug
- * First tries sessionStorage, then returns slug as fallback (for search)
+ * First tries sessionStorage, then extracts from slug string
  */
 export function getCampaignIdFromSlug(slug: string): string | null {
   if (!slug) return null;
 
-  // 1. Check sessionStorage (fastest, most accurate for local navigation)
+  // 1. Check sessionStorage (fastest)
   if (typeof window !== "undefined") {
     const storedId = sessionStorage.getItem(`campaign_${slug}`);
     if (storedId) return storedId;
   }
 
-  // 2. If not in session, return the slug itself.
-  // The caller (page.tsx) will decide whether to treat this as an ID or search by slug.
-  return slug;
+  // 2. Extract from slug string (for direct links/new tabs)
+  // format: title-slug-id
+  return extractIdFromSlug(slug);
 }
+
+

@@ -17,6 +17,10 @@ export const GET_INGREDIENT_REQUESTS = gql`
         phaseName
         cookingDate
         status
+        campaign {
+          id
+          title
+        }
       }
       totalCost
       status

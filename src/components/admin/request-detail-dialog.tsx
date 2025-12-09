@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { operationRequestService } from "@/services/operation-request.service";
 import { ingredientRequestService } from "@/services/ingredient-request.service";
 import { OperationRequest } from "@/types/api/operation-request";
@@ -8,6 +9,7 @@ import { IngredientRequest } from "@/types/api/ingredient-request";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
+import { createCampaignSlug } from "@/lib/utils/slug-utils";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +25,21 @@ import {
   Package,
   Clock,
   FileText,
+  CheckCircle,
+  XCircle,
+  Send,
+  DollarSign,
+  ShoppingCart,
+  ExternalLink,
 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface RequestDetailDialogProps {
   isOpen: boolean;
@@ -31,6 +47,43 @@ interface RequestDetailDialogProps {
   requestId: string;
   requestType: "operation" | "ingredient";
 }
+
+const statusConfig: Record<
+  string,
+  { label: string; color: string; icon: React.ElementType }
+> = {
+  PENDING: {
+    label: "Chờ duyệt",
+    color: "bg-yellow-100 text-yellow-800",
+    icon: Clock,
+  },
+  APPROVED: {
+    label: "Đã duyệt",
+    color: "bg-green-100 text-green-800",
+    icon: CheckCircle,
+  },
+  REJECTED: {
+    label: "Từ chối",
+    color: "bg-red-100 text-red-800",
+    icon: XCircle,
+  },
+  DISBURSED: {
+    label: "Đã giải ngân",
+    color: "bg-blue-100 text-blue-800",
+    icon: Send,
+  },
+  COMPLETED: {
+    label: "Hoàn thành",
+    color: "bg-blue-100 text-blue-800",
+    icon: CheckCircle,
+  },
+};
+
+const expenseTypeLabels = {
+  INGREDIENT: "Nguyên liệu",
+  COOKING: "Nấu ăn",
+  DELIVERY: "Vận chuyển",
+};
 
 export function RequestDetailDialog({
   isOpen,
@@ -87,23 +140,28 @@ export function RequestDetailDialog({
     bank_short_name: string;
   } | undefined;
 
+  const totalCost = requestType === "operation" && operationRequest
+    ? parseFloat(operationRequest.totalCost)
+    : ingredientRequest?.totalCost;
+
+  if (!isOpen) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="!max-w-[90vw] w-[90vw] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
+        className="!min-w-[98vw] !w-[98vw]  h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
         onWheel={(e) => e.stopPropagation()}
       >
-        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
-          <DialogTitle className="text-2xl font-bold text-gray-900">
+        <DialogHeader className="flex-shrink-0 px-8 pt-8 pb-4 border-b">
+          <DialogTitle className="text-xl font-bold">
             Chi tiết yêu cầu {requestType === "operation" ? "giải ngân" : "nguyên liệu"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto p-6">
-
+        <div className="flex-1 min-h-0 overflow-y-auto p-8">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader animate loop className="h-8 w-8 text-color" />
+              <Loader className="w-8 h-8 animate-spin text-[#ad4e28]" />
             </div>
           ) : !request ? (
             <div className="text-center py-12">
@@ -111,62 +169,116 @@ export function RequestDetailDialog({
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Amount & Status */}
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-6 border border-orange-200">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Số tiền yêu cầu</p>
-                    <p className="text-3xl font-bold text-[#E77731]">
-                      {formatCurrency(typeof request.totalCost === 'string' ? parseFloat(request.totalCost) : request.totalCost)}
-                    </p>
-                  </div>
-                  <Badge className="bg-yellow-100 text-yellow-800 border-0 gap-2 px-4 py-2">
-                    <Clock className="h-4 w-4" />
+              {/* Status */}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Trạng thái</div>
+                {statusConfig[request.status] ? (
+                  <Badge
+                    className={`${statusConfig[request.status].color
+                      } flex items-center gap-1`}
+                  >
+                    {(() => {
+                      const StatusIcon = statusConfig[request.status].icon;
+                      return <StatusIcon className="w-4 h-4" />;
+                    })()}
+                    {statusConfig[request.status].label}
+                  </Badge>
+                ) : (
+                  <Badge className="bg-gray-100 text-gray-800">
                     {request.status}
                   </Badge>
+                )}
+              </div>
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Campaign Card */}
+                {request.campaignPhase?.campaign && (
+                  <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200 dark:border-orange-800 md:col-span-2">
+                    <DollarSign className="w-5 h-5 text-[#ad4e28] dark:text-orange-500 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Chiến dịch</div>
+                      <Link
+                        href={
+                          request.campaignPhase?.campaign?.title && request.campaignPhase?.campaign?.id
+                            ? `/admin/campaigns/${createCampaignSlug(
+                              request.campaignPhase.campaign.title || "",
+                              request.campaignPhase.campaign.id || ""
+                            )}`
+                            : "#"
+                        }
+                        target="_blank"
+                        className="font-bold text-[#ad4e28] dark:text-orange-500 mt-1 text-lg hover:underline flex items-center gap-2 group"
+                      >
+                        {request.campaignPhase?.campaign?.title}
+                        <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sender Card */}
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <User className="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5" />
+                  <div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Người gửi</div>
+                    <div className="font-bold text-gray-900 dark:text-white mt-1">
+                      {requestType === "operation"
+                        ? operationRequest?.user?.full_name
+                        : ingredientRequest?.kitchenStaff?.full_name}
+                    </div>
+                  </div>
                 </div>
 
-                {requestType === "operation" && operationRequest && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600">Tiêu đề</p>
-                      <p className="font-semibold text-gray-900">{operationRequest.title}</p>
+                {/* Phase Card */}
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <Package className="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5" />
+                  <div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Giai đoạn</div>
+                    <div className="font-bold text-gray-900 dark:text-white mt-1">
+                      {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                     </div>
+                    {requestType === "operation" && operationRequest && (
+                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Loại: {expenseTypeLabels[operationRequest.expenseType] || operationRequest.expenseType}
+                      </div>
+                    )}
+                    {requestType === "ingredient" && ingredientRequest?.campaignPhase?.cookingDate && (
+                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Ngày nấu: {formatDateTime(ingredientRequest.campaignPhase.cookingDate)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Created Date Card */}
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <Calendar className="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5" />
+                  <div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Ngày tạo</div>
+                    <div className="font-bold text-gray-900 dark:text-white mt-1">
+                      {formatDateTime(request.created_at)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Changed Status Date Card */}
+                {request.changedStatusAt && (
+                  <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <Clock className="w-5 h-5 text-gray-700 dark:text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-gray-600">Loại chi phí</p>
-                      <p className="font-semibold text-gray-900">
-                        {operationRequest.expenseType === "COOKING" ? "Nấu ăn" : "Vận chuyển"}
-                      </p>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        Ngày thay đổi trạng thái
+                      </div>
+                      <div className="font-bold text-gray-900 dark:text-white mt-1">
+                        {formatDateTime(request.changedStatusAt)}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Requester Info */}
-              <div className="border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  Thông tin người yêu cầu
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Họ và tên</p>
-                    <p className="font-semibold text-gray-900">
-                      {requestType === "operation"
-                        ? operationRequest?.user?.full_name
-                        : ingredientRequest?.kitchenStaff?.full_name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Giai đoạn</p>
-                    <p className="font-semibold text-gray-900">
-                      {request.campaignPhase?.phaseName}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bank Info - IMPORTANT */}
+              {/* Bank Info */}
               {organization ? (
                 <div className="border-4 border-green-500 rounded-lg p-6 bg-green-50/50">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -181,7 +293,7 @@ export function RequestDetailDialog({
                           <Badge variant="secondary" className="text-sm font-bold">
                             {organization.bank_short_name}
                           </Badge>
-                          <p className="text-sm text-gray-700">
+                          <p className="text-sm text-gray-700 mb-0">
                             {organization.bank_name}
                           </p>
                         </div>
@@ -218,84 +330,99 @@ export function RequestDetailDialog({
                     ⚠️ Thông tin ngân hàng
                   </h3>
                   <p className="text-gray-700">
-                    Yêu cầu này chưa có thông tin tổ chức/ngân hàng. Vui lòng liên hệ người yêu cầu để cập nhật thông tin trước khi giải ngân.
+                    Yêu cầu này chưa có thông tin tổ chức/ngân hàng.
                   </p>
                 </div>
               )}
 
-              {/* Ingredient Items */}
+              {/* Total Cost */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Tổng chi phí yêu cầu</div>
+                <div className="text-3xl font-bold text-[#ad4e28] dark:text-orange-500">
+                  {formatCurrency(totalCost || 0)}
+                </div>
+              </div>
+
+              {/* Ingredient Items Table */}
               {requestType === "ingredient" && ingredientRequest?.items && ingredientRequest.items.length > 0 && (
-                <div className="border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Package className="h-5 w-5 text-purple-600" />
-                    Danh sách nguyên liệu ({ingredientRequest.items.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {ingredientRequest.items.map((item) => (
-                      <div key={item.id} className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <p className="font-semibold text-gray-900">{item.ingredientName}</p>
-                          <p className="text-lg font-bold text-[#E77731]">
-                            {formatCurrency(item.estimatedTotalPrice)}
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-sm text-gray-600">
-                          <div>
-                            <span className="font-medium">Số lượng:</span> {item.quantity}
-                          </div>
-                          <div>
-                            <span className="font-medium">Đơn giá:</span> {formatCurrency(item.estimatedUnitPrice)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Nhà cung cấp:</span> {item.supplier || "N/A"}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShoppingCart className="w-5 h-5 text-gray-700 dark:text-gray-400" />
+                    <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                      Danh sách nguyên liệu ({ingredientRequest.items.length})
+                    </h3>
+                  </div>
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-100 dark:bg-gray-800">
+                            <TableHead className="min-w-[200px] font-bold text-gray-900 dark:text-white">
+                              Tên nguyên liệu
+                            </TableHead>
+                            <TableHead className="text-right min-w-[120px] font-bold text-gray-900 dark:text-white">
+                              Số lượng
+                            </TableHead>
+                            <TableHead className="text-right min-w-[140px] font-bold text-gray-900 dark:text-white">
+                              Đơn giá
+                            </TableHead>
+                            <TableHead className="text-right min-w-[160px] font-bold text-gray-900 dark:text-white">
+                              Thành tiền
+                            </TableHead>
+                            <TableHead className="min-w-[180px] font-bold text-gray-900 dark:text-white">
+                              Nhà cung cấp
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {ingredientRequest.items.map((item, index) => (
+                            <TableRow
+                              key={item.id}
+                              className={
+                                index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-100 dark:bg-gray-800"
+                              }
+                            >
+                              <TableCell className="font-semibold text-gray-900 dark:text-white">
+                                {item.ingredientName}
+                              </TableCell>
+                              <TableCell className="text-right text-gray-900 dark:text-white">
+                                <span className="font-bold">
+                                  {item.quantity}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right text-gray-800 dark:text-gray-300">
+                                {formatCurrency(item.estimatedUnitPrice)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className="font-bold text-[#ad4e28] dark:text-orange-500">
+                                  {formatCurrency(item.estimatedTotalPrice)}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-400">
+                                {item.supplier || "—"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* Admin Note */}
-              {requestType === "operation" && operationRequest?.adminNote && (
-                <div className="border rounded-lg p-6 bg-blue-50">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Ghi chú của Admin
-                  </h3>
-                  <p className="text-gray-700">{operationRequest.adminNote}</p>
-                </div>
-              )}
-
-              {/* Timeline */}
-              <div className="border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-orange-600" />
-                  Thời gian
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Ngày tạo</span>
-                    <span className="font-semibold text-gray-900">
-                      {formatDateTime(request.created_at)}
-                    </span>
+              {((requestType === "operation" && operationRequest?.adminNote) ||
+                (requestType === "ingredient" && ingredientRequest?.adminNote)) && (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Ghi chú của quản trị viên
+                    </h4>
+                    <p className="text-gray-900 whitespace-pre-wrap">
+                      {requestType === "operation" ? operationRequest?.adminNote : ingredientRequest?.adminNote}
+                    </p>
                   </div>
-                  {request.changedStatusAt && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Thay đổi trạng thái</span>
-                      <span className="font-semibold text-gray-900">
-                        {formatDateTime(request.changedStatusAt)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Request ID */}
-              <div className="border rounded-lg p-4 bg-gray-50">
-                <p className="text-xs text-gray-600 mb-1">ID Yêu cầu</p>
-                <p className="font-mono text-xs text-gray-900 break-all">{request.id}</p>
-              </div>
+                )}
             </div>
           )}
         </div>

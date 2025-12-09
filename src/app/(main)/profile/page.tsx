@@ -19,7 +19,6 @@ import {
   CreditCard,
   FileInput,
   UserPlus,
-  Award,
   User as UserIcon,
   Wallet as WalletIcon,
   History as HistoryIcon,

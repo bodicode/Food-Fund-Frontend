@@ -516,11 +516,11 @@ export function PostCard({ post, currentUserId, onPostUpdate, onPostDelete }: Po
             )}
 
             {/* Image/Video Display */}
-            <div className="relative w-full h-full flex items-center justify-center p-12">
+            <div className="relative w-full h-full flex items-center justify-center p-0">
               {isVideo(mediaUrls[currentImageIndex]) ? (
                 <video
                   key={currentImageIndex}
-                  className="max-w-full max-h-full object-contain"
+                  className="max-w-full max-h-full w-full h-full object-contain"
                   controls
                   autoPlay
                   playsInline

@@ -27,7 +27,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Clock, FileText, Calendar, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, Calendar, ExternalLink, PlayCircle, X } from "lucide-react";
+
+// Helper functions (place outside component or keep inside if preferred, placing inside to match source)
+const isImage = (url: string) => /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
+const isVideo = (url: string) => /\.(mp4|webm|ogg|mov)$/i.test(url);
+
+const getMediaUrl = (url: string) => {
+  if (url.startsWith("http")) return url;
+  return `https://foodfund.sgp1.cdn.digitaloceanspaces.com/${url}`;
+};
+
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -262,24 +272,40 @@ export function AdminExpenseProofDetailDialog({
               {expenseProof.media && expenseProof.media.length > 0 && (
                 <div>
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Hình ảnh chứng từ ({expenseProof.media.length})
+                    Hình ảnh/Video chứng từ ({expenseProof.media.length})
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {expenseProof.media.map((url, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#ad4e28] transition-colors cursor-pointer"
-                        onClick={() => setSelectedImage(url)}
-                      >
-                        <Image
-                          src={url}
-                          alt={`Chứng từ ${index + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 50vw, 33vw"
-                        />
-                      </div>
-                    ))}
+                    {expenseProof.media.map((item, index) => {
+                      const url = getMediaUrl(item);
+                      return (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#ad4e28] transition-colors cursor-pointer group bg-gray-50"
+                          onClick={() => setSelectedImage(url)}
+                        >
+                          {isImage(url) ? (
+                            <Image
+                              src={url}
+                              alt={`Chứng từ ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 50vw, 33vw"
+                            />
+                          ) : isVideo(url) ? (
+                            <div className="w-full h-full flex items-center justify-center relative">
+                              <video src={url} className="w-full h-full object-cover pointer-events-none" />
+                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                <PlayCircle className="w-10 h-10 text-white opacity-90 group-hover:scale-110 transition-transform" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <FileText className="w-8 h-8" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -333,21 +359,38 @@ export function AdminExpenseProofDetailDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Image Preview Dialog */}
+      {/* Media Preview Dialog */}
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Xem ảnh chứng từ</DialogTitle>
-            </DialogHeader>
-            <div className="relative w-full h-[70vh]">
-              <Image
-                src={selectedImage}
-                alt="Preview"
-                fill
-                className="object-contain"
-                sizes="100vw"
-              />
+          <DialogContent className="!max-w-[98vw] !w-[98vw] !h-[98vh] p-0 overflow-hidden bg-black/95 border-none flex flex-col">
+            <DialogTitle className="sr-only">Xem chi tiết media</DialogTitle>
+            <div className="relative w-full h-full flex items-center justify-center">
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              {isImage(selectedImage) ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={selectedImage}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    sizes="100vw"
+                  />
+                </div>
+              ) : isVideo(selectedImage) ? (
+                <video
+                  src={selectedImage}
+                  controls
+                  className="max-w-full max-h-full w-full h-full object-contain"
+                  autoPlay
+                />
+              ) : (
+                <div className="text-white">Không thể xem trước file này</div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -388,8 +431,8 @@ export function AdminExpenseProofDetailDialog({
               {isUpdating ? "Đang xử lý..." : "Xác nhận"}
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </AlertDialogContent >
+      </AlertDialog >
     </>
   );
 }
