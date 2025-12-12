@@ -203,6 +203,7 @@ export default function AdminCampaignsPage() {
                 <SelectItem value="PENDING">Chờ duyệt</SelectItem>
                 <SelectItem value="APPROVED">Đã duyệt</SelectItem>
                 <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
+                <SelectItem value="PROCESSING">Đang trong tiến trình</SelectItem>
                 <SelectItem value="REJECTED">Từ chối</SelectItem>
                 <SelectItem value="CANCELLED">Đã hủy</SelectItem>
                 <SelectItem value="COMPLETED">Hoàn thành</SelectItem>
