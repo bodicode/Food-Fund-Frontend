@@ -41,6 +41,7 @@ import { DonationList } from "@/components/campaign/donation-list";
 import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
 import { MealBatchList } from "@/components/campaign/meal-batch-list";
 import { DisbursementList } from "@/components/campaign/disbursement-list";
+import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
 
 import { ShareDialog } from "@/components/campaign/share-dialog";
 import { CampaignPlanSummary } from "@/components/campaign/campaign-plan-summary";
@@ -340,13 +341,14 @@ export default function CampaignDetailPage() {
               onValueChange={setActiveTab}
               className="mb-8"
             >
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 mb-6 h-auto">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto">
                 <TabsTrigger value="story" className="text-xs md:text-sm">Câu chuyện</TabsTrigger>
                 <TabsTrigger value="posts" className="text-xs md:text-sm">Bài viết</TabsTrigger>
                 <TabsTrigger value="meals" className="text-xs md:text-sm">Thức ăn</TabsTrigger>
                 <TabsTrigger value="donations" className="text-xs md:text-sm">Ủng hộ</TabsTrigger>
                 <TabsTrigger value="disbursements" className="text-xs md:text-sm">Giải ngân</TabsTrigger>
                 <TabsTrigger value="expenses" className="text-xs md:text-sm">Chi phí</TabsTrigger>
+                <TabsTrigger value="delivery-tasks" className="text-xs md:text-sm">Vận chuyển</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -412,6 +414,10 @@ export default function CampaignDetailPage() {
                 <div className="bg-white rounded-2xl border p-6">
                   <ExpenseProofList campaignId={campaign.id} />
                 </div>
+              </TabsContent>
+
+              <TabsContent value="delivery-tasks">
+                <DeliveryTasksTab campaignId={campaign.id} />
               </TabsContent>
             </Tabs>
 

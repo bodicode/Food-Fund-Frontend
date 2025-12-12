@@ -217,6 +217,7 @@ export {
   translateRequestStatus,
   translateOrganizationStatus,
   translateUserStatus,
+  translateDeliveryTaskStatus,
   translateStatus,
   getStatusColorClass,
 } from "@/lib/utils/status-utils";
