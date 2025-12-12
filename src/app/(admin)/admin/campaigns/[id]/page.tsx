@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
+import { userService } from "@/services/user.service";
+import { UserProfile } from "@/types/api/user";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +37,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DonationList } from "@/components/campaign/donation-list";
+import { CampaignPosts } from "@/components/campaign/campaign-posts";
+import { MealBatchList } from "@/components/campaign/meal-batch-list";
+import { DisbursementList } from "@/components/campaign/disbursement-list";
+import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
+import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
 
 export default function AdminCampaignDetailPage() {
   const { id } = useParams();
@@ -48,6 +57,7 @@ export default function AdminCampaignDetailPage() {
   const [pendingStatus, setPendingStatus] = useState<Campaign["status"] | null>(
     null
   );
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -104,7 +114,17 @@ export default function AdminCampaignDetailPage() {
       }
     };
 
+    const fetchUser = async () => {
+      try {
+        const user = await userService.getMyProfile();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
     fetchData();
+    fetchUser();
   }, [id]);
 
   const formatCurrency = (amount?: string | number) =>
@@ -347,20 +367,101 @@ export default function AdminCampaignDetailPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-              <CardContent className="p-6 sm:p-8">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <div className="w-1 h-8 bg-gradient-to-b from-[#38bdf8] to-[#0ea5e9] rounded-full" />
-                  Câu chuyện chiến dịch
-                </h2>
-                <div
-                  className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 leading-relaxed dark:prose-invert"
-                  dangerouslySetInnerHTML={{
-                    __html: campaign.description || "<p>Không có mô tả</p>",
-                  }}
-                />
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 mb-6 h-auto gap-2">
+                <TabsTrigger value="details" className="text-xs sm:text-sm">Chi tiết</TabsTrigger>
+                <TabsTrigger value="posts" className="text-xs sm:text-sm">Bài viết</TabsTrigger>
+                <TabsTrigger value="meals" className="text-xs sm:text-sm">Thức ăn</TabsTrigger>
+                <TabsTrigger value="donations" className="text-xs sm:text-sm">Ủng hộ</TabsTrigger>
+                <TabsTrigger value="disbursements" className="text-xs sm:text-sm">Giải ngân</TabsTrigger>
+                <TabsTrigger value="expenses" className="text-xs sm:text-sm">Chi phí</TabsTrigger>
+                <TabsTrigger value="delivery-tasks" className="text-xs sm:text-sm">Vận chuyển</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <div className="w-1 h-8 bg-gradient-to-b from-[#38bdf8] to-[#0ea5e9] rounded-full" />
+                      Câu chuyện chiến dịch
+                    </h2>
+                    <div
+                      className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 leading-relaxed dark:prose-invert"
+                      dangerouslySetInnerHTML={{
+                        __html: campaign.description || "<p>Không có mô tả</p>",
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="posts">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    <CampaignPosts campaignId={campaign.id} currentUserId={currentUser?.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="meals">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    <MealBatchList campaignId={campaign.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="donations">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full" />
+                      Danh sách ủng hộ
+                    </h2>
+                    <DonationList campaignId={campaign.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="disbursements">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    {campaign.phases && campaign.phases.length > 0 ? (
+                      <div className="space-y-6">
+                        {campaign.phases.map((phase) => (
+                          <div key={phase.id}>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                              Giai đoạn: {phase.phaseName}
+                            </h3>
+                            <DisbursementList campaignPhaseId={phase.id} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">
+                        Chiến dịch này chưa có giai đoạn nào
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="expenses">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    <ExpenseProofList campaignId={campaign.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="delivery-tasks">
+                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
+                  <CardContent className="p-6 sm:p-8">
+                    <DeliveryTasksTab campaignId={campaign.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div className="space-y-6">
