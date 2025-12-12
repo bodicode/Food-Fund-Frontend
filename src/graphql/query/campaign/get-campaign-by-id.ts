@@ -19,6 +19,7 @@ export const GET_CAMPAIGN_BY_ID = gql`
       receivedAmount
       created_at
       category {
+        id
         title
         description
       }
