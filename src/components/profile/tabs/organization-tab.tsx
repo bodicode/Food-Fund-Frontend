@@ -32,7 +32,7 @@ export function OrganizationTab() {
     (async () => {
       try {
         const res = await organizationService.getMyOrganizationRequests();
-        setOrgs(res);
+        setOrgs(res || []);
       } catch {
         toast.error("Không thể tải danh sách tổ chức");
       } finally {
@@ -60,7 +60,7 @@ export function OrganizationTab() {
       </div>
     );
 
-  if (orgs.length === 0)
+  if (!orgs || orgs.length === 0)
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="bg-orange-50 p-6 rounded-full mb-4">

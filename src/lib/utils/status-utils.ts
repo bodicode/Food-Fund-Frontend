@@ -67,6 +67,16 @@ export const USER_STATUS_TRANSLATIONS: Record<string, string> = {
   VERIFIED: "Đã xác minh",
 };
 
+// Delivery Task Status Translations
+export const DELIVERY_TASK_STATUS_TRANSLATIONS: Record<string, string> = {
+  PENDING: "Đang chờ",
+  ACCEPTED: "Đã nhận",
+  OUT_FOR_DELIVERY: "Đang giao",
+  COMPLETED: "Hoàn thành",
+  FAILED: "Thất bại",
+  REJECTED: "Đã từ chối",
+};
+
 /**
  * Translate campaign status to Vietnamese
  */
@@ -116,6 +126,14 @@ export const translateUserStatus = (status?: string): string => {
 };
 
 /**
+ * Translate delivery task status to Vietnamese
+ */
+export const translateDeliveryTaskStatus = (status?: string): string => {
+  if (!status) return "Không xác định";
+  return DELIVERY_TASK_STATUS_TRANSLATIONS[status.toUpperCase()] || status;
+};
+
+/**
  * Generic status translator - tries to find the status in all translation maps
  */
 export const translateStatus = (status?: string): string => {
@@ -131,6 +149,7 @@ export const translateStatus = (status?: string): string => {
     ORGANIZATION_STATUS_TRANSLATIONS[upperStatus] ||
     USER_STATUS_TRANSLATIONS[upperStatus] ||
     MEAL_BATCH_STATUS_TRANSLATIONS[upperStatus] ||
+    DELIVERY_TASK_STATUS_TRANSLATIONS[upperStatus] ||
     status
   );
 };
@@ -173,6 +192,10 @@ export const getStatusColorClass = (status?: string): string => {
     PREPARING: "bg-yellow-100 text-yellow-700",
     READY: "bg-green-100 text-green-700",
     DELIVERED: "bg-blue-100 text-blue-700",
+
+    // Delivery task states
+    ACCEPTED: "bg-blue-100 text-blue-700",
+    OUT_FOR_DELIVERY: "bg-yellow-100 text-yellow-700",
   };
 
   return colorMap[upperStatus] || "bg-gray-100 text-gray-700";

@@ -53,11 +53,13 @@ const SidebarContent = ({
       ? [
         { key: "wallet", label: "Ví của tôi", icon: WalletIcon },
         { key: "disbursements", label: "Yêu cầu giải ngân", icon: CreditCard },
-        { key: "reassignment", label: "Yêu cầu tiếp nhận chiến dịch", icon: FileInput },
+        { key: "reassignment", label: "Tiếp nhận chiến dịch", icon: FileInput },
         { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
       ]
       : []),
-    { key: "organization", label: "Yêu cầu tạo tổ chức", icon: Building2 },
+    ...(profile?.role !== "KITCHEN_STAFF" && profile?.role !== "DELIVERY_STAFF"
+      ? [{ key: "organization", label: "Yêu cầu tạo tổ chức", icon: Building2 }]
+      : []),
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
     { key: "join_requests", label: "Yêu cầu tham gia", icon: UserPlus },
   ];
@@ -101,7 +103,7 @@ const SidebarContent = ({
           <Button
             key={tab.key}
             variant="ghost"
-            className={`justify-start items-center gap-3 px-3 text-base ${activeTab === tab.key
+            className={`justify-start items-center gap-3 px-3 text-base text-sm ${activeTab === tab.key
               ? "bg-[#ad4e28] text-white hover:bg-[#ad4e28]/90 hover:text-white"
               : "hover:bg-gray-100 text-gray-700"
               }`}
@@ -177,7 +179,9 @@ export default function ProfilePage() {
           campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
         }
         : {}),
-      organization: { component: <OrganizationTab />, title: "Yêu cầu tạo tổ chức" },
+      ...(profile?.role !== "KITCHEN_STAFF" && profile?.role !== "DELIVERY_STAFF"
+        ? { organization: { component: <OrganizationTab />, title: "Yêu cầu tạo tổ chức" } }
+        : {}),
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
       join_requests: { component: <JoinRequestsTab />, title: "Yêu cầu tham gia" },
     }),

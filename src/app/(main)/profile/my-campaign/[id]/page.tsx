@@ -59,10 +59,12 @@ import { CreateOperationRequestDialog } from "@/components/campaign/create-opera
 import { CreateIngredientRequestDialog } from "@/components/campaign/create-ingredient-request-dialog";
 import { OperationRequestList } from "@/components/campaign/operation-request-list";
 import { IngredientRequestList } from "@/components/campaign/ingredient-request-list";
+import { MealBatchList } from "@/components/campaign/meal-batch-list";
 import { ShareDialog } from "@/components/campaign/share-dialog";
 import { ExtendCampaignDialog } from "@/components/campaign/extend-campaign-dialog";
 import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
 import { DeliveryTaskAssignmentTab } from "@/components/campaign/delivery-task-assignment-tab";
+import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
 import { CampaignPlanSummary } from "@/components/campaign/campaign-plan-summary";
 
 export default function MyCampaignDetailPage() {
@@ -355,13 +357,15 @@ export default function MyCampaignDetailPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6 h-auto">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 h-auto">
                 <TabsTrigger value="story" className="text-xs md:text-sm">Câu chuyện</TabsTrigger>
                 <TabsTrigger value="posts" className="text-xs md:text-sm">Bài viết</TabsTrigger>
+                <TabsTrigger value="meals" className="text-xs md:text-sm">Thức ăn</TabsTrigger>
                 <TabsTrigger value="donations" className="text-xs md:text-sm">Danh sách ủng hộ</TabsTrigger>
                 <TabsTrigger value="expenses" className="text-xs md:text-sm">Chứng từ chi phí</TabsTrigger>
                 <TabsTrigger value="operations" className="text-xs md:text-sm">Giải ngân</TabsTrigger>
                 <TabsTrigger value="tasks" className="text-xs md:text-sm">Giao việc</TabsTrigger>
+                <TabsTrigger value="delivery-tasks" className="text-xs md:text-sm">Vận chuyển</TabsTrigger>
               </TabsList>
 
               <TabsContent value="story">
@@ -398,6 +402,12 @@ export default function MyCampaignDetailPage() {
                   currentUserId={currentUserId}
                   key={refreshPosts}
                 />
+              </TabsContent>
+
+              <TabsContent value="meals">
+                <div className="bg-white rounded-2xl border p-6">
+                  <MealBatchList campaignId={campaign.id} />
+                </div>
               </TabsContent>
 
               <TabsContent value="donations">
@@ -477,6 +487,10 @@ export default function MyCampaignDetailPage() {
 
               <TabsContent value="tasks">
                 <DeliveryTaskAssignmentTab campaignId={campaign.id} />
+              </TabsContent>
+
+              <TabsContent value="delivery-tasks">
+                <DeliveryTasksTab campaignId={campaign.id} />
               </TabsContent>
             </Tabs>
 
