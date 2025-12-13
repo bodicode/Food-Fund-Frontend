@@ -9,6 +9,17 @@ export const AUTH_CONFIG = {
   GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
 } as const;
 
+// Token Refresh Configuration
+// Default: 5 minutes (300000 ms)
+// For testing: Set NEXT_PUBLIC_TOKEN_REFRESH_BEFORE_EXPIRY_MS in .env.local
+// Example: NEXT_PUBLIC_TOKEN_REFRESH_BEFORE_EXPIRY_MS=30000 (30 seconds for testing)
+export const TOKEN_REFRESH_CONFIG = {
+  REFRESH_BEFORE_EXPIRY_MS: parseInt(
+    process.env.NEXT_PUBLIC_TOKEN_REFRESH_BEFORE_EXPIRY_MS || "300000",
+    10
+  ),
+} as const;
+
 // Redux Persist
 export const PERSIST_CONFIG = {
   KEY: "root",
