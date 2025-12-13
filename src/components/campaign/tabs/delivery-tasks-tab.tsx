@@ -51,7 +51,7 @@ export function DeliveryTasksTab({ campaignId: propCampaignId }: DeliveryTasksTa
             setLoading(true);
             const data = await deliveryTaskService.getDeliveryTasks(filters);
             setTasks(data);
-        } catch (_) {
+        } catch (error) {
             toast.error("Lỗi", {
                 description: "Không thể tải danh sách đơn giao hàng",
             });
@@ -76,7 +76,7 @@ export function DeliveryTasksTab({ campaignId: propCampaignId }: DeliveryTasksTa
             const task = await deliveryTaskService.getDeliveryTaskById(taskId);
             setSelectedTask(task);
             setDetailOpen(true);
-        } catch (_) {
+        } catch (error) {
             toast.error("Lỗi", {
                 description: "Không thể xem chi tiết đơn hàng",
             });

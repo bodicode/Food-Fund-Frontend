@@ -11,6 +11,7 @@ import Image from "next/image";
 import { campaignService } from "@/services/campaign.service";
 import { Campaign } from "@/types/api/campaign";
 import { Loader } from "@/components/animate-ui/icons/loader";
+import { CampaignPhase } from "@/types/api/phase";
 import { getCampaignIdFromSlug, createCampaignSlug, titleToSlug } from "@/lib/utils/slug-utils";
 
 import { Badge } from "@/components/ui/badge";
@@ -45,15 +46,21 @@ import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab"
 
 import { ShareDialog } from "@/components/campaign/share-dialog";
 import { CampaignPlanSummary } from "@/components/campaign/campaign-plan-summary";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import { CampaignCard } from "@/components/shared/campaign-card";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const dispatch = useDispatch();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("story");
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [relatedCampaigns, setRelatedCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Get current user from Redux store
   const currentUser = useSelector((state: RootState) => state.auth.user);
@@ -118,6 +125,30 @@ export default function CampaignDetailPage() {
     })();
   }, [id, dispatch]);
 
+  useEffect(() => {
+
+    if (campaign?.category?.id) {
+      // Fetch related campaigns
+      (async () => {
+        try {
+          const result = await campaignService.searchCampaigns({
+            categoryId: campaign.category.id, // Filter by same category
+            limit: 9, // Fetch a few related
+            status: null
+          });
+
+          if (result && result.items) {
+            // Filter out current campaign
+            const filtered = result.items.filter(c => c.id !== campaign.id);
+            setRelatedCampaigns(filtered);
+          }
+        } catch (error) {
+          console.error("Failed to fetch related campaigns", error);
+        }
+      })();
+    }
+  }, [campaign, campaign?.category?.id]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -164,15 +195,15 @@ export default function CampaignDetailPage() {
 
   // Calculate total budget percentages from all phases
   const totalIngredientPct = campaign.phases?.reduce(
-    (sum, phase) => sum + toNumber(phase.ingredientBudgetPercentage, 0),
+    (sum: number, phase: CampaignPhase) => sum + toNumber(phase.ingredientBudgetPercentage, 0),
     0
   ) || 0;
   const totalCookingPct = campaign.phases?.reduce(
-    (sum, phase) => sum + toNumber(phase.cookingBudgetPercentage, 0),
+    (sum: number, phase: CampaignPhase) => sum + toNumber(phase.cookingBudgetPercentage, 0),
     0
   ) || 0;
   const totalDeliveryPct = campaign.phases?.reduce(
-    (sum, phase) => sum + toNumber(phase.deliveryBudgetPercentage, 0),
+    (sum: number, phase: CampaignPhase) => sum + toNumber(phase.deliveryBudgetPercentage, 0),
     0
   ) || 0;
 
@@ -567,6 +598,57 @@ export default function CampaignDetailPage() {
 
           </aside>
         </div>
+
+        {/* RELATED CAMPAIGNS */}
+        {relatedCampaigns.length > 0 && (
+          <div className="mt-20">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-color">
+              Chiến dịch liên quan
+            </h2>
+            <div className="relative pb-12">
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                spaceBetween={24}
+                slidesPerView={1}
+                loop={relatedCampaigns.length > 3} // Only loop if enough items
+                speed={1000}
+                autoplay={{
+                  delay: 5000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                pagination={{
+                  clickable: true,
+                  bulletClass:
+                    "swiper-pagination-bullet !w-3 !h-3 !bg-gray-300 !opacity-100 transition-all duration-300",
+                  bulletActiveClass:
+                    "swiper-pagination-bullet-active !bg-[#ad4e28] !w-8 !rounded-full",
+                }}
+                breakpoints={{
+                  640: { slidesPerView: 1 },
+                  768: { slidesPerView: 2 },
+                  1024: { slidesPerView: 3 },
+                }}
+                className="!pb-12"
+              >
+                {relatedCampaigns.map((c) => (
+                  <SwiperSlide key={c.id} className="h-auto">
+                    <CampaignCard
+                      {...c}
+                      coverImage={c.coverImage || ""}
+                      fundingProgress={
+                        typeof c.fundingProgress === 'number'
+                          ? Math.round(c.fundingProgress)
+                          : Math.round((Number(c.receivedAmount) / Number(c.targetAmount || 1)) * 100)
+                      }
+                      className="h-full"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Share Dialog */}
@@ -577,6 +659,6 @@ export default function CampaignDetailPage() {
         campaignUrl={typeof window !== "undefined" ? window.location.href : ""}
         campaignDescription={campaign.description}
       />
-    </motion.div>
+    </motion.div >
   );
 }
