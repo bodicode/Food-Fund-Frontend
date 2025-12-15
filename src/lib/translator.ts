@@ -200,6 +200,8 @@ export const translateWalletTransactionType = (type?: string): string => {
       return "Rút tiền";
     case "ADMIN_ADJUSTMENT":
       return "Hệ thống chuyển tiền";
+    case "INCOMING_TRANSFER":
+      return "Hệ thống chuyển tiền";
     default:
       return type;
   }

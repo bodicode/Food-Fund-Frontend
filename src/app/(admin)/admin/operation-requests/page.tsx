@@ -466,7 +466,7 @@ export default function OperationRequestsPage() {
 
                       <div className="flex items-center gap-2 text-gray-600">
                         <Calendar className="h-4 w-4 text-orange-600" />
-                        <span>{formatDateTime(request.created_at)}</span>
+                        <span>{formatDateTime(new Date(request.created_at))}</span>
                       </div>
 
                       <div className="flex justify-end gap-2">
@@ -613,7 +613,7 @@ export default function OperationRequestsPage() {
 
                       <div className="flex items-center gap-2 text-gray-600">
                         <Calendar className="h-4 w-4 text-orange-600" />
-                        <span>{formatDateTime(request.created_at)}</span>
+                        <span>{formatDateTime(new Date(request.created_at))}</span>
                       </div>
 
                       <div className="flex justify-end gap-2">

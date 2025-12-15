@@ -146,7 +146,7 @@ export function DisbursementList({ campaignPhaseId }: DisbursementListProps) {
                                 <div>
                                     <p className="text-xs text-gray-600">Ngày giải ngân</p>
                                     <p className="font-medium text-gray-900">
-                                        {formatDateTime(disbursement.createdAt)}
+                                        {formatDateTime(new Date(disbursement.createdAt))}
                                     </p>
                                 </div>
                             </div>

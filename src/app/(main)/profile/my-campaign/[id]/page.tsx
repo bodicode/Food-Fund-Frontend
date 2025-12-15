@@ -573,7 +573,7 @@ export default function MyCampaignDetailPage() {
                     items={[
                       {
                         label: "Tạo chiến dịch",
-                        date: formatDateTime(campaign.created_at),
+                        date: formatDateTime(new Date(campaign.created_at)),
                         status: "completed",
                       },
                       {
