@@ -9,6 +9,15 @@ export const GET_EXPENSE_PROOFS = gql`
     getExpenseProofs(filter: $filter, limit: $limit, offset: $offset) {
       id
       requestId
+      request {
+        campaignPhase {
+          phaseName
+          campaign {
+            id
+            title
+          }
+        }
+      }
       media
       amount
       status

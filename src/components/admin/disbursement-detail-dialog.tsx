@@ -141,10 +141,6 @@ export function DisbursementDetailDialog({
                     @{disbursement.receiver.user_name}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Vai trò</p>
-                  <Badge variant="outline">{disbursement.receiver.role}</Badge>
-                </div>
               </div>
             </div>
 
@@ -215,20 +211,20 @@ export function DisbursementDetailDialog({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Ngày tạo</span>
                   <span className="font-semibold text-gray-900">
-                    {formatDateTime(disbursement.created_at)}
+                    {formatDateTime(new Date(disbursement.created_at))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Cập nhật lần cuối</span>
                   <span className="font-semibold text-gray-900">
-                    {formatDateTime(disbursement.updated_at)}
+                    {formatDateTime(new Date(disbursement.updated_at))}
                   </span>
                 </div>
                 {disbursement.reportedAt && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Ngày báo cáo</span>
                     <span className="font-semibold text-gray-900">
-                      {formatDateTime(disbursement.reportedAt)}
+                      {formatDateTime(new Date(disbursement.reportedAt))}
                     </span>
                   </div>
                 )}

@@ -26,6 +26,8 @@ import {
   Eye,
   RefreshCw,
   Filter,
+  DollarSign,
+  Calendar1,
 } from "lucide-react";
 import { AdminExpenseProofDetailDialog } from "@/components/admin";
 
@@ -268,41 +270,82 @@ export default function AdminExpenseProofsPage() {
             const StatusIcon = status.icon;
 
             return (
-              <Card key={proof.id} className="hover:shadow-md transition-shadow">
+              <Card key={proof.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-transparent hover:border-l-[#E77731]">
                 <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          Mã yêu cầu: {proof.requestId}
-                        </span>
-                        <Badge className={`${status.color} flex items-center gap-1`}>
-                          <StatusIcon className="w-3 h-3" />
-                          {status.label}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        {formatDateTime(proof.created_at)}
-                      </div>
-                      <div className="text-xl font-bold text-[#ad4e28] dark:text-orange-500">
-                        {formatCurrency(proof.amount)}
-                      </div>
-                      {proof.media && proof.media.length > 0 && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                          📎 {proof.media.length} hình ảnh đính kèm
+                  <div className="flex flex-col gap-4">
+                    {/* Header Section */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="text-xs font-normal text-gray-500 gap-1">
+                            <FileText className="w-3 h-3" />
+                            #{proof.requestId.substring(0, 8)}...
+                          </Badge>
+                          <Badge className={`${status.color} border-0 gap-1`}>
+                            <StatusIcon className="w-3 h-3" />
+                            {status.label}
+                          </Badge>
                         </div>
-                      )}
+
+                        <div className="space-y-1">
+                          {proof.request?.campaignPhase?.campaign ? (
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 line-clamp-1">
+                              {proof.request.campaignPhase.campaign.title}
+                            </h3>
+                          ) : (
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                              Yêu cầu chưa xác định
+                            </h3>
+                          )}
+
+                          {proof.request?.campaignPhase && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs font-medium">
+                                Giai đoạn: {proof.request.campaignPhase.phaseName}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedProofId(proof.id)}
+                        className="gap-2 ml-4 shrink-0 hover:bg-[#E77731] hover:text-white transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Xem & Duyệt
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedProofId(proof.id)}
-                      className="gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Xem & Duyệt
-                    </Button>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
+                          <DollarSign className="w-4 h-4 text-green-600 dark:text-green-500" />
+                        </div>
+                        <span className="font-bold text-lg text-green-700 dark:text-green-500">
+                          {formatCurrency(proof.amount)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Calendar1 className="w-4 h-4 text-gray-400" />
+                        <span>{formatDateTime(new Date(proof.created_at))}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        {proof.media && proof.media.length > 0 ? (
+                          <>
+                            <Receipt className="w-4 h-4 text-blue-500" />
+                            <span className="text-blue-600 dark:text-blue-400 font-medium">{proof.media.length} ảnh / video đính kèm</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 italic">Không có ảnh / video đính kèm</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
