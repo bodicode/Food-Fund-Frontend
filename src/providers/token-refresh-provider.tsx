@@ -21,7 +21,8 @@ interface DecodedAccessToken {
 
 /**
  * Tính toán thời gian còn lại trước khi token hết hạn (tính bằng milliseconds)
- * Trả về null nếu không thể decode token hoặc token đã hết hạn
+ * Trả về null nếu không thể decode token
+ * Trả về số âm nếu token đã hết hạn
  */
 function getTimeUntilExpiry(accessToken: string | undefined): number | null {
     if (!accessToken) return null;
@@ -32,12 +33,7 @@ function getTimeUntilExpiry(accessToken: string | undefined): number | null {
         const currentTime = Date.now();
         const timeUntilExpiry = expiryTime - currentTime;
 
-        // Nếu token đã hết hạn hoặc sắp hết hạn (còn ít hơn 1 phút), trả về null
-        if (timeUntilExpiry < 60 * 1000) {
-            return null;
-        }
-
-        return timeUntilExpiry;
+        return timeUntilExpiry; // Có thể là số âm nếu đã hết hạn
     } catch (error) {
         console.error("Failed to decode access token:", error);
         return null;
@@ -47,6 +43,7 @@ function getTimeUntilExpiry(accessToken: string | undefined): number | null {
 /**
  * Tính toán thời gian cần đợi trước khi refresh token
  * Refresh trước 5 phút khi token hết hạn
+ * Nếu token đã hết hạn hoặc sắp hết hạn, refresh ngay lập tức
  */
 function calculateRefreshDelay(accessToken: string | undefined): number | null {
     const timeUntilExpiry = getTimeUntilExpiry(accessToken);
@@ -54,7 +51,7 @@ function calculateRefreshDelay(accessToken: string | undefined): number | null {
         return null;
     }
 
-    // Nếu còn ít hơn 5 phút, refresh ngay lập tức
+    // Nếu token đã hết hạn hoặc còn ít hơn 5 phút, refresh ngay lập tức
     if (timeUntilExpiry <= REFRESH_BEFORE_EXPIRY_MS) {
         return 0;
     }
@@ -78,6 +75,15 @@ export function TokenRefreshProvider({ children }: { children: React.ReactNode }
             const refreshDelay = calculateRefreshDelay(accessToken);
 
             if (refreshDelay === null) {
+                // Nếu không tính được delay (token không hợp lệ), thử refresh ngay
+                // để tránh bị logout
+                refreshAuthToken();
+                return;
+            }
+
+            // Nếu delay = 0, refresh ngay lập tức
+            if (refreshDelay === 0) {
+                refreshAuthToken();
                 return;
             }
 
