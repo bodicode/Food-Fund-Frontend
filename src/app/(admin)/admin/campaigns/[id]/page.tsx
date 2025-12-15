@@ -673,7 +673,7 @@ export default function AdminCampaignDetailPage() {
                       Ngày tạo chiến dịch
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.created_at)}
+                      {formatDate(new Date(campaign.created_at))}
                     </span>
                   </div>
                   <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">

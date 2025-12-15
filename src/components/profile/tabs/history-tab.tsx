@@ -172,7 +172,7 @@ export function HistoryTab() {
 
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                       <Calendar className="w-4 h-4" />
-                      {formatDateTime(item.donation.transactionDatetime)}
+                      {formatDateTime(new Date(item.donation.transactionDatetime))}
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-sm mb-3">

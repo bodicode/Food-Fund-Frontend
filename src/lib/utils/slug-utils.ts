@@ -70,3 +70,26 @@ export function getCampaignIdFromSlug(slug: string): string | null {
 }
 
 
+export function createOrganizationSlug(name: string, id: string): string {
+  const nameSlug = titleToSlug(name);
+
+  // Store ID in sessionStorage for later retrieval
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem(`org_${nameSlug}`, id);
+  }
+
+  return nameSlug;
+}
+
+export function getOrganizationIdFromSlug(slug: string): string | null {
+  if (!slug) return null;
+
+  // 1. Check sessionStorage
+  if (typeof window !== "undefined") {
+    const storedId = sessionStorage.getItem(`org_${slug}`);
+    if (storedId) return storedId;
+  }
+
+  // 2. Extract from slug string (fallback)
+  return extractIdFromSlug(slug);
+}

@@ -136,7 +136,7 @@ export function DonationList({ campaignId }: DonationListProps) {
                     {donation.donorName}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {formatDateTime(donation.transactionDatetime)}
+                    {formatDateTime(new Date(donation.transactionDatetime))}
                   </div>
                 </div>
               </div>

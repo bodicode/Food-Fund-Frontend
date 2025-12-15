@@ -45,6 +45,10 @@ import { toast } from "sonner";
 import { logout, updateUser } from "@/store/slices/auth-slice";
 import { USER_ROLES } from "@/constants";
 import { userService } from "@/services/user.service";
+import { organizationService } from "@/services/organization.service";
+import { createOrganizationSlug } from "@/lib/utils/slug-utils";
+import { Organization } from "@/types/api/organization";
+import { useState } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -85,6 +89,24 @@ export function Navigation() {
       })();
     }
   }, [user, dispatch]);
+
+  const [myOrganization, setMyOrganization] = useState<Organization | null>(null);
+
+  useEffect(() => {
+    if (user && user.role === USER_ROLES.FUNDRAISER) {
+      (async () => {
+        try {
+          const org = await organizationService.getMyOrganization();
+          setMyOrganization(org);
+        } catch (error) {
+          // User might not have an organization, which is fine
+          console.log("No organization found or failed to fetch:", error);
+        }
+      })();
+    } else {
+      setMyOrganization(null);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -357,6 +379,25 @@ export function Navigation() {
                     >
                       Hồ sơ
                     </DropdownMenuItem>
+                    {user.role === USER_ROLES.FUNDRAISER && (
+                      <DropdownMenuItem
+                        onClick={() => router.push("/profile?tab=campaigns")}
+                        className="cursor-pointer text-sm py-3"
+                      >
+                        Chiến dịch của tôi
+                      </DropdownMenuItem>
+                    )}
+                    {myOrganization && (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          const slug = createOrganizationSlug(myOrganization.name, myOrganization.id);
+                          router.push(`/organizations/${slug}`);
+                        }}
+                        className="cursor-pointer text-sm py-3"
+                      >
+                        Tổ chức của tôi
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onClick={() => router.push("/profile?tab=history")}
                       className="cursor-pointer text-sm py-3"
