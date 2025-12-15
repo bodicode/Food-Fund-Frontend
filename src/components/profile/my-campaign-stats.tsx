@@ -6,14 +6,15 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { translateCampaignStatus } from "@/lib/utils/status-utils";
 import type { MyCampaignStats } from "@/types/api/campaign";
 import {
-  BarChart,
-  Bar,
-  CartesianGrid,
-  XAxis,
-  YAxis,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658"];
 
 export function MyCampaignStatsSection() {
   const [stats, setStats] = useState<MyCampaignStats | null>(null);
@@ -50,13 +51,13 @@ export function MyCampaignStatsSection() {
   }
 
   const statusChartData = [
-    { key: translateCampaignStatus("PENDING"), value: stats.byStatus.pending },
-    { key: translateCampaignStatus("APPROVED"), value: stats.byStatus.approved },
-    { key: translateCampaignStatus("ACTIVE"), value: stats.byStatus.active },
-    { key: translateCampaignStatus("PROCESSING"), value: stats.byStatus.processing },
-    { key: translateCampaignStatus("COMPLETED"), value: stats.byStatus.completed },
-    { key: translateCampaignStatus("REJECTED"), value: stats.byStatus.rejected },
-    { key: translateCampaignStatus("CANCELLED"), value: stats.byStatus.cancelled },
+    { name: translateCampaignStatus("PENDING"), value: stats.byStatus.pending },
+    { name: translateCampaignStatus("APPROVED"), value: stats.byStatus.approved },
+    { name: translateCampaignStatus("ACTIVE"), value: stats.byStatus.active },
+    { name: translateCampaignStatus("PROCESSING"), value: stats.byStatus.processing },
+    { name: translateCampaignStatus("COMPLETED"), value: stats.byStatus.completed },
+    { name: translateCampaignStatus("REJECTED"), value: stats.byStatus.rejected },
+    { name: translateCampaignStatus("CANCELLED"), value: stats.byStatus.cancelled },
   ].filter((item) => item.value > 0);
 
   return (
@@ -115,19 +116,35 @@ export function MyCampaignStatsSection() {
       </div>
 
       {statusChartData.length > 0 && (
-        <div className="mt-6 bg-gray-50 rounded-lg p-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">
+        <div className="mt-6 bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+          <p className="text-sm font-medium text-gray-700 mb-3 w-full text-left">
             Phân bố trạng thái chiến dịch
           </p>
-          <div className="h-56">
+          <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={statusChartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="key" tick={{ fontSize: 12 }} />
-                <YAxis allowDecimals={false} />
+              <PieChart>
+                <Pie
+                  data={statusChartData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="65%"
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={(_props) => {
+                    const props = _props as unknown as { percent: number };
+                    return `${(props.percent * 100).toFixed(0)}%`;
+                  }}
+                >
+                  {statusChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
                 <Tooltip />
-                <Bar dataKey="value" name="Số lượng" fill="#ad4e28" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Legend
+                  wrapperStyle={{ paddingTop: "20px" }}
+                  formatter={(value) => <span className="mr-4 md:mr-10 text-sm">{value}</span>}
+                />
+              </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
