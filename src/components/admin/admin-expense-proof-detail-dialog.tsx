@@ -27,7 +27,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle, XCircle, Clock, FileText, Calendar, ExternalLink, PlayCircle, X } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { CheckCircle, XCircle, Clock, FileText, Calendar, ExternalLink, PlayCircle, X, MessageSquare } from "lucide-react";
 
 // Helper functions (place outside component or keep inside if preferred, placing inside to match source)
 const isImage = (url: string) => /\.(jpg|jpeg|png|webp|gif)$/i.test(url);
@@ -149,7 +157,7 @@ export function AdminExpenseProofDetailDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Chi tiết chứng từ chi phí
@@ -169,7 +177,7 @@ export function AdminExpenseProofDetailDialog({
                   <div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Mã yêu cầu</div>
                     <div className="font-semibold text-gray-900 dark:text-white">
-                      {expenseProof.requestId}
+                      {expenseProof.request?.id || expenseProof.requestId}
                     </div>
                   </div>
                 </div>
@@ -207,7 +215,7 @@ export function AdminExpenseProofDetailDialog({
                         }}
                         className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 hover:underline flex items-center gap-2 group"
                       >
-                        {expenseProof.request.campaignPhase.campaign.title}
+                        {expenseProof?.request?.campaignPhase?.campaign?.title}
                         <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                     </div>
@@ -217,7 +225,7 @@ export function AdminExpenseProofDetailDialog({
                           Giai đoạn
                         </div>
                         <div className="text-gray-900 dark:text-white">
-                          {expenseProof.request.campaignPhase.phaseName}
+                          {expenseProof?.request?.campaignPhase?.phaseName}
                         </div>
                       </div>
                       <div>
@@ -225,10 +233,43 @@ export function AdminExpenseProofDetailDialog({
                           Địa điểm
                         </div>
                         <div className="text-gray-900 dark:text-white">
-                          {expenseProof.request.campaignPhase.location}
+                          {expenseProof?.request?.campaignPhase?.location}
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Items List */}
+              {expenseProof.request?.items && expenseProof.request.items.length > 0 && (
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Chi tiết các mục chi tiêu
+                  </div>
+                  <div className="border rounded-md overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tên nguyên liệu</TableHead>
+                          <TableHead>Nhà cung cấp</TableHead>
+                          <TableHead className="text-right">Số lượng</TableHead>
+                          <TableHead className="text-right">Đơn giá</TableHead>
+                          <TableHead className="text-right">Tổng tiền</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {expenseProof.request.items.map((item, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium">{item.ingredientName}</TableCell>
+                            <TableCell>{item.supplier}</TableCell>
+                            <TableCell className="text-right">{item.quantity}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.estimatedUnitPrice)}</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(item.estimatedTotalPrice)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               )}
@@ -311,23 +352,42 @@ export function AdminExpenseProofDetailDialog({
               )}
 
               {/* Admin Note Input */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Ghi chú của quản trị viên
-                </label>
-                <Textarea
-                  value={adminNote}
-                  onChange={(e) => setAdminNote(e.target.value)}
-                  placeholder="Nhập ghi chú (tùy chọn)..."
-                  rows={4}
-                  className="w-full"
-                  disabled={expenseProof.status !== "PENDING"}
-                />
-                {expenseProof.status !== "PENDING" && expenseProof.adminNote && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    Ghi chú hiện tại: {expenseProof.adminNote}
-                  </p>
-                )}
+              {/* Admin Note Section */}
+              <div className="space-y-2">
+                {expenseProof.status === "PENDING" ? (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Ghi chú của quản trị viên (Nhập lý do duyệt hoặc từ chối)
+                    </label>
+                    <Textarea
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      placeholder="Nhập ghi chú..."
+                      rows={4}
+                      className="w-full resize-none focus:ring-2 focus:ring-[#ad4e28] focus:border-transparent"
+                    />
+                  </div>
+                ) : expenseProof.adminNote ? (
+                  <div className="bg-blue-50/80 rounded-xl p-5 border border-blue-100 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                      <MessageSquare className="w-24 h-24 text-blue-600" />
+                    </div>
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="p-2 bg-white rounded-full shadow-sm">
+                          <MessageSquare className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="text-sm font-semibold text-blue-900">
+                          Ghi chú từ quản trị viên
+                        </div>
+                      </div>
+                      <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-blue-100/50 text-blue-900 text-sm leading-relaxed">
+                        {expenseProof.adminNote}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {/* Action Buttons */}
