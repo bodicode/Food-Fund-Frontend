@@ -13,7 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Clock, FileText, Calendar, PlayCircle, X } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { CheckCircle, XCircle, Clock, FileText, Calendar, PlayCircle, X, MessageSquare } from "lucide-react";
 import Image from "next/image";
 
 interface ExpenseProofDetailDialogProps {
@@ -83,7 +91,7 @@ export function ExpenseProofDetailDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Chi tiết chứng từ chi phí
@@ -103,7 +111,7 @@ export function ExpenseProofDetailDialog({
                   <div>
                     <div className="text-sm text-gray-500">Mã yêu cầu</div>
                     <div className="font-semibold text-gray-900">
-                      {expenseProof.requestId}
+                      {expenseProof.request?.id || expenseProof.requestId}
                     </div>
                   </div>
                 </div>
@@ -118,6 +126,39 @@ export function ExpenseProofDetailDialog({
                   {statusConfig[expenseProof.status].label}
                 </Badge>
               </div>
+
+              {/* Items List */}
+              {expenseProof.request?.items && expenseProof.request.items.length > 0 && (
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700">
+                    Chi tiết các mục chi tiêu
+                  </div>
+                  <div className="border rounded-md overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tên nguyên liệu</TableHead>
+                          <TableHead>Nhà cung cấp</TableHead>
+                          <TableHead className="text-right">Số lượng</TableHead>
+                          <TableHead className="text-right">Đơn giá</TableHead>
+                          <TableHead className="text-right">Tổng tiền</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {expenseProof.request.items.map((item, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium">{item.ingredientName}</TableCell>
+                            <TableCell>{item.supplier}</TableCell>
+                            <TableCell className="text-right">{item.quantity}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.estimatedUnitPrice)}</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(item.estimatedTotalPrice)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
 
               {/* Amount */}
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200">
@@ -134,7 +175,7 @@ export function ExpenseProofDetailDialog({
                   <div>
                     <div className="text-sm text-gray-500">Ngày tạo</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {formatDateTime(expenseProof.created_at)}
+                      {formatDateTime(new Date(expenseProof.created_at))}
                     </div>
                   </div>
                 </div>
@@ -144,10 +185,10 @@ export function ExpenseProofDetailDialog({
                     <Calendar className="w-5 h-5 text-gray-600 mt-0.5" />
                     <div>
                       <div className="text-sm text-gray-500">
-                        Ngày thay đổi trạng thái
+                        Thời gian duyệt hóa đơn
                       </div>
                       <div className="text-sm font-medium text-gray-900">
-                        {formatDateTime(expenseProof.changedStatusAt)}
+                        {formatDateTime(new Date(expenseProof.changedStatusAt))}
                       </div>
                     </div>
                   </div>
@@ -198,12 +239,22 @@ export function ExpenseProofDetailDialog({
 
               {/* Admin Note */}
               {expenseProof.adminNote && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="text-sm font-medium text-blue-900 mb-2">
-                    Ghi chú từ quản trị viên
+                <div className="bg-blue-50/80 rounded-xl p-5 border border-blue-100 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <MessageSquare className="w-24 h-24 text-blue-600" />
                   </div>
-                  <div className="text-sm text-blue-800">
-                    {expenseProof.adminNote}
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-2 bg-white rounded-full shadow-sm">
+                        <MessageSquare className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="text-sm font-semibold text-blue-900">
+                        Ghi chú từ quản trị viên
+                      </div>
+                    </div>
+                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-blue-100/50 text-blue-900 text-sm leading-relaxed">
+                      {expenseProof.adminNote}
+                    </div>
                   </div>
                 </div>
               )}

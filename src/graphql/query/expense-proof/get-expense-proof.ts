@@ -4,9 +4,17 @@ export const GET_EXPENSE_PROOF = gql`
   query GetExpenseProof($id: String!) {
     getExpenseProof(id: $id) {
       id
-      requestId
       request {
+        id
+        items {
+          ingredientName
+          quantity
+          estimatedUnitPrice
+          estimatedTotalPrice
+          supplier
+        }
         campaignPhase {
+          id
           phaseName
           location
           campaign {

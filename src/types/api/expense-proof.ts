@@ -4,8 +4,20 @@
 
 export type ExpenseProofStatus = "PENDING" | "APPROVED" | "REJECTED";
 
+
+export interface ExpenseProofItem {
+  ingredientName: string;
+  quantity: number;
+  estimatedUnitPrice: number;
+  estimatedTotalPrice: number;
+  supplier: string;
+}
+
 export interface ExpenseProofRequest {
+  id: string;
+  items: ExpenseProofItem[];
   campaignPhase: {
+    id: string;
     phaseName: string;
     location: string;
     campaign: {
