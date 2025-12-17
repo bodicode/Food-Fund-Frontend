@@ -1,23 +1,29 @@
 "use client";
 
-import { formatCurrency } from "@/lib/utils/currency-utils";
+import { formatCurrency } from "../../lib/utils/currency-utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "../../components/ui/tooltip";
+import { Utensils, Leaf, MapPin, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
+import { formatDate } from "../../lib/utils/date-utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "../../components/ui/badge";
+import { CampaignPhase } from "../../types/api/phase";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
 const COLORS = [
-  "#E77731", // Orange
-  "#4F46E5", // Indigo
-  "#10B981", // Green
-  "#F59E0B", // Amber
-  "#EF4444", // Red
+  "#E77731",
+  "#4F46E5",
+  "#10B981",
+  "#F59E0B",
+  "#EF4444",
 ];
 
 export function BudgetItem({
@@ -111,22 +117,125 @@ function DonutChart({ items }: { items: Array<{ title: string; amount: number; p
   );
 }
 
-interface Phase {
-  id: string;
-  phaseName: string;
-  ingredientBudgetPercentage?: string;
-  cookingBudgetPercentage?: string;
-  deliveryBudgetPercentage?: string;
-  ingredientFundsAmount?: string | null;
-  cookingFundsAmount?: string | null;
-  deliveryFundsAmount?: string | null;
+// Local Phase interface removed in favor of CampaignPhase
+
+function PlanDetails({ phase }: { phase: CampaignPhase }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const hasMeals = phase.plannedMeals && phase.plannedMeals.length > 0;
+  const hasIngredients = phase.plannedIngredients && phase.plannedIngredients.length > 0;
+
+  if (!hasMeals && !hasIngredients) return null;
+
+  return (
+    <div className="mt-6 border-t pt-4">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between text-sm py-2 hover:bg-gray-50 rounded px-2 -mx-2 transition-colors"
+      >
+        <span className="font-semibold text-gray-700 flex items-center gap-2">
+          {isExpanded ? (
+            <>
+              <ChevronUp className="w-4 h-4" /> Thu gọn kế hoạch
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4" /> Xem chi tiết kế hoạch (Món ăn & Nguyên liệu)
+            </>
+          )}
+        </span>
+        {!isExpanded && (
+          <div className="flex gap-3 text-xs text-gray-500">
+            {hasMeals && <span>{phase.plannedMeals?.length} món ăn</span>}
+            {hasIngredients && <span>{phase.plannedIngredients?.length} loại nguyên liệu</span>}
+          </div>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="pt-4 grid md:grid-cols-2 gap-6">
+              {/* Meals Column */}
+              <div>
+                <h5 className="text-sm font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                  <div className="p-1 bg-orange-100 rounded-full">
+                    <Utensils className="w-3.5 h-3.5 text-orange-600" />
+                  </div>
+                  Món ăn ({phase.plannedMeals?.length || 0})
+                </h5>
+                {hasMeals ? (
+                  <ul className="space-y-2">
+                    {phase.plannedMeals?.map((meal, idx) => (
+                      <li key={idx} className="flex items-center justify-between text-sm p-2 rounded bg-orange-50/50 border border-orange-100">
+                        <span className="font-medium text-gray-700">{meal.name}</span>
+                        <Badge variant="secondary" className="bg-white text-orange-700 border-orange-200">
+                          x{meal.quantity}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Chưa có thông tin món ăn</p>
+                )}
+              </div>
+
+              {/* Ingredients Column */}
+              <div>
+                <h5 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
+                  <div className="p-1 bg-green-100 rounded-full">
+                    <Leaf className="w-3.5 h-3.5 text-green-600" />
+                  </div>
+                  Nguyên liệu ({phase.plannedIngredients?.length || 0})
+                </h5>
+                {hasIngredients ? (
+                  <ul className="space-y-2">
+                    {phase.plannedIngredients?.map((ing, idx) => (
+                      <li key={idx} className="flex items-center justify-between text-sm p-2 rounded bg-green-50/50 border border-green-100">
+                        <span className="font-medium text-gray-700 truncate mr-2" title={ing.name}>{ing.name}</span>
+                        <Badge variant="secondary" className="bg-white text-green-700 border-green-200 whitespace-nowrap">
+                          {ing.quantity} {ing.unit}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Chưa có thông tin nguyên liệu</p>
+                )}
+              </div>
+            </div>
+
+            {/* Extra Info */}
+            <div className="flex items-center gap-4 text-xs text-gray-500 mt-4 pt-4 border-t border-dashed">
+              {phase.location && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> {phase.location}
+                </span>
+              )}
+              {phase.cookingDate && (
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="w-3 h-3" /> {formatDate(phase.cookingDate)}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export function BudgetBreakdown({
   phases,
   targetAmount,
 }: {
-  phases?: Phase[];
+  phases?: CampaignPhase[];
   targetAmount?: number;
 }) {
   if (!phases || phases.length === 0 || !targetAmount) return null;
@@ -278,6 +387,9 @@ export function BudgetBreakdown({
                   )}
                 </div>
               </div>
+
+              {/* Integrated Plan Details */}
+              <PlanDetails phase={phase} />
             </div>
           );
         })}

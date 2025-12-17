@@ -3,19 +3,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/store";
-import { restoreSession } from "@/store/slices/auth-slice";
+import { RootState } from "../../../../../store";
+import { restoreSession } from "../../../../../store/slices/auth-slice";
 import Image from "next/image";
 
-import { campaignService } from "@/services/campaign.service";
-import { phaseService } from "@/services/phase.service";
-import { Campaign } from "@/types/api/campaign";
-import { Loader } from "@/components/animate-ui/icons/loader";
+import { campaignService } from "../../../../../services/campaign.service";
+import { phaseService } from "../../../../../services/phase.service";
+import { Campaign } from "../../../../../types/api/campaign";
+import { Loader } from "../../../../../components/animate-ui/icons/loader";
 
-import { statusConfig } from "@/lib/translator";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { statusConfig } from "../../../../../lib/translator";
+import { Badge } from "../../../../../components/ui/badge";
+import { Button } from "../../../../../components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../../components/ui/tabs";
 import {
   MapPin,
   Users,
@@ -33,39 +33,39 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "../../../../../components/ui/tooltip";
 
-import { ProgressBar } from "@/components/campaign/progress-bar";
-import { Stat } from "@/components/campaign/stat";
-import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
-import { Timeline } from "@/components/campaign/timeline";
-import { ActionPanel } from "@/components/campaign/action-panel";
-import { DeleteCampaignDialog } from "@/components/campaign/delete-campaign-dialog";
+import { ProgressBar } from "../../../../../components/campaign/progress-bar";
+import { Stat } from "../../../../../components/campaign/stat";
+import { BudgetBreakdown } from "../../../../../components/campaign/budget-breakdown";
+import { Timeline } from "../../../../../components/campaign/timeline";
+import { ActionPanel } from "../../../../../components/campaign/action-panel";
+import { DeleteCampaignDialog } from "../../../../../components/campaign/delete-campaign-dialog";
 import { toast } from "sonner";
 import {
   calcDaysLeft,
   calcProgress,
   coverSrc,
   toNumber,
-} from "@/lib/utils/utils";
-import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
-import { CampaignPosts } from "@/components/campaign/campaign-posts";
-import { CreatePostDialog } from "@/components/campaign/create-post-dialog";
-import { DonationList } from "@/components/campaign/donation-list";
-import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
+} from "../../../../../lib/utils/utils";
+import { formatCurrency } from "../../../../../lib/utils/currency-utils";
+import { formatDate, formatDateTime } from "../../../../../lib/utils/date-utils";
+import { CampaignPosts } from "../../../../../components/campaign/campaign-posts";
+import { CreatePostDialog } from "../../../../../components/campaign/create-post-dialog";
+import { DonationList } from "../../../../../components/campaign/donation-list";
+import { ExpenseProofList } from "../../../../../components/campaign/expense-proof-list";
 import { Info, Plus } from "lucide-react";
-import { CreateOperationRequestDialog } from "@/components/campaign/create-operation-request-dialog";
-import { CreateIngredientRequestDialog } from "@/components/campaign/create-ingredient-request-dialog";
-import { OperationRequestList } from "@/components/campaign/operation-request-list";
-import { IngredientRequestList } from "@/components/campaign/ingredient-request-list";
-import { MealBatchList } from "@/components/campaign/meal-batch-list";
-import { ShareDialog } from "@/components/campaign/share-dialog";
-import { ExtendCampaignDialog } from "@/components/campaign/extend-campaign-dialog";
-import { getCampaignIdFromSlug, createCampaignSlug } from "@/lib/utils/slug-utils";
-import { DeliveryTaskAssignmentTab } from "@/components/campaign/delivery-task-assignment-tab";
-import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
-import { CampaignPlanSummary } from "@/components/campaign/campaign-plan-summary";
+import { CreateOperationRequestDialog } from "../../../../../components/campaign/create-operation-request-dialog";
+import { CreateIngredientRequestDialog } from "../../../../../components/campaign/create-ingredient-request-dialog";
+import { OperationRequestList } from "../../../../../components/campaign/operation-request-list";
+import { IngredientRequestList } from "../../../../../components/campaign/ingredient-request-list";
+import { MealBatchList } from "../../../../../components/campaign/meal-batch-list";
+import { ShareDialog } from "../../../../../components/campaign/share-dialog";
+import { ExtendCampaignDialog } from "../../../../../components/campaign/extend-campaign-dialog";
+import { getCampaignIdFromSlug, createCampaignSlug } from "../../../../../lib/utils/slug-utils";
+import { DeliveryTaskAssignmentTab } from "../../../../../components/campaign/delivery-task-assignment-tab";
+import { DeliveryTasksTab } from "../../../../../components/campaign/tabs/delivery-tasks-tab";
+import { CampaignPlanSummary } from "../../../../../components/campaign/campaign-plan-summary";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -512,9 +512,9 @@ export default function MyCampaignDetailPage() {
             )}
 
             {/* Campaign Plan Summary */}
-            {campaign.phases && campaign.phases.length > 0 && (
+            {/* {campaign.phases && campaign.phases.length > 0 && (
               <CampaignPlanSummary phases={campaign.phases} />
-            )}
+            )} */}
           </div>
 
           <aside className="space-y-6 sticky top-28 h-fit self-start">
