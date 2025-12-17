@@ -5,24 +5,24 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { CampaignCard } from "@/components/shared/campaign-card";
-import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { SearchIcon } from "@/components/animate-ui/icons/search";
-import { RotateCw } from "@/components/animate-ui/icons/rotate-cw";
+import { CampaignCard } from "../shared/campaign-card";
+import { Button } from "../ui/button";
+import { Loader } from "../animate-ui/icons/loader";
+import { SearchIcon } from "../animate-ui/icons/search";
+import { RotateCw } from "../animate-ui/icons/rotate-cw";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 
-import { campaignService } from "@/services/campaign.service";
-import { categoryService } from "@/services/category.service";
-import { CategoryStats } from "@/types/api/category";
-import type { Campaign, CampaignStatus, SearchCampaignInput } from "@/types/api/campaign";
-import { titleToSlug } from "@/lib/utils/slug-utils";
+import { campaignService } from "../../services/campaign.service";
+import { categoryService } from "../../services/category.service";
+import { CategoryStats } from "../../types/api/category";
+import type { Campaign, CampaignStatus, SearchCampaignInput } from "../../types/api/campaign";
+import { titleToSlug } from "../../lib/utils/slug-utils";
 
 gsap.registerPlugin(ScrollTrigger);
 

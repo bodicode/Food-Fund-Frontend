@@ -20,16 +20,10 @@ export const SEARCH_CAMPAIGNS = gql`
           full_name
         }
         category {
-          id
           title
         }
         phases {
-          id
-          phaseName
           location
-          ingredientPurchaseDate
-          cookingDate
-          deliveryDate
         }
       }
       limit
