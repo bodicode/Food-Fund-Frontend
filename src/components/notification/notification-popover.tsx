@@ -2,19 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { RootState } from "../../store";
 import { Bell, Trash2, CheckCheck, Loader } from "lucide-react";
-import { notificationService } from "@/services/notification.service";
-import { Notification } from "@/types/api/notification";
+import { notificationService } from "../../services/notification.service";
+import { Notification } from "../../types/api/notification";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils/date-utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { formatDate } from "../../lib/utils/date-utils";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 
 export function NotificationPopover() {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -23,16 +23,45 @@ export function NotificationPopover() {
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const loadNotifications = async () => {
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Initial load
+  useEffect(() => {
+    if (user && isOpen) {
+      loadNotifications(true);
+    }
+  }, [isOpen, user]);
+
+  const loadNotifications = async (isInitial = false) => {
     try {
-      setLoading(true);
-      const data = await notificationService.getMyNotifications(20);
-      setNotifications(data.notifications);
+      if (isInitial) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const currentCursor = isInitial ? undefined : (cursor || undefined);
+      const data = await notificationService.getMyNotifications(20, currentCursor);
+
+      if (isInitial) {
+        setNotifications(data.notifications);
+      } else {
+        setNotifications((prev) => [...prev, ...data.notifications]);
+      }
+
+      setHasMore(data.hasMore);
+      setCursor(data.nextCursor);
     } catch (error) {
       console.error(error);
       toast.error("Không thể tải thông báo");
     } finally {
-      setLoading(false);
+      if (isInitial) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -54,24 +83,24 @@ export function NotificationPopover() {
     return () => clearInterval(interval);
   }, [user]);
 
-  useEffect(() => {
-    // Only load notifications if user is logged in and dialog is open
-    if (!user || !isOpen) return;
-    
-    loadNotifications();
-  }, [isOpen, user]);
-
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = async (silent = false) => {
     try {
       await notificationService.markAllAsRead();
       setUnreadCount(0);
-      setNotifications(
-        notifications.map((n) => ({ ...n, isRead: true }))
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, isRead: true }))
       );
-      toast.success("Đã đánh dấu tất cả là đã đọc");
+      if (!silent) toast.success("Đã đánh dấu tất cả là đã đọc");
     } catch {
-      toast.error("Lỗi khi đánh dấu");
+      if (!silent) toast.error("Lỗi khi đánh dấu");
     }
+  };
+
+  const onOpenChange = (open: boolean) => {
+    if (open && unreadCount > 0) {
+      handleMarkAllAsRead(true);
+    }
+    setIsOpen(open);
   };
 
   const handleDeleteNotification = async (notificationId: string) => {
@@ -90,7 +119,7 @@ export function NotificationPopover() {
   }
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
+    <DropdownMenu open={isOpen} onOpenChange={onOpenChange} modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -107,7 +136,11 @@ export function NotificationPopover() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-96 p-0 max-h-96 overflow-hidden flex flex-col" align="end">
+      <DropdownMenuContent
+        className="w-96 p-0 max-h-[600px] overflow-hidden flex flex-col"
+        align="end"
+        onWheel={(e: React.WheelEvent<HTMLDivElement>) => e.stopPropagation()}
+      >
         <div className="px-4 py-3 border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Thông báo</h3>
@@ -115,7 +148,7 @@ export function NotificationPopover() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleMarkAllAsRead}
+                onClick={() => handleMarkAllAsRead(false)}
                 className="text-xs text-blue-600 hover:text-blue-700 h-auto p-1"
               >
                 <CheckCheck className="w-3 h-3 mr-1" />
@@ -125,7 +158,7 @@ export function NotificationPopover() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto max-h-80">
+        <div className="flex-1 overflow-y-auto min-h-0 overscroll-contain">
           {loading ? (
             <div className="flex items-center justify-center h-full py-8">
               <Loader className="w-5 h-5 animate-spin text-gray-400" />
@@ -139,9 +172,8 @@ export function NotificationPopover() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    !notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
-                  }`}
+                  className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${!notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -149,8 +181,8 @@ export function NotificationPopover() {
                         {typeof notification.data === "object" && notification.data?.message
                           ? notification.data.message
                           : typeof notification.data === "string"
-                          ? notification.data
-                          : JSON.stringify(notification.data)}
+                            ? notification.data
+                            : JSON.stringify(notification.data)}
                       </p>
                       {typeof notification.data === "object" && notification.data?.postTitle && (
                         <p className="text-xs text-gray-500 mt-1 italic">
@@ -183,14 +215,23 @@ export function NotificationPopover() {
           )}
         </div>
 
-        {notifications.length > 0 && (
+        {hasMore && (
           <div className="px-4 py-2 border-t text-center flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs text-gray-600 hover:text-gray-900 h-auto p-1"
+              onClick={() => loadNotifications(false)}
+              disabled={loadingMore}
+              className="text-xs text-gray-600 hover:text-gray-900 h-auto p-1 w-full"
             >
-              Xem tất cả thông báo
+              {loadingMore ? (
+                <>
+                  <Loader className="w-3 h-3 mr-2 animate-spin" />
+                  Đang tải...
+                </>
+              ) : (
+                "Xem tất cả thông báo"
+              )}
             </Button>
           </div>
         )}

@@ -3,17 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { createCampaignSlug } from "@/lib/utils/slug-utils";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { createCampaignSlug } from "../../../lib/utils/slug-utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../components/ui/select";
 import {
   Users,
   Target,
@@ -39,22 +39,22 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { formatCurrency } from "@/lib/utils/currency-utils";
-import { translateCampaignStatus, getStatusColorClass } from "@/lib/utils/status-utils";
-import { campaignService } from "@/services/campaign.service";
-import { walletService, PlatformWalletStats, FundraiserWallet } from "@/services/wallet.service";
-import { expenseProofService } from "@/services/expense-proof.service";
-import { operationRequestService } from "@/services/operation-request.service";
-import { coverSrc } from "@/lib/utils/utils";
+import { formatCurrency } from "../../../lib/utils/currency-utils";
+import { translateCampaignStatus, getStatusColorClass } from "../../../lib/utils/status-utils";
+import { campaignService } from "../../../services/campaign.service";
+import { walletService, PlatformWalletStats, FundraiserWallet } from "../../../services/wallet.service";
+import { expenseProofService } from "../../../services/expense-proof.service";
+import { operationRequestService } from "../../../services/operation-request.service";
+import { coverSrc } from "../../../lib/utils/utils";
 import type {
   CampaignStatsFilterInput,
   PlatformCampaignStats,
   Campaign,
-} from "@/types/api/campaign";
-import type { ExpenseProofStats } from "@/types/api/expense-proof";
-import type { OperationRequestStats } from "@/types/api/operation-request";
-import { AdminTransactionDialog } from "@/components/admin/admin-transaction-dialog";
-import { FinancialComparisonChart } from "@/components/admin/financial-comparison-chart";
+} from "../../../types/api/campaign";
+import type { ExpenseProofStats } from "../../../types/api/expense-proof";
+import type { OperationRequestStats } from "../../../types/api/operation-request";
+import { AdminTransactionDialog } from "../../../components/admin/admin-transaction-dialog";
+import { FinancialComparisonChart } from "../../../components/admin/financial-comparison-chart";
 
 type DateRange = "24h" | "7d" | "30d" | "90d" | "1y" | "all";
 
