@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { BarChart3, RefreshCw } from "lucide-react";
 import {
     LineChart,
@@ -12,7 +12,7 @@ import {
     ResponsiveContainer,
     Legend,
 } from "recharts";
-import { formatCurrency } from "@/lib/utils/currency-utils";
+import { formatCurrency } from "../../lib/utils/currency-utils";
 
 interface CategoryFinancialDataItem {
     name: string;
@@ -76,24 +76,9 @@ export function FinancialComparisonChart({ data, loading }: FinancialComparisonC
                                             return `${num}`;
                                         }}
                                     />
-                                    <YAxis
-                                        yAxisId="right"
-                                        orientation="right"
-                                        tick={{ fontSize: 10 }}
-                                        tickFormatter={(value) => {
-                                            const num = value as number;
-                                            if (num >= 1_000_000) {
-                                                return `${(num / 1_000_000).toFixed(0)}tr`;
-                                            } else if (num >= 1_000) {
-                                                return `${(num / 1_000).toFixed(0)}k`;
-                                            }
-                                            return `${num}`;
-                                        }}
-                                    />
                                     <Tooltip
-                                        formatter={(value: number, name: string) => {
-                                            const label = name === "amount" ? "Tổng tiền" : "TB/chiến dịch";
-                                            return [formatCurrency(value), label];
+                                        formatter={(value: number) => {
+                                            return [formatCurrency(value), "Tổng tiền"];
                                         }}
                                         contentStyle={{
                                             backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -110,27 +95,13 @@ export function FinancialComparisonChart({ data, loading }: FinancialComparisonC
                                         strokeWidth={3}
                                         dot={{ fill: "#6366f1", strokeWidth: 2, r: 4 }}
                                         activeDot={{ r: 6, fill: "#6366f1" }}
-                                        name="amount"
-                                    />
-                                    <Line
-                                        yAxisId="right"
-                                        type="monotone"
-                                        dataKey="avgPerCampaign"
-                                        stroke="#f59e0b"
-                                        strokeWidth={3}
-                                        dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
-                                        activeDot={{ r: 6, fill: "#f59e0b" }}
-                                        name="avgPerCampaign"
+                                        name="Tổng tiền gây quỹ"
                                     />
                                     <Legend
                                         verticalAlign="top"
                                         height={36}
                                         formatter={(value) => {
-                                            const labels: Record<string, string> = {
-                                                amount: "Tổng tiền gây quỹ",
-                                                avgPerCampaign: "TB mỗi chiến dịch"
-                                            };
-                                            return <span className="text-xs text-gray-600">{labels[value] || value}</span>;
+                                            return <span className="text-xs text-gray-600">{value}</span>;
                                         }}
                                     />
                                 </LineChart>

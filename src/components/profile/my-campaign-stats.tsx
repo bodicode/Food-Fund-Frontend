@@ -97,91 +97,112 @@ export function MyCampaignStatsSection() {
   ].filter((item) => item.value > 0);
 
   return (
-    <div className="space-y-6 mb-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold text-[#ad4e28] hidden md:block">
-          Thống kê chiến dịch
-        </h3>
-        <p className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+    <div className="space-y-8 mb-10 animate-in fade-in duration-700">
+      <div className="flex items-center justify-between border-b pb-4">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Thống kê chiến dịch
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Tổng quan hiệu quả hoạt động gây quỹ của bạn trong năm 2025
+          </p>
+        </div>
+        <div className="bg-orange-50 text-[#ad4e28] px-4 py-1.5 rounded-full text-sm font-semibold border border-orange-100 shadow-sm">
           Năm 2025
-        </p>
+        </div>
       </div>
 
       {/* Key Metrics Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="overflow-hidden border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-br from-blue-50 to-transparent">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Tổng quan
-            </CardTitle>
-            <Layers className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-gray-900">
-              {stats.overview.totalCampaigns}
-            </div>
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <span className="text-emerald-600 font-medium bg-emerald-50 px-1.5 rounded">
-                {stats.overview.activeCampaigns} đang chạy
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Total Campaigns */}
+        <Card className="overflow-hidden border-none shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-blue-50 rounded-2xl">
+                <Layers className="h-6 w-6 text-blue-600" />
+              </div>
+              <span className="text-xs font-medium px-2.5 py-1 bg-gray-100 rounded-full text-gray-600">
+                Tổng quan
               </span>
-              <span className="text-gray-300">|</span>
-              <span className="text-blue-600 font-medium bg-blue-50 px-1.5 rounded">
-                {stats.overview.completedCampaigns} xong
-              </span>
-            </p>
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-3xl font-bold text-gray-900">
+                {stats.overview.totalCampaigns}
+              </h4>
+              <p className="text-sm text-gray-500 font-medium">Chiến dịch đã tạo</p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-dashed border-gray-100 flex flex-col gap-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                <span className="text-gray-600"><span className="font-semibold text-gray-900">{stats.overview.activeCampaigns}</span> đang chạy</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-gray-600"><span className="font-semibold text-gray-900">{stats.overview.completedCampaigns}</span> hoàn thành</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-br from-emerald-50 to-transparent">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Tổng quỹ nhận được
-            </CardTitle>
-            <Wallet className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-emerald-700">
-              {Number(stats.financial.totalReceivedAmount).toLocaleString("vi-VN")}{" "}
-              <span className="text-sm font-normal text-emerald-600">đ</span>
+        {/* Total Raised */}
+        <Card className="overflow-hidden border-none shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-emerald-50 rounded-2xl">
+                <Wallet className="h-6 w-6 text-emerald-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Mục tiêu: {Number(stats.financial.totalTargetAmount).toLocaleString("vi-VN")} đ
-            </p>
+            <div className="space-y-1">
+              <h4 className="text-3xl font-bold text-emerald-700">
+                {Number(stats.financial.totalReceivedAmount).toLocaleString("vi-VN")}
+                <span className="text-xl text-emerald-600 align-top ml-1">đ</span>
+              </h4>
+              <p className="text-sm text-gray-500 font-medium">Tổng quỹ nhận được</p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-dashed border-gray-100 text-xs text-gray-500">
+              Mục tiêu: <span className="font-semibold text-gray-900">{Number(stats.financial.totalTargetAmount).toLocaleString("vi-VN")} đ</span>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-br from-orange-50 to-transparent">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Hiệu quả gây quỹ
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-gray-900">
-              {stats.financial.fundingRate.toFixed(1)}%
+        {/* Funding Rate */}
+        <Card className="overflow-hidden border-none shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-orange-50 rounded-2xl">
+                <TrendingUp className="h-6 w-6 text-orange-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats.financial.totalDonations} lượt ủng hộ
-            </p>
+            <div className="space-y-1">
+              <h4 className="text-3xl font-bold text-gray-900">
+                {stats.financial.fundingRate.toFixed(1)}%
+              </h4>
+              <p className="text-sm text-gray-500 font-medium">Hiệu quả gây quỹ</p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-dashed border-gray-100 text-xs text-gray-500">
+              <span className="font-semibold text-gray-900">{stats.financial.totalDonations}</span> lượt ủng hộ từ cộng đồng
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-l-4 border-l-purple-500 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-br from-purple-50 to-transparent">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Tỉ lệ thành công
-            </CardTitle>
-            <Target className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-gray-900">
-              {Math.round(stats.performance.successRate * 100)}%
+        {/* Success Rate */}
+        <Card className="overflow-hidden border-none shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-purple-50 rounded-2xl">
+                <Target className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              TB {Math.round(stats.performance.averageDurationDays)} ngày/chiến dịch
-            </p>
+            <div className="space-y-1">
+              <h4 className="text-3xl font-bold text-gray-900">
+                {Math.round(stats.performance.successRate * 100)}%
+              </h4>
+              <p className="text-sm text-gray-500 font-medium">Tỉ lệ thành công</p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-dashed border-gray-100 flex items-center gap-1.5 text-xs text-gray-500">
+              <Clock className="w-3.5 h-3.5" />
+              TB <span className="font-semibold text-gray-900">{Math.round(stats.performance.averageDurationDays)}</span> ngày/chiến dịch
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -189,23 +210,23 @@ export function MyCampaignStatsSection() {
       <div className="grid gap-6 md:grid-cols-7">
         {/* Chart Section */}
         {statusChartData.length > 0 && (
-          <Card className="md:col-span-4 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <PieChartIcon className="w-4 h-4 text-gray-500" />
+          <Card className="md:col-span-4 border-none shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <CardHeader className="pb-0">
+              <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5 text-gray-500" />
                 Phân bố trạng thái
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full">
+              <div className="h-[300px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={statusChartData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={65}
+                      outerRadius={85}
                       paddingAngle={5}
                       dataKey="value"
                       label={(_props) => {
@@ -222,14 +243,20 @@ export function MyCampaignStatsSection() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      itemStyle={{ color: '#374151', fontSize: '14px' }}
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: 'none',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        padding: '12px'
+                      }}
+                      itemStyle={{ color: '#374151', fontSize: '14px', fontWeight: 500 }}
                     />
                     <Legend
                       verticalAlign="bottom"
                       height={36}
                       iconType="circle"
-                      formatter={(value) => <span className="text-sm text-gray-600 ml-1">{value}</span>}
+                      iconSize={8}
+                      formatter={(value) => <span className="text-sm font-medium text-gray-600 ml-1 mr-4">{value}</span>}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -240,38 +267,52 @@ export function MyCampaignStatsSection() {
 
         {/* Highlight Section - Most Funded */}
         <div className={statusChartData.length > 0 ? "md:col-span-3" : "md:col-span-7"}>
-          <Card className="h-full shadow-sm flex flex-col bg-gradient-to-br from-yellow-50 via-white to-white border-yellow-200">
-            <CardHeader>
-              <CardTitle className="text-base font-medium flex items-center gap-2 text-yellow-700">
-                <Award className="w-5 h-5" />
-                Chiến dịch nổi bật nhất
+          <Card className="h-full border-none shadow-[0_2px_10px_rgba(0,0,0,0.05)] relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] to-white group hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Award className="w-32 h-32 text-yellow-600" />
+            </div>
+
+            <CardHeader className="relative">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold w-fit mb-2">
+                <Award className="w-3.5 h-3.5" />
+                Nổi bật nhất
+              </div>
+              <CardTitle className="text-lg font-bold text-gray-900">
+                Chiến dịch hàng đầu
               </CardTitle>
               <CardDescription>
-                Chiến dịch gây quỹ được nhiều nhất
+                Chiến dịch nhận được nhiều sự ủng hộ nhất
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center">
+
+            <CardContent className="relative flex-1 flex flex-col justify-center items-center text-center p-6 pt-2">
               {stats.performance.mostFundedCampaign ? (
-                <div className="text-center p-6 bg-white rounded-xl border border-yellow-100 shadow-sm mx-auto w-full">
-                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600">
-                    <TrendingUp className="w-8 h-8" />
+                <div className="w-full">
+                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-200 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-4 ring-white">
+                    <TrendingUp className="w-10 h-10 text-yellow-700" />
                   </div>
-                  <h4 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2">
-                    <Link
-                      href={`/profile/my-campaign/${createCampaignSlug(
-                        stats.performance.mostFundedCampaign.title,
-                        stats.performance.mostFundedCampaign.id
-                      )}`}
-                      target="_blank"
-                      className="hover:underline"
-                    >
+
+                  <Link
+                    href={`/profile/my-campaign/${createCampaignSlug(
+                      stats.performance.mostFundedCampaign.title,
+                      stats.performance.mostFundedCampaign.id
+                    )}`}
+                    target="_blank"
+                    className="block group-hover:scale-105 transition-transform duration-300"
+                  >
+                    <h4 className="font-bold text-gray-900 text-xl mb-3 line-clamp-2 hover:text-yellow-700 transition-colors">
                       {stats.performance.mostFundedCampaign.title}
-                    </Link>
-                  </h4>
+                    </h4>
+                  </Link>
+                  <div className="inline-block px-4 py-1.5 bg-white rounded-lg border border-yellow-100 text-xs text-gray-500 font-mono shadow-sm">
+                    ID: {stats.performance.mostFundedCampaign.id.split('-')[0]}...
+                  </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
-                  <p>Chưa có dữ liệu chiến dịch nổi bật</p>
+                <div className="text-gray-400 py-10">
+                  <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <p>Chưa có dữ liệu thống kê</p>
                 </div>
               )}
             </CardContent>
