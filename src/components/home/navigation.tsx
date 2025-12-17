@@ -7,47 +7,47 @@ import gsap from "gsap";
 
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { Button } from "@/components/ui/button";
-import { NotificationPopover } from "@/components/notification/notification-popover";
+import { Button } from "../ui/button";
+import { NotificationPopover } from "../notification/notification-popover";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+} from "../ui/dialog";
+import { Input } from "../ui/input";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "../ui/sheet";
 
-import { Search } from "@/components/animate-ui/icons/search";
-import { MegaMenu } from "@/components/home/mega-menu";
-import { MobileMegaMenu } from "@/components/home/mobile-mega-menu";
-import { HeartIcon } from "@/components/animate-ui/icons/heart";
-import { MessageCircleHeart } from "@/components/animate-ui/icons/message-circle-heart";
-import { UsersRound } from "@/components/animate-ui/icons/users-round";
-import { Ellipsis } from "@/components/animate-ui/icons/ellipsis";
+import { Search } from "../animate-ui/icons/search";
+import { MegaMenu } from "./mega-menu";
+import { MobileMegaMenu } from "./mobile-mega-menu";
+import { HeartIcon } from "../animate-ui/icons/heart";
+import { MessageCircleHeart } from "../animate-ui/icons/message-circle-heart";
+import { UsersRound } from "../animate-ui/icons/users-round";
+import { Ellipsis } from "../animate-ui/icons/ellipsis";
 import { usePathname, useRouter } from "next/navigation";
-import { useGsapNavigation } from "@/hooks/useGsapNavigation";
+import { useGsapNavigation } from "../../hooks/useGsapNavigation";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { RootState } from "../../store";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import { toast } from "sonner";
-import { logout, updateUser } from "@/store/slices/auth-slice";
-import { USER_ROLES } from "@/constants";
-import { userService } from "@/services/user.service";
-import { organizationService } from "@/services/organization.service";
-import { createOrganizationSlug } from "@/lib/utils/slug-utils";
-import { Organization } from "@/types/api/organization";
+import { logout, updateUser } from "../../store/slices/auth-slice";
+import { USER_ROLES } from "../../constants";
+import { userService } from "../../services/user.service";
+import { organizationService } from "../../services/organization.service";
+import { createOrganizationSlug } from "../../lib/utils/slug-utils";
+import { Organization } from "../../types/api/organization";
 import { useState } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -454,24 +454,19 @@ export function Navigation() {
                         heading: "Danh mục chiến dịch",
                         items: [
                           {
-                            title: "Chiến dịch nổi bật",
-                            desc: "Các chiến dịch được cộng đồng quan tâm",
+                            title: "Các loại chiến dịch",
+                            desc: "Khám phá các loại chiến dịch",
                             href: "/discovery",
                           },
                           {
-                            title: "Khẩn cấp",
-                            desc: "Các trường hợp cần cứu trợ khẩn cấp",
+                            title: "Sắp hết hạn",
+                            desc: "Các chiến dịch còn dưới 7 ngày",
                             href: "/emergency",
                           },
                           {
-                            title: "Hỗ trợ cá nhân",
-                            desc: "Giúp đỡ người bệnh, trẻ em, người già...",
-                            href: "/donate/personal",
-                          },
-                          {
-                            title: "Tổ chức xã hội",
-                            desc: "Gây quỹ cho nhóm thiện nguyện, tổ chức phi lợi nhuận",
-                            href: "/donate/organizations",
+                            title: "Các tổ chức nổi bật",
+                            desc: "Các tổ chức từ thiện đang hoạt động gây quỹ",
+                            href: "/organizations",
                           },
                         ],
                       },
@@ -486,7 +481,7 @@ export function Navigation() {
                           {
                             title: "Hành trình yêu thương",
                             desc: "Câu chuyện thực tế từ người nhận hỗ trợ",
-                            href: "/donate/stories",
+                            href: "/journey",
                           },
                         ],
                       },
@@ -597,11 +592,46 @@ export function Navigation() {
                       <p className="px-2 text-sm font-semibold text-gray-700">
                         Xin chào, {user.name}
                       </p>
-                      {user.role == USER_ROLES.ADMIN ? (
-                        <Link href="/admin/users">Dashboard</Link>
-                      ) : (
-                        ""
+                      {user.role === USER_ROLES.ADMIN && (
+                        <Link
+                          href="/admin"
+                          className="block rounded-md px-2 py-2 text-sm hover:bg-accent text-gray-600"
+                        >
+                          Dashboard
+                        </Link>
                       )}
+
+                      <Link
+                        href="/profile"
+                        className="block rounded-md px-2 py-2 text-sm hover:bg-accent text-gray-600"
+                      >
+                        Hồ sơ cá nhân
+                      </Link>
+
+                      {user.role === USER_ROLES.FUNDRAISER && (
+                        <Link
+                          href="/profile?tab=campaigns"
+                          className="block rounded-md px-2 py-2 text-sm hover:bg-accent text-gray-600"
+                        >
+                          Chiến dịch của tôi
+                        </Link>
+                      )}
+
+                      {myOrganization && (
+                        <Link
+                          href={`/organizations/${createOrganizationSlug(myOrganization.name, myOrganization.id)}`}
+                          className="block rounded-md px-2 py-2 text-sm hover:bg-accent text-gray-600"
+                        >
+                          Tổ chức của tôi
+                        </Link>
+                      )}
+
+                      <Link
+                        href="/profile?tab=history"
+                        className="block rounded-md px-2 py-2 text-sm hover:bg-accent text-gray-600"
+                      >
+                        Lịch sử ủng hộ
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="cursor-pointer w-full text-left block rounded-md px-2 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
