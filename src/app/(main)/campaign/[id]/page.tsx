@@ -3,20 +3,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/store";
-import { restoreSession } from "@/store/slices/auth-slice";
+import { RootState } from "../../../../store";
+import { restoreSession } from "../../../../store/slices/auth-slice";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-import { campaignService } from "@/services/campaign.service";
-import { Campaign } from "@/types/api/campaign";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { CampaignPhase } from "@/types/api/phase";
-import { getCampaignIdFromSlug, createCampaignSlug, titleToSlug } from "@/lib/utils/slug-utils";
+import { campaignService } from "../../../../services/campaign.service";
+import { Campaign } from "../../../../types/api/campaign";
+import { Loader } from "../../../../components/animate-ui/icons/loader";
+import { CampaignPhase } from "../../../../types/api/phase";
+import { getCampaignIdFromSlug, createCampaignSlug, titleToSlug } from "../../../../lib/utils/slug-utils";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "../../../../components/ui/badge";
+import { Button } from "../../../../components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../components/ui/tabs";
 import {
   MapPin,
   Users,
@@ -29,28 +29,28 @@ import {
   Leaf,
 } from "lucide-react";
 
-import { ProgressBar } from "@/components/campaign/progress-bar";
-import { BudgetBreakdown } from "@/components/campaign/budget-breakdown";
-import { Timeline } from "@/components/campaign/timeline";
-import { ActionPanel } from "@/components/campaign/action-panel";
-import { coverSrc, toNumber } from "@/lib/utils/utils";
-import { Stat } from "@/components/campaign/stat";
-import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
-import { CampaignPosts } from "@/components/campaign/campaign-posts";
-import { DonationList } from "@/components/campaign/donation-list";
-import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
-import { MealBatchList } from "@/components/campaign/meal-batch-list";
-import { DisbursementList } from "@/components/campaign/disbursement-list";
-import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
+import { ProgressBar } from "../../../../components/campaign/progress-bar";
+import { BudgetBreakdown } from "../../../../components/campaign/budget-breakdown";
+import { Timeline } from "../../../../components/campaign/timeline";
+import { ActionPanel } from "../../../../components/campaign/action-panel";
+import { coverSrc, toNumber } from "../../../../lib/utils/utils";
+import { Stat } from "../../../../components/campaign/stat";
+import { formatCurrency } from "../../../../lib/utils/currency-utils";
+import { formatDate, formatDateTime } from "../../../../lib/utils/date-utils";
+import { CampaignPosts } from "../../../../components/campaign/campaign-posts";
+import { DonationList } from "../../../../components/campaign/donation-list";
+import { ExpenseProofList } from "../../../../components/campaign/expense-proof-list";
+import { MealBatchList } from "../../../../components/campaign/meal-batch-list";
+import { DisbursementList } from "../../../../components/campaign/disbursement-list";
+import { DeliveryTasksTab } from "../../../../components/campaign/tabs/delivery-tasks-tab";
 
-import { ShareDialog } from "@/components/campaign/share-dialog";
-import { CampaignPlanSummary } from "@/components/campaign/campaign-plan-summary";
+import { ShareDialog } from "../../../../components/campaign/share-dialog";
+import { CampaignPlanSummary } from "../../../../components/campaign/campaign-plan-summary";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import { CampaignCard } from "@/components/shared/campaign-card";
+import { CampaignCard } from "../../../../components/shared/campaign-card";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -100,7 +100,7 @@ export default function CampaignDetailPage() {
         if (searchResult && searchResult.items.length > 0) {
           // Find the best match by comparing slugs
           // We re-slugify the titles of the results to see if they match the requested slug
-          const match = searchResult.items.find(item => {
+          const match = searchResult.items.find((item: Campaign) => {
             const itemSlug = titleToSlug(item.title);
             return itemSlug === idOrSlug;
           });
@@ -139,7 +139,7 @@ export default function CampaignDetailPage() {
 
           if (result && result.items) {
             // Filter out current campaign
-            const filtered = result.items.filter(c => c.id !== campaign.id);
+            const filtered = result.items.filter((c: Campaign) => c.id !== campaign.id);
             setRelatedCampaigns(filtered);
           }
         } catch (error) {
@@ -471,9 +471,9 @@ export default function CampaignDetailPage() {
             )}
 
             {/* Campaign Plan Summary */}
-            {campaign.phases && campaign.phases.length > 0 && (
+            {/* {campaign.phases && campaign.phases.length > 0 && (
               <CampaignPlanSummary phases={campaign.phases} />
-            )}
+            )} */}
 
           </div>
 

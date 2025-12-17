@@ -1,11 +1,11 @@
 "use client";
 
-import { CampaignPhase } from "@/types/api/phase";
+import { CampaignPhase } from "../../types/api/phase";
 import { Utensils, Leaf, MapPin, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
-import { formatDate } from "@/lib/utils/date-utils";
+import { formatDate } from "../../lib/utils/date-utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "../../components/ui/badge";
 
 interface CampaignPlanSummaryProps {
     phases: CampaignPhase[];

@@ -305,9 +305,6 @@ export function MyCampaignStatsSection() {
                       {stats.performance.mostFundedCampaign.title}
                     </h4>
                   </Link>
-                  <div className="inline-block px-4 py-1.5 bg-white rounded-lg border border-yellow-100 text-xs text-gray-500 font-mono shadow-sm">
-                    ID: {stats.performance.mostFundedCampaign.id.split('-')[0]}...
-                  </div>
                 </div>
               ) : (
                 <div className="text-gray-400 py-10">
