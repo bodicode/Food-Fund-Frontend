@@ -7,6 +7,7 @@ import { Autoplay, EffectFade, Keyboard } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/effect-fade";
+import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Testimonial = {
   id: number;
@@ -47,40 +48,51 @@ export function Stories() {
   const swiperRef = useRef<SwiperType | null>(null);
 
   return (
-    <section className="py-8 sm:py-12 lg:py-16 bg-white">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 container mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
-          <div className="relative order-2 lg:order-1">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight text-neutral-800">
-              Kết nối triệu trái tim, <br />
-              <span className="text-color">trọn Việt Nam nhân ái</span>
-            </h2>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-neutral-600 max-w-xl leading-relaxed">
-              Mỗi đóng góp đều được ghi nhận minh bạch. Nền tảng giúp bạn tạo
-              chiến dịch, quản lý và báo cáo dễ dàng – để điều tốt lan tỏa nhanh
-              hơn.
-            </p>
-          </div>
+    <section className="py-24 relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+      {/* Decorative Background */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-[#E77731] rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-blue-600 rounded-full blur-[150px] opacity-50" />
+      </div>
 
-          <div className="relative order-1 lg:order-2">
-            <div className="absolute right-2 sm:right-4 top-2 sm:top-4 z-10 flex items-center gap-2 sm:gap-3">
+      <div className="container mx-auto px-6 md:px-12 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+          {/* Left Content */}
+          <div className="space-y-8">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+              Kết nối <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E77731] to-[#ff9f65]">triệu trái tim</span>, <br />
+              trọn vẹn niềm tin.
+            </h2>
+            <p className="text-lg text-gray-300 leading-relaxed max-w-xl">
+              Nền tảng của chúng tôi không chỉ là công cụ, mà là cầu nối tin cậy giữa những tấm lòng nhân ái. Minh bạch, hiển thị rõ ràng và lan tỏa yêu thương.
+            </p>
+
+            {/* Custom Navigation */}
+            <div className="flex items-center gap-4 pt-4">
               <button
-                aria-label="Câu trước đó"
+                aria-label="Previous"
                 onClick={() => swiperRef.current?.slidePrev()}
-                className="size-8 sm:size-10 rounded-full border text-[#436037] border-[#8BAE66]/40 bg-white/90 hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
+                className="w-12 h-12 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all duration-300 active:scale-95 group"
               >
-                <span className="text-sm sm:text-base">‹</span>
+                <ChevronLeft className="w-5 h-5 text-white/70 group-hover:text-white" />
               </button>
               <button
-                aria-label="Câu tiếp theo"
+                aria-label="Next"
                 onClick={() => swiperRef.current?.slideNext()}
-                className="size-8 sm:size-10 rounded-full border text-[#436037] border-[#8BAE66]/40 bg-white/90 hover:bg-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
+                className="w-12 h-12 rounded-full bg-[#E77731] hover:bg-[#d66620] flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/30"
               >
-                <span className="text-sm sm:text-base">›</span>
+                <ChevronRight className="w-5 h-5 text-white" />
               </button>
             </div>
+          </div>
 
-            <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 bg-white shadow-lg border border-gray-100">
+          {/* Right Content - Swiper Card */}
+          <div className="relative">
+            {/* Decoration behind card */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-[#E77731] to-purple-600 rounded-[2.5rem] opacity-30 blur-2xl -z-10" />
+
+            <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-2xl">
               <Swiper
                 modules={[Autoplay, EffectFade, Keyboard]}
                 onSwiper={(s) => (swiperRef.current = s)}
@@ -89,7 +101,7 @@ export function Stories() {
                 speed={800}
                 loop
                 autoplay={{
-                  delay: 5000,
+                  delay: 6000,
                   disableOnInteraction: false,
                   pauseOnMouseEnter: true,
                 }}
@@ -98,37 +110,33 @@ export function Stories() {
               >
                 {items.map((it) => (
                   <SwiperSlide key={it.id}>
-                    <figure className="space-y-4 sm:space-y-6 h-full flex flex-col">
-                      <svg
-                        viewBox="0 0 48 48"
-                        className="w-8 h-8 sm:w-10 sm:h-10 text-[#8BAE66] opacity-40 flex-shrink-0"
-                        fill="currentColor"
-                      >
-                        <path d="M18 8c-6 0-10 4-10 10 0 5 4 9 9 9v9H4v-9c0-11 8-19 18-19v0zM44 8c-6 0-10 4-10 10 0 5 4 9 9 9v9H30v-9c0-11 8-19 18-19v0z" />
-                      </svg>
+                    <div className="flex flex-col h-full">
+                      <Quote className="w-12 h-12 text-[#E77731] mb-6 opacity-80" />
 
-                      <blockquote className="text-neutral-700 leading-relaxed text-sm sm:text-base md:text-lg flex-grow">
-                        {it.quote}
+                      <blockquote className="text-xl md:text-2xl text-white font-medium leading-relaxed mb-8 flex-grow">
+                        &quot;{it.quote}&quot;
                       </blockquote>
 
-                      <figcaption className="flex items-center gap-3 pt-2 flex-shrink-0">
-                        <Image
-                          src={it.avatar}
-                          alt={it.author}
-                          width={44}
-                          height={44}
-                          className="rounded-full object-cover ring-2 ring-[#E77731]/20 w-10 h-10 sm:w-11 sm:h-11 flex-shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-neutral-800 text-sm sm:text-base truncate">
+                      <div className="flex items-center gap-4 mt-auto border-t border-white/10 pt-6">
+                        <div className="relative w-14 h-14 rounded-full p-0.5 bg-gradient-to-br from-[#E77731] to-purple-500">
+                          <Image
+                            src={it.avatar}
+                            alt={it.author}
+                            width={56}
+                            height={56}
+                            className="rounded-full object-cover border-2 border-transparent w-full h-full"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white text-lg">
                             {it.author}
                           </div>
-                          <div className="text-xs sm:text-sm text-neutral-500 line-clamp-2">
+                          <div className="text-sm text-gray-400">
                             {it.role}
                           </div>
                         </div>
-                      </figcaption>
-                    </figure>
+                      </div>
+                    </div>
                   </SwiperSlide>
                 ))}
               </Swiper>

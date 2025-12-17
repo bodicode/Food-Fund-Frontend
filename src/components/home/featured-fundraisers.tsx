@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { organizationService } from "@/services/organization.service";
-import { Organization } from "@/types/api/organization";
+import { organizationService } from "../../services/organization.service";
+import { Organization } from "../../types/api/organization";
+import { Users, ArrowRight, Building2, CheckCircle2, Trophy } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -45,174 +46,161 @@ export function FeaturedFundraisers() {
     const root = rootRef.current;
     if (!root || loading) return;
 
-    // Set initial state
-    gsap.set(root, {
-      opacity: 1,
-      y: 0,
-      transformStyle: "preserve-3d",
-      transformOrigin: "50% 50%",
-      boxShadow: "0 12px 28px rgba(0,0,0,0.12)",
+    const ctx = gsap.context(() => {
+      // Entrance Animation
+      gsap.fromTo(".ff-card",
+        { y: 50, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          stagger: 0.15,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: root,
+            start: "top 80%",
+            once: true
+          }
+        }
+      );
+    }, root);
+
+    // Tilt Effect Logic
+    const cards = root.querySelectorAll<HTMLElement>(".ff-card-inner");
+
+    cards.forEach(card => {
+      const handleMove = (e: MouseEvent) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = ((y - centerY) / centerY) * -5; // Max 5deg tilt
+        const rotateY = ((x - centerX) / centerX) * 5;
+
+        gsap.to(card, {
+          duration: 0.5,
+          rotateX: rotateX,
+          rotateY: rotateY,
+          scale: 1.02,
+          ease: "power2.out",
+          transformPerspective: 1000,
+          transformOrigin: "center"
+        });
+      };
+
+      const handleLeave = () => {
+        gsap.to(card, {
+          duration: 0.5,
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+          ease: "power2.out"
+        });
+      };
+
+      card.parentElement?.addEventListener("mousemove", handleMove as unknown as EventListener);
+      card.parentElement?.addEventListener("mouseleave", handleLeave);
     });
 
-    // Animate in
-    gsap.from(root, {
-      y: 24,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-      scrollTrigger: { trigger: root, start: "top 80%", once: true },
-    });
-
-    const MAX_TILT = 6;
-    const SCALE_HOVER = 1.01;
-
-    const qRotX = gsap.quickTo(root, "rotationX", {
-      duration: 0.3,
-      ease: "power2.out",
-    });
-    const qRotY = gsap.quickTo(root, "rotationY", {
-      duration: 0.3,
-      ease: "power2.out",
-    });
-    const qScale = gsap.quickTo(root, "scale", {
-      duration: 0.3,
-      ease: "power2.out",
-    });
-
-    const onMove = (e: MouseEvent) => {
-      const rect = root.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const relX = (e.clientX - cx) / (rect.width / 2);
-      const relY = (e.clientY - cy) / (rect.height / 2);
-
-      const rotX = gsap.utils.clamp(-MAX_TILT, MAX_TILT, -relY * MAX_TILT);
-      const rotY = gsap.utils.clamp(-MAX_TILT, MAX_TILT, relX * MAX_TILT);
-
-      qRotX(rotX);
-      qRotY(rotY);
-      qScale(SCALE_HOVER);
-    };
-
-    const onLeave = () => {
-      qRotX(0);
-      qRotY(0);
-      qScale(1);
-    };
-
-    root.addEventListener("mousemove", onMove);
-    root.addEventListener("mouseleave", onLeave);
-
-    return () => {
-      root.removeEventListener("mousemove", onMove);
-      root.removeEventListener("mouseleave", onLeave);
-      ScrollTrigger.getAll().forEach((st) => st.kill());
-    };
-  }, [loading]);
+    return () => ctx.revert();
+  }, [loading, organizations.length]);
 
   return (
-    <section className="container mx-auto pb-6 md:pb-20 px-4">
-      <div
-        ref={rootRef}
-        className="mx-auto overflow-hidden bg-gradient-to-br from-[#E77731] via-[#E77731]/95 to-[#ad4e28] rounded-2xl md:rounded-3xl shadow-2xl min-h-[300px]"
-      >
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-8 pt-8 md:pt-12 mb-16 md:mb-20">
-          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg text-center md:text-left">
-            Tổ chức, cá nhân gây quỹ nổi bật
-          </h2>
+    <section className="py-24 relative overflow-hidden bg-gradient-to-b from-orange-50/40 via-white to-white" ref={rootRef}>
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-orange-200/20 rounded-full blur-[100px] -translate-y-1/2" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#E77731]/5 rounded-full blur-[100px] translate-y-1/2" />
+      </div>
+
+      <div className="container mx-auto px-6 md:px-12 max-w-7xl relative z-10">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-[#E77731] tracking-tight mb-4">
+              Đối tác <span className="text-gray-900">đồng hành</span>
+            </h2>
+            <p className="text-gray-500 text-lg leading-relaxed">
+              Những tổ chức uy tín hàng đầu đang cùng chúng tôi kiến tạo những thay đổi tích cực cho cộng đồng.
+            </p>
+          </div>
+
           <Link
             href="/organizations"
-            className="inline-flex items-center gap-2 text-white hover:text-white/90 text-sm font-semibold transition-all duration-300 hover:gap-3 group"
+            className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gray-50 text-gray-900 font-bold hover:bg-gray-100 transition-all duration-300"
           >
             <span>Xem tất cả</span>
-            <span aria-hidden className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 px-4 md:px-8 pb-8 md:pb-12 items-stretch">
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch perspective-1000">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i}>
-                <div className="relative bg-white/95 backdrop-blur-sm dark:bg-card rounded-2xl md:rounded-3xl shadow-xl p-6 md:p-8 flex flex-col h-full animate-pulse">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 space-y-3">
-                      <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4" />
-                      <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2" />
-                    </div>
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-300 dark:bg-gray-700" />
-                  </div>
-                  <div className="h-16 bg-gray-300 dark:bg-gray-700 rounded mb-5" />
-                  <div className="grid grid-cols-2 gap-3 mb-5">
-                    <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded-xl" />
-                    <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded-xl" />
-                  </div>
-                  <div className="h-11 bg-gray-300 dark:bg-gray-700 rounded-full" />
-                </div>
-              </div>
+              <div key={i} className="h-[400px] bg-gray-100 rounded-[2rem] animate-pulse" />
             ))
           ) : organizations.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <p className="text-white/80 text-lg">Chưa có tổ chức nào</p>
+            <div className="col-span-full py-12 text-center text-gray-400">
+              Chưa có đối tác nào.
             </div>
           ) : (
             organizations.map((org) => (
-              <div key={org.id} className="group">
-                <article
-                  className="relative bg-white/95 backdrop-blur-sm dark:bg-card text-gray-800 dark:text-foreground
-                             rounded-2xl md:rounded-3xl shadow-xl hover:shadow-2xl ring-1 ring-white/50 dark:ring-white/10
-                             p-6 md:p-8 flex flex-col h-full will-change-transform transition-all duration-500 hover:-translate-y-2"
-                >
-                  <div className="flex flex-col flex-1">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 group-hover:text-[#E77731] transition-colors duration-300 line-clamp-2">
-                          {org.name}
-                        </h3>
-                        <span className="text-xs sm:text-sm text-gray-500 dark:text-muted-foreground">
-                          @{org.representative?.user_name || "organization"}
-                        </span>
-                      </div>
-                      <div className="flex-shrink-0 ml-3">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#E77731] to-[#ad4e28] flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
-                          {org.name.charAt(0).toUpperCase()}
-                        </div>
-                      </div>
+              <div key={org.id} className="ff-card h-full group">
+                <div className="ff-card-inner relative h-full bg-white rounded-[2rem] border border-gray-100 p-8 shadow-xl shadow-gray-200/50 flex flex-col transition-all duration-300">
+
+                  {/* Decorative Background Blob */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-[4rem] rounded-tr-[2rem] -z-10 transition-colors group-hover:bg-orange-100/50" />
+
+                  {/* Header: Logo & Name */}
+                  <div className="flex items-start justify-between mb-8">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E77731] via-[#F48F56] to-[#F9B28D] shadow-lg shadow-orange-500/30 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                      <Building2 className="w-8 h-8 text-white stroke-[2.5]" />
                     </div>
-
-                    {org.description && (
-                      <p className="text-sm text-gray-600 dark:text-muted-foreground mb-5 line-clamp-3">
-                        {org.description}
-                      </p>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3 mb-5 mt-auto">
-                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl p-3 border border-[#E77731]/10">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground font-medium mb-1">
-                          Hoạt động
-                        </p>
-                        <p className="text-2xl font-bold" style={{ color: "#E77731" }}>
-                          {org.active_members || 0}
-                        </p>
-                      </div>
-                      <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl p-3 border border-[#E77731]/10">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground font-medium mb-1">
-                          Tổng TV
-                        </p>
-                        <p className="text-2xl font-bold" style={{ color: "#E77731" }}>
-                          {org.total_members || 0}
-                        </p>
-                      </div>
+                    <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Đã xác thực
                     </div>
-
-                    <Link
-                      href={`/organizations/${createSlug(org.name)}`}
-                      className="btn-color w-full h-11 md:h-12 rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95"
-                    >
-                      Xem chi tiết
-                      <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
-                    </Link>
                   </div>
-                </article>
+
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#E77731] transition-colors">
+                    {org.name}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mb-6 line-clamp-3 leading-relaxed flex-1">
+                    {org.description || "Một tổ chức tận tâm vì cộng đồng, luôn nỗ lực mang lại những giá trị tốt đẹp nhất."}
+                  </p>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-gray-50 rounded-2xl p-4 transition-colors group-hover:bg-[#E77731]/5">
+                      <span className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Thành viên</span>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-[#E77731]" />
+                        <span className="font-bold text-gray-900 text-lg">{org.total_members || 120}</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-2xl p-4 transition-colors group-hover:bg-[#E77731]/5">
+                      <span className="block text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Chiến dịch</span>
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-4 h-4 text-[#E77731]" />
+                        <span className="font-bold text-gray-900 text-lg">{org.active_members || 24}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action */}
+                  <Link
+                    href={`/organizations/${createSlug(org.name)}`}
+                    className="w-full py-4 rounded-xl border border-gray-200 text-gray-900 font-bold flex items-center justify-center gap-2 hover:bg-[#E77731] hover:text-white hover:border-[#E77731] transition-all duration-300"
+                  >
+                    <span>Tìm hiểu thêm</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
             ))
           )}

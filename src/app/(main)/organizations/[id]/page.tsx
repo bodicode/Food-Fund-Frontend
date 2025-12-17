@@ -333,6 +333,7 @@ export default function OrganizationDetailPage() {
                     description={campaign.description}
                     coverImage={campaign.coverImage || ""}
                     phases={campaign.phases?.map(p => ({
+                      id: p.id,
                       phaseName: p.phaseName,
                       location: p.location,
                       ingredientPurchaseDate: p.ingredientPurchaseDate,

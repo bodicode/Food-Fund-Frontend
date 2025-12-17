@@ -6,9 +6,8 @@ import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCampaignSlug } from "../../lib/utils/slug-utils";
-import { AlarmClock } from "../animate-ui/icons/alarm-clock";
-import { Clock12 } from "../animate-ui/icons/clock-12";
-import { MapPin } from "../animate-ui/icons/map-pin";
+import { Clock, MapPin, Users, Heart, ArrowUpRight } from "lucide-react";
+import { CampaignPhase } from "../../types/api/phase";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,15 +16,7 @@ type CampaignCardProps = {
   title: string;
   description?: string;
   coverImage: string;
-  phases?: Array<{
-    id?: string;
-    phaseName: string;
-    location: string;
-    ingredientPurchaseDate: string;
-    cookingDate: string;
-    deliveryDate: string;
-    status?: string;
-  }>;
+  phases?: CampaignPhase[];
   status?:
   | "PENDING"
   | "APPROVED"
@@ -39,8 +30,13 @@ type CampaignCardProps = {
   targetAmount: string;
   fundraisingStartDate?: string;
   fundraisingEndDate?: string;
-  categoryId?: string;
-  creatorName?: string;
+  category?: {
+    title: string;
+  };
+  creator?: {
+    full_name: string;
+    avatar?: string;
+  };
 
   fundingProgress?: number;
   daysRemaining?: number;
@@ -50,6 +46,8 @@ type CampaignCardProps = {
   isHero?: boolean;
   isEmergency?: boolean;
   className?: string;
+
+  [key: string]: unknown;
 };
 
 const fmtVND = (n: number) =>
@@ -69,14 +67,12 @@ export function CampaignCard({
   donationCount,
   receivedAmount,
   targetAmount,
-  fundraisingStartDate,
   fundraisingEndDate,
-  // categoryId,
+  category,
   isHero = false,
   isEmergency = false,
   fundingProgress,
   daysRemaining: daysRemainingFromApi,
-  daysActive,
   className,
 }: CampaignCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -84,56 +80,40 @@ export function CampaignCard({
 
   const raised = Number(receivedAmount);
   const goal = Number(targetAmount);
-  const progress =
-    typeof fundingProgress === "number"
-      ? Math.round(fundingProgress)
-      : goal > 0
-        ? Math.round((raised / goal) * 100)
-        : 0;
+
+  const calculatedProgress = goal > 0 ? (raised / goal) * 100 : 0;
+  const displayProgress =
+    typeof fundingProgress === "number" ? fundingProgress : calculatedProgress;
+  const visualProgress = Math.min(displayProgress, 100);
+  const textProgress = Math.round(displayProgress);
 
   useLayoutEffect(() => {
     if (!cardRef.current) return;
 
     const ctx = gsap.context(() => {
-      cardRef
-        .current!.querySelectorAll<HTMLElement>(".fc-progress")
-        .forEach((bar) => {
-          const targetWidth = Number(bar.dataset.value || "0");
-          gsap.fromTo(
-            bar,
-            { width: "0%" },
-            {
-              width: `${targetWidth}%`,
-              duration: 1.1,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: cardRef.current,
-                start: "top 90%",
-                once: true,
-              },
-            }
-          );
-        });
-
-      cardRef
-        .current!.querySelectorAll<HTMLElement>(".fc-money")
-        .forEach((node) => {
-          const value = Number(node.dataset.value || "0");
-          const obj = { val: 0 };
-          gsap.to(obj, {
-            val: value,
-            duration: 0.6,
-            ease: "power1.out",
-            scrollTrigger: { trigger: node, start: "top 90%", once: true },
-            onUpdate() {
-              node.textContent = fmtVND(Math.floor(obj.val));
+      const bar = cardRef.current?.querySelector<HTMLElement>(
+        ".progress-bar-fill"
+      );
+      if (bar) {
+        gsap.fromTo(
+          bar,
+          { width: "0%" },
+          {
+            width: `${visualProgress}%`,
+            duration: 1.5,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: cardRef.current,
+              start: "top 95%",
+              once: true,
             },
-          });
-        });
+          }
+        );
+      }
     }, cardRef);
 
     return () => ctx.revert();
-  }, [progress, raised, goal]);
+  }, [visualProgress]);
 
   const daysLeft = () => {
     if (typeof daysRemainingFromApi === "number") return daysRemainingFromApi;
@@ -143,15 +123,7 @@ export function CampaignCard({
   };
 
   const isPending = status === "PENDING";
-
-  // Derived date metrics (fallbacks if API not provided)
-  const ONE_DAY_MS = 1000 * 60 * 60 * 24;
-  const computedDaysActive = (() => {
-    if (typeof daysActive === "number") return daysActive;
-    if (!fundraisingStartDate) return null;
-    const diff = Date.now() - new Date(fundraisingStartDate).getTime();
-    return Math.max(Math.ceil(diff / ONE_DAY_MS), 0);
-  })();
+  const daysLeftValue = daysLeft();
 
   const handleClick = () => {
     if (isPending) return;
@@ -160,220 +132,156 @@ export function CampaignCard({
   };
 
   return (
-    <div
+    <article
       ref={cardRef}
-      key={id}
       onClick={handleClick}
-      className={`cursor-pointer select-none will-change-transform ${isHero
-        ? "fc-hero fc-parallax group relative rounded-3xl overflow-hidden bg-white shadow-lg transition-all duration-300 ease-out hover:-translate-y-2"
-        : "fc-card fc-parallax group relative rounded-2xl overflow-hidden bg-white shadow-md transition-all duration-300 ease-out hover:-translate-y-3"
-        } ${isEmergency
-          ? "ring-2 ring-red-400 ring-offset-2 bg-white/95 backdrop-blur-xl"
-          : ""
-        } ${isPending ? "opacity-50 pointer-events-none" : ""} ${className ? className : ""
-        }`}
+      className={`
+        w-full bg-white rounded-[2rem] overflow-hidden cursor-pointer group select-none
+        border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]
+        transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1
+        flex flex-col
+        ${isHero ? "fc-hero h-full" : "fc-card h-full"}
+        ${isEmergency ? "ring-2 ring-red-500/50" : ""}
+        ${isPending ? "opacity-60 grayscale cursor-not-allowed" : ""}
+        ${className || ""}
+      `}
     >
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10 opacity-70 group-hover:opacity-50 transition-opacity duration-300" />
-
+      {/* Image Section - Takes all available space not used by content */}
+      <div
+        className={`relative overflow-hidden w-full ${isHero ? "flex-1 min-h-[300px] md:min-h-[400px]" : "h-[220px]"
+          }`}
+      >
         <Image
           src={coverImage || "/images/default-cover.jpg"}
           alt={title}
-          width={isHero ? 800 : 400}
-          height={isHero ? 600 : 300}
-          className={`fc-img w-full ${isHero ? "h-[360px] md:h-[800px]" : "h-[260px] md:h-[300px]"
-            } object-cover transition-transform duration-500 ease-out group-hover:scale-105`}
+          fill
+          className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
         />
 
-        {isEmergency && (
-          <span className="absolute top-3 right-3 z-20 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg shadow-red-500/50 flex items-center gap-x-1.5 animate-pulse">
-            <Clock12 animate animateOnView loop className="h-4 w-4" />
-            Sắp hết hạn
-          </span>
-        )}
+        {/* Overlay Gradients */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
 
-        {isPending && (
-          <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
-            <span className="text-gray-700 font-semibold text-lg">
-              Chờ duyệt
-            </span>
-          </div>
-        )}
-
-        <div className="absolute bottom-0 left-0 w-full px-4 pb-4 z-20">
-          <div className="bg-white/15 backdrop-blur-lg rounded-2xl p-4 shadow-xl border border-white/40 group-hover:bg-white/20 transition-all duration-300">
-            <div className="flex items-center justify-between text-white text-sm font-bold mb-2.5 drop-shadow-lg">
-              <span className="fc-money text-base" data-value={raised}>
-                {fmtVND(raised)}
-              </span>
-              <span className="text-xs bg-white/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full font-bold border border-white/40 shadow-sm">
-                {progress}%
-              </span>
+        {/* Badges */}
+        <div className="absolute top-4 left-4 flex gap-2">
+          {isHero && category && (
+            <div className="bg-white/90 backdrop-blur-md text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+              {category.title}
             </div>
+          )}
+          <div className="bg-white/90 backdrop-blur-md text-[#E77731] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" />
+            {donationCount.toLocaleString("vi-VN")} ủng hộ
+          </div>
 
-            <div className="w-full bg-white/25 backdrop-blur-sm h-3 rounded-full overflow-hidden border border-white/40 shadow-inner">
-              <div
-                className="fc-progress h-3 bg-gradient-to-r from-white/70 to-white/90 rounded-full shadow-md relative"
-                style={{ width: `${progress}%` }}
-                data-value={progress}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full animate-pulse" />
-              </div>
+          {isEmergency && (
+            <div className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 animate-pulse">
+              <Clock className="w-3.5 h-3.5" />
+              Khẩn cấp
             </div>
-          </div>
-        </div>
-      </div>
-
-      <span
-        className={`absolute ${isHero ? "top-4 left-4" : "top-3 left-3"
-          } z-20 bg-gradient-to-r from-[#E77731] to-[#ad4e28] text-white text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full border border-white/30 shadow-lg backdrop-blur-sm`}
-      >
-        {donationCount.toLocaleString("vi-VN")} lượt ủng hộ
-      </span>
-
-      <div className={`${isHero ? "p-5" : "p-4"} flex flex-col`}>
-        <h3
-          className={`${isHero
-            ? "font-bold text-xl line-clamp-2 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
-            : "font-bold text-lg line-clamp-2 h-14 text-gray-900 group-hover:text-[#E77731] transition-colors duration-300"
-            }`}
-        >
-          {title}
-        </h3>
-
-        {isHero && description && (
-          <div className="mt-2 text-sm text-gray-600 leading-relaxed line-clamp-3 overflow-hidden">
-            <div
-              className="[&_p]:my-1 [&_p]:last:mb-0"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          </div>
-        )}
-
-        {isEmergency && fundraisingEndDate && (
-          <div className="mt-3 text-sm text-red-600 font-semibold flex items-center gap-x-2 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
-            <AlarmClock
-              className="w-5 h-5"
-              animate
-              animateOnHover
-              animateOnView
-              loop
-            />
-            <span>Còn {daysLeft()} ngày</span>
-          </div>
-        )}
-
-        {!isHero && description && (
-          <div className="mt-2 text-xs text-gray-600 leading-relaxed line-clamp-2 overflow-hidden min-h-[2.5rem]">
-            <div
-              className="[&_p]:inline [&_*]:inline [&_p]:m-0 [&_br]:hidden"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          </div>
-        )}
-
-        <div className="mt-3 text-xs text-gray-500 font-medium space-y-1 h-6">
-          {phases && phases.length > 0 && (
-            <>
-              {phases.length === 1 ? (
-                <div className="flex items-start gap-x-1.5">
-                  <MapPin
-                    animate
-                    animateOnView
-                    loop
-                    className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
-                  />
-                  <span className="line-clamp-1 flex-1">
-                    {phases[0].location}
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-start gap-x-1.5">
-                    <MapPin
-                      animate
-                      animateOnView
-                      loop
-                      className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
-                    />
-                    <span className="line-clamp-1 flex-1">
-                      {phases[0].location}
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-x-1.5">
-                    <MapPin
-                      animate
-                      animateOnView
-                      loop
-                      className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"
-                    />
-                    <span className="line-clamp-1 flex-1">
-                      {phases[1].location}
-                      {phases.length > 2 && (
-                        <span className="ml-1 text-[#E77731] font-semibold">
-                          +{phases.length - 2}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                </>
-              )}
-            </>
           )}
         </div>
+      </div>
 
-        {isHero && (computedDaysActive != null || daysLeft() != null) && (
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            {computedDaysActive != null && (
-              <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
-                <span className="text-gray-500 text-sm font-medium">
-                  Đang hoạt động
-                </span>
-                <span className="text-gray-800 font-semibold">
-                  {computedDaysActive} ngày
-                </span>
-              </div>
-            )}
-            {daysLeft() != null && (
-              <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
-                <span className="text-gray-500 text-sm font-medium">
-                  Còn lại
-                </span>
-                <span className="text-gray-800 font-semibold">
-                  {daysLeft()} ngày
-                </span>
-              </div>
+      {/* Content Body */}
+      <div
+        className={`flex flex-col bg-white shrink-0 ${isHero ? "p-6 md:p-8" : "p-5"
+          }`}
+      >
+        {/* Top Section: Meta, Title, Description */}
+        <div className="flex-1 flex flex-col">
+          <div className="text-xs text-gray-500 font-medium mb-3 flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1 bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md max-w-full">
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">{phases && phases[0] ? phases[0].location : "Toàn quốc"}</span>
+            </span>
+            {isHero && daysLeftValue !== null && (
+              <span className="flex items-center gap-1 bg-orange-50 text-[#E77731] px-2.5 py-1 rounded-md whitespace-nowrap">
+                <Clock className="w-3.5 h-3.5" />
+                Còn {daysLeftValue} ngày
+              </span>
             )}
           </div>
-        )}
 
-        <div className="mt-4 space-y-2 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 font-medium">Lượt ủng hộ</span>
-            <span className="font-bold text-[#E77731]">
-              {donationCount.toLocaleString("vi-VN")}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 font-medium">Đã ủng hộ</span>
-            <span
-              className="fc-money font-bold text-color"
-              data-value={raised}
+          <h3
+            className={`font-bold text-gray-900 leading-tight group-hover:text-[#E77731] transition-colors ${isHero ? "text-2xl md:text-3xl mb-4" : "text-lg mb-2 line-clamp-2"
+              }`}
+          >
+            {title}
+          </h3>
+
+          {description && (
+            <div
+              className={`text-gray-600 leading-relaxed ${isHero
+                ? "text-base line-clamp-4 md:line-clamp-6 mb-6"
+                : "text-sm line-clamp-2 mb-4"
+                }`}
             >
-              {fmtVND(raised)}
-            </span>
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: description?.replace(/<[^>]*>?/gm, "") || "",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Filler to push bottom section down only if needed, but not too far if content is short */}
+          <div className="flex-grow min-h-[1rem]"></div>
+        </div>
+
+        {/* Bottom Section: Stats, Progress, Action */}
+        <div className="space-y-5 pt-4 border-t border-gray-50 mt-auto">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs font-bold text-gray-700">
+              <span className="flex items-baseline gap-1">
+                <span className="text-[#E77731] text-sm">{textProgress}%</span>
+                <span className="font-medium text-gray-400">hoàn thành</span>
+              </span>
+              {!isHero && daysLeftValue !== null && (
+                <span className="text-[#E77731] font-medium">{daysLeftValue} ngày còn lại</span>
+              )}
+            </div>
+            <div className={`w-full bg-gray-100 rounded-full overflow-hidden ${isHero ? "h-3" : "h-2"}`}>
+              <div
+                className="progress-bar-fill h-full bg-[#E77731] rounded-full relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] -translate-x-full" />
+              </div>
+            </div>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 font-medium">Mục tiêu</span>
-            <span
-              className="fc-money font-semibold text-gray-700"
-              data-value={goal}
-            >
-              {fmtVND(goal)}
-            </span>
+
+          {/* Financial Stats Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="block text-xs text-gray-500 font-medium mb-1">
+                Mục tiêu
+              </span>
+              <span className={`block font-bold text-gray-900 ${isHero ? "text-lg" : "text-sm"}`}>
+                {fmtVND(goal)}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="block text-xs text-gray-500 font-medium mb-1">
+                Đã quyên góp
+              </span>
+              <span className={`block font-bold text-[#E77731] ${isHero ? "text-lg" : "text-sm"}`}>
+                {fmtVND(raised)}
+              </span>
+            </div>
           </div>
+
+          {/* Hero Button */}
+          {isHero && (
+            <div className="pt-2">
+              <button className="w-full bg-[#E77731] hover:bg-[#cf621e] text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] shadow-lg shadow-orange-200">
+                <Heart className="w-5 h-5 fill-current" />
+                <span>Quyên góp ngay</span>
+                <ArrowUpRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }

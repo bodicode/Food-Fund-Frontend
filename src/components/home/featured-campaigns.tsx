@@ -4,11 +4,11 @@ import { useLayoutEffect, useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { CampaignCard } from "@/components/shared/campaign-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { campaignService } from "@/services/campaign.service";
-import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
-import { Campaign } from "@/types/api/campaign";
+import { CampaignCard } from "../shared/campaign-card";
+import { Skeleton } from "../ui/skeleton";
+import { campaignService } from "../../services/campaign.service";
+import { ArrowRight } from "lucide-react";
+import { Campaign } from "../../types/api/campaign";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -32,7 +32,7 @@ export function FeaturedCampaigns() {
     const fetchCampaigns = async () => {
       try {
         const data = await campaignService.getCampaigns({
-          filter: { status: ["ACTIVE"] },
+          filter: { status: ["ACTIVE", "PROCESSING"] },
           sortBy: "MOST_DONATED",
           limit: 20,
           offset: 0,
@@ -54,12 +54,12 @@ export function FeaturedCampaigns() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".fc-hero",
-        { y: 18, scale: 0.98, opacity: 0 },
+        { y: 30, scale: 0.95, opacity: 0 },
         {
           y: 0,
           scale: 1,
           opacity: 1,
-          duration: 0.9,
+          duration: 1,
           ease: "power3.out",
           scrollTrigger: { trigger: ".fc-hero", start: "top 85%", once: true },
         }
@@ -67,14 +67,14 @@ export function FeaturedCampaigns() {
 
       gsap.fromTo(
         ".fc-card",
-        { y: 20, opacity: 0, scale: 0.98 },
+        { y: 30, opacity: 0, scale: 0.95 },
         {
           y: 0,
           opacity: 1,
           scale: 1,
-          duration: 0.7,
+          duration: 0.8,
           ease: "power3.out",
-          stagger: 0.12,
+          stagger: 0.15,
           scrollTrigger: {
             trigger: rootRef.current!,
             start: "top 80%",
@@ -85,22 +85,23 @@ export function FeaturedCampaigns() {
     }, rootRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [loading]); // Updated dependency
 
   if (loading) {
     return (
-      <section className="pt-12 mt-6">
-        <div className="px-6 md:px-12 mx-auto max-w-7xl">
-          <h2 className="text-center text-4xl font-bold mb-12 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-            Chiến dịch nổi bật
-          </h2>
-          <div className="grid lg:grid-cols-3 gap-6">
+      <section className="pt-20 pb-12 bg-gray-50/50">
+        <div className="container mx-auto px-6 md:px-12 max-w-7xl">
+          <div className="mb-12 flex items-center justify-between">
+            <Skeleton className="h-12 w-64 rounded-xl" />
+            <Skeleton className="h-6 w-24 rounded-full" />
+          </div>
+          <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <Skeleton className="h-[500px] w-full rounded-3xl" />
+              <Skeleton className="h-[550px] w-full rounded-[2rem]" />
             </div>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-8">
               {Array.from({ length: 2 }).map((_, i) => (
-                <Skeleton key={i} className="h-[240px] w-full rounded-2xl" />
+                <Skeleton key={i} className="h-[260px] w-full rounded-[2rem]" />
               ))}
             </div>
           </div>
@@ -111,8 +112,8 @@ export function FeaturedCampaigns() {
 
   if (!campaigns.length) {
     return (
-      <div className="text-center py-16 text-gray-500 font-medium">
-        Hiện chưa có chiến dịch nào.
+      <div className="text-center py-24 text-gray-500 font-medium">
+        Hiện chưa có chiến dịch nào đang hoạt động.
       </div>
     );
   }
@@ -123,42 +124,43 @@ export function FeaturedCampaigns() {
   );
 
   const [hero, ...rest] = sortedCampaigns.map(mapCampaignToCardProps);
-  const rightTwoByTwo = rest.slice(0, 4);
-  const bottomSliderList = rest.slice(-6);
+  const rightTwoByTwo = rest.slice(0, 2); // Display 2 cards on the right
+  const sliderCampaigns = rest.slice(2, 8); // Display next 6 in slider
 
   return (
-    <section className="pt-12 mt-6 bg-base-color">
-      <div ref={rootRef} className="px-4 md:px-12 mx-auto max-w-7xl">
-        <div className="flex items-center justify-between mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-color text-transparent">
-            Chiến dịch nổi bật
-          </h2>
+    <section className="py-20 bg-gray-50/50">
+      <div ref={rootRef} className="container mx-auto px-6 md:px-12 max-w-7xl">
+        <div className="flex items-end justify-between mb-12">
+          <div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-2">
+              Chiến dịch <span className="text-[#E77731] underline decoration-[#E77731]/30 underline-offset-4">nổi bật</span>
+            </h2>
+            <p className="text-gray-500 text-lg hidden md:block">Các dự án đang nhận được nhiều sự quan tâm từ cộng đồng</p>
+          </div>
+
           <Link
             href="/s"
-            className="text-sm font-semibold text-color flex items-center gap-x-2 group"
+            className="group flex items-center gap-2 text-[#E77731] font-bold text-sm md:text-base px-4 py-2 rounded-full hover:bg-[#E77731]/10 transition-all duration-300"
           >
             <span>Xem tất cả</span>
-            <ArrowRight
-              animate
-              animateOnView
-              animateOnHover
-              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
-            />
+            <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </div>
 
-        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 items-stretch">
-          <div className="lg:col-span-2 flex">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 mb-16">
+          {/* Hero Card */}
+          <div className="lg:col-span-2 h-full">
             <CampaignCard
               {...hero}
               coverImage={hero.coverImage || ""}
               isHero
-              className="flex-1"
+              className="h-full"
             />
           </div>
 
-          <div className="hidden lg:flex flex-col gap-8">
-            {rightTwoByTwo.slice(0, 2).map((c) => (
+          {/* Side Cards */}
+          <div className="hidden lg:flex flex-col gap-8 h-full">
+            {rightTwoByTwo.map((c) => (
               <CampaignCard
                 key={c.id}
                 {...c}
@@ -169,39 +171,43 @@ export function FeaturedCampaigns() {
           </div>
         </div>
 
-        <div className="mt-20 relative pb-8">
-          <Swiper
-            modules={[Autoplay, Pagination]}
-            spaceBetween={24}
-            slidesPerView={1}
-            loop
-            speed={1800}
-            autoplay={{
-              delay: 4500,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            pagination={{
-              clickable: true,
-              bulletClass:
-                "swiper-pagination-bullet !w-4 !h-2 !rounded-full !bg-orange-200 !opacity-100 transition-all duration-300",
-              bulletActiveClass:
-                "swiper-pagination-bullet-active !w-10 !bg-gradient-to-r !from-[#E77731] !to-[#ad4e28]",
-            }}
-            breakpoints={{
-              640: { slidesPerView: 1 },
-              768: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 },
-            }}
-            className="!pb-12"
-          >
-            {bottomSliderList.map((c) => (
-              <SwiperSlide key={`bottom-${c.id}`}>
-                <CampaignCard {...c} coverImage={c.coverImage || ""} />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
+        {/* Slider Section */}
+        {sliderCampaigns.length > 0 && (
+          <div className="mt-12 relative w-full">
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              spaceBetween={30}
+              slidesPerView={1}
+              loop
+              speed={1000}
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+                bulletClass: "swiper-pagination-bullet !bg-gray-300 !opacity-100",
+                bulletActiveClass: "swiper-pagination-bullet-active !bg-[#E77731] !w-6 !rounded-full transition-all duration-300"
+              }}
+              breakpoints={{
+                640: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+              }}
+              className="pb-16 !overflow-visible"
+            >
+              {sliderCampaigns.map((c) => (
+                <SwiperSlide key={c.id} className="h-auto">
+                  <div className="h-full py-4 px-1"> {/* Padding for hover effects */}
+                    <CampaignCard {...c} coverImage={c.coverImage || ""} className="h-full" />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        )}
       </div>
     </section>
   );
