@@ -5,10 +5,10 @@ import { useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { AlarmClock } from "@/components/animate-ui/icons/alarm-clock";
-import { Clock12 } from "@/components/animate-ui/icons/clock-12";
-import { MapPin } from "@/components/animate-ui/icons/map-pin";
-import { createCampaignSlug } from "@/lib/utils/slug-utils";
+import { createCampaignSlug } from "../../lib/utils/slug-utils";
+import { AlarmClock } from "../animate-ui/icons/alarm-clock";
+import { Clock12 } from "../animate-ui/icons/clock-12";
+import { MapPin } from "../animate-ui/icons/map-pin";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -124,7 +124,6 @@ export function CampaignCard({
             val: value,
             duration: 0.6,
             ease: "power1.out",
-            snap: { val: 1000 },
             scrollTrigger: { trigger: node, start: "top 90%", once: true },
             onUpdate() {
               node.textContent = fmtVND(Math.floor(obj.val));
