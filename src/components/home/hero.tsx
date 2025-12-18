@@ -8,6 +8,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, ChevronDown, CheckCircle2 } from "lucide-react";
 import Ticker from "./ticker";
+import Snowfall from "react-snowfall";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,6 +80,15 @@ export function Hero() {
         ref={containerRef}
         className="relative h-[100vh] min-h-[600px] w-full overflow-hidden bg-gray-900"
       >
+        {/* Snowfall Effect */}
+        <div className="absolute inset-0 pointer-events-none z-[5]">
+          <Snowfall
+            color="white"
+            snowflakeCount={150}
+            style={{ opacity: 0.3 }}
+          />
+        </div>
+
         {/* Dynamic Background Slider */}
         <div className="absolute inset-0 z-0">
           {images.map((img, index) => (
