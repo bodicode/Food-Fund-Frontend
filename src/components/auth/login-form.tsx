@@ -2,28 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Loader } from "@/components/animate-ui/icons/loader";
+import { Loader } from "../animate-ui/icons/loader";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "@/store/slices/auth-slice";
-import { graphQLAuthService } from "@/services/auth.service";
-import { translateError, translateMessage } from "@/lib/translator";
-import { SignInInput } from "@/types/api/sign-in";
-import { decodeIdToken } from "@/lib/jwt-utils";
+import { setCredentials } from "../../store/slices/auth-slice";
+import { graphQLAuthService } from "../../services/auth.service";
+import { translateError, translateMessage } from "../../lib/translator";
+import { SignInInput } from "../../types/api/sign-in";
+import { decodeIdToken } from "../../lib/jwt-utils";
 import Cookies from "js-cookie";
-import { USER_ROLES, ROUTES, COOKIE_NAMES } from "@/constants";
-
+import { USER_ROLES, ROUTES, COOKIE_NAMES } from "../../constants";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
+import { Mail, Lock, Eye, EyeOff, Home, ArrowRight } from "lucide-react";
 
 type LoginFormProps = {
   onSwitchToRegister?: () => void;
@@ -36,6 +30,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,8 +122,8 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         })
       );
 
-      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, { 
-        secure: true, 
+      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, {
+        secure: true,
         sameSite: "strict",
         expires: 1 / 24, // 1 hour
       });
@@ -166,86 +161,195 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   };
 
   return (
-    <Card className="bg-transparent border-none shadow-none text-black w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-center text-2xl font-bold text-[#ad4e28]">
-          Đăng nhập
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28]"
-          />
-
-          <div className="relative">
-            <Input
-              type="password"
-              placeholder="Mật khẩu"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white border border-[#ad4e28]/30 text-black placeholder:text-black/50 focus-visible:ring-2 focus-visible:ring-[#ad4e28]"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="font-semibold rounded-lg py-2 btn-color"
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{
+        duration: 0.8,
+        ease: "easeOut"
+      }}
+      className="w-full"
+    >
+      <div className="w-full space-y-6">
+        <div className="text-center space-y-3">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-5xl md:text-6xl font-black tracking-tighter"
           >
-            {loading ? (
-              <Loader animate loop className="h-5 w-5" />
-            ) : (
-              "Đăng nhập"
-            )}
-          </Button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ad4e28] via-[#d76c42] to-[#ad4e28] bg-[length:200%_auto] animate-gradient-slow">
+              Chào mừng trở lại
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-gray-500 text-base md:text-lg font-medium tracking-tight max-w-2xl mx-auto"
+          >
+            TIẾP TỤC HÀNH TRÌNH CHIA SẺ VÀ LAN TỎA YÊU THƯƠNG TRONG CỘNG ĐỒNG
+          </motion.p>
         </div>
 
-        <div className="flex justify-center">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="relative group/input"
+            >
+              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-[#ad4e28] transition-all duration-300 z-10">
+                <Mail className="h-6 w-6" />
+              </div>
+              <Input
+                type="email"
+                placeholder="Email của bạn"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-16 h-18 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[2rem] text-lg placeholder:text-gray-300 font-medium border-2"
+                required
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="space-y-3"
+            >
+              <div className="relative group/input">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-[#ad4e28] transition-all duration-300 z-10">
+                  <Lock className="h-6 w-6" />
+                </div>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mật khẩu"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-16 pr-16 h-18 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[2rem] text-lg placeholder:text-gray-300 font-medium border-2"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#ad4e28] transition-all duration-300 z-10"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-6 w-6" />
+                  ) : (
+                    <Eye className="h-6 w-6" />
+                  )}
+                </button>
+              </div>
+              <div className="flex justify-end pr-2">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-bold text-[#ad4e28] hover:text-[#8f4021] hover:underline transition-all duration-300 tracking-tight"
+                >
+                  Quên mật khẩu?
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full h-18 font-black text-xl bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[2rem] transition-all duration-500 overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              {loading ? (
+                <div className="flex items-center gap-3">
+                  <Loader animate loop className="h-7 w-7" />
+                  <span>XÁC THỰC...</span>
+                </div>
+              ) : (
+                <span className="flex items-center justify-center gap-3 uppercase tracking-widest text-lg">
+                  Đăng nhập
+                  <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
+                </span>
+              )}
+            </Button>
+          </motion.div>
+        </form>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="relative py-2"
+        >
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase tracking-[0.4em]">
+            <span className="bg-[#f9f0e4] px-10 text-gray-400 font-bold">
+              Hoặc kết nối qua
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.8 }}
+          className="flex justify-center"
+        >
           <GoogleLogin
             onSuccess={handleGoogleLogin}
             onError={() => toast.error("Đăng nhập Google thất bại!")}
             shape="pill"
-            text="signin_with"
-            size="large"
             theme="outline"
+            text="signin_with"
           />
-        </div>
-      </CardContent>
+        </motion.div>
 
-      <CardFooter className="flex flex-col gap-3 text-sm text-[#ad4e28] items-center">
-        <div className="flex justify-between w-full">
-          <Link href="/forgot-password" className="hover:underline">
-            Quên mật khẩu
-          </Link>
-          <Link href="/" className="hover:underline">
-            Quay về trang chủ
-          </Link>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="pt-6 flex flex-col items-center gap-4"
+        >
+          <p className="text-gray-500 font-medium text-lg">
+            Chưa có tài khoản?{" "}
+            <Button
+              type="button"
+              onClick={onSwitchToRegister}
+              variant="link"
+              className="p-0 h-auto font-black text-[#ad4e28] hover:text-[#8f4021] text-lg transition-all"
+            >
+              TẠO NGAY
+            </Button>
+          </p>
 
-        <p className="text-center md:hidden">
-          Chưa có tài khoản?{" "}
-          <Button
-            type="button"
-            onClick={onSwitchToRegister}
-            className="text-color bg-transparent border-none shadow-none p-0 hover:bg-transparent font-semibold hover:underline"
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-black text-gray-400 hover:text-[#ad4e28] transition-all duration-300 group uppercase tracking-widest"
           >
-            Đăng ký ngay
-          </Button>
-        </p>
-      </CardFooter>
-    </Card>
+            <Home className="w-5 h-5" />
+            VỀ TRANG CHỦ
+          </Link>
+        </motion.div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes gradient-slow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-slow {
+          animation: gradient-slow 8s linear infinite;
+        }
+      `}} />
+    </motion.div>
   );
 }

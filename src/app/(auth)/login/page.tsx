@@ -3,9 +3,10 @@
 import { useState, useLayoutEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import gsap from "gsap";
-import LoginForm from "@/components/auth/login-form";
-import RegisterForm from "@/components/auth/register-form";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import LoginForm from "../../../components/auth/login-form";
+import RegisterForm from "../../../components/auth/register-form";
+import { Button } from "../../../components/ui/button";
 
 export default function Login() {
   const [activeForm, setActiveForm] = useState<"login" | "register">("login");
@@ -15,7 +16,6 @@ export default function Login() {
   const registerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
 
-  // 🟡 GSAP animation khởi động (chạy 1 lần)
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       gsap.set([imageRef.current, loginRef.current], { xPercent: 0, autoAlpha: 1 });
@@ -41,7 +41,6 @@ export default function Login() {
     return () => ctx.revert();
   }, []);
 
-  // 🧭 Điều khiển animation khi đổi giữa login / register
   useLayoutEffect(() => {
     if (!imageRef.current || !loginRef.current || !registerRef.current) return;
     const tl = gsap.timeline({ defaults: { duration: 0.9, ease: "power3.inOut" } });
@@ -72,76 +71,104 @@ export default function Login() {
         {/* ==================== IMAGE + TEXT ==================== */}
         <div
           ref={imageRef}
-          className="hidden md:block absolute inset-y-0 left-0
-            md:w-1/2 will-change-transform z-20 bg-[#f9f0e4] overflow-hidden"
+          className="hidden lg:block absolute inset-y-0 left-0
+            lg:w-1/2 will-change-transform z-20 bg-[#f9f0e4] overflow-hidden group"
         >
           <Image
             src="/images/login-register.svg"
             alt="FoodFund Auth"
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-[10s] ease-out group-hover:scale-110"
             priority
           />
-          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
 
           <div
             ref={textRef}
-            className="absolute inset-0 flex flex-col items-center justify-center text-center px-8"
+            className="absolute inset-0 flex flex-col items-center justify-center p-12"
           >
-            {activeForm === "login" ? (
-              <>
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  Chào mừng bạn đến với chúng tôi!
-                </h2>
-                <p className="text-white/90 mb-6 w-full max-w-md">
-                  Nếu đây là lần đầu tiên bạn ghé thăm, hãy tạo ngay tài khoản để khám phá
-                  đầy đủ tính năng và cùng chúng tôi bắt đầu hành trình ý nghĩa.
-                </p>
-                <Button
-                  variant="link"
-                  onClick={switchToRegister}
-                  className="text-white font-semibold hover:text-[#f9f0e4] cursor-pointer"
-                >
-                  Đăng ký ngay hôm nay
-                </Button>
-              </>
-            ) : (
-              <>
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  Rất vui được gặp lại bạn!
-                </h2>
-                <p className="text-white/90 mb-6 w-full max-w-md">
-                  Hãy đăng nhập để tiếp tục hành trình, theo dõi tiến trình của bạn và cùng
-                  nhau lan tỏa nhiều điều tốt đẹp hơn.
-                </p>
-                <Button
-                  variant="link"
-                  onClick={switchToLogin}
-                  className="text-white font-semibold hover:text-[#f9f0e4] cursor-pointer"
-                >
-                  Đăng nhập để tiếp tục
-                </Button>
-              </>
-            )}
+            <div className="relative w-full max-w-lg backdrop-blur-md bg-white/10 p-10 rounded-[3rem] border border-white/20 shadow-2xl overflow-hidden">
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#ad4e28]/20 blur-[80px] rounded-full" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/10 blur-[80px] rounded-full" />
+
+              <AnimatePresence mode="wait">
+                {activeForm === "login" ? (
+                  <motion.div
+                    key="login-text"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 1.1, y: -20 }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative z-10 text-center space-y-6"
+                  >
+                    <h2 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase tracking-tighter">
+                      Chào mừng bạn <br />
+                      <span className="text-[#f9f0e4]">đến với chúng tôi!</span>
+                    </h2>
+                    <p className="text-[#f9f0e4]/80 text-lg font-medium leading-relaxed">
+                      Nếu đây là lần đầu tiên bạn ghé thăm, hãy tạo ngay tài khoản để khám phá đầy đủ tính năng và cùng chúng tôi bắt đầu hành trình ý nghĩa.
+                    </p>
+                    <div className="pt-4">
+                      <Button
+                        variant="link"
+                        onClick={switchToRegister}
+                        className="group/btn relative text-white font-black uppercase tracking-widest text-sm p-0 h-auto"
+                      >
+                        Đăng ký ngay hôm nay
+                        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left scale-x-100 group-hover/btn:scale-x-50 transition-transform duration-300" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="register-text"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 1.1, y: -20 }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative z-10 text-center space-y-6"
+                  >
+                    <h2 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase tracking-tighter">
+                      Rất vui được <br />
+                      <span className="text-[#f9f0e4]">gặp lại bạn!</span>
+                    </h2>
+                    <p className="text-[#f9f0e4]/80 text-lg font-medium leading-relaxed">
+                      Hãy đăng nhập để tiếp tục hành trình, theo dõi tiến trình của bạn và cùng nhau lan tỏa nhiều điều tốt đẹp hơn.
+                    </p>
+                    <div className="pt-4">
+                      <Button
+                        variant="link"
+                        onClick={switchToLogin}
+                        className="group/btn relative text-white font-black uppercase tracking-widest text-sm p-0 h-auto"
+                      >
+                        Đăng nhập để tiếp tục
+                        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left scale-x-100 group-hover/btn:scale-x-50 transition-transform duration-300" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
         <div
           ref={loginRef}
-          className="absolute inset-y-0 right-0 w-full md:w-1/2 p-6 flex items-center justify-center
+          className="absolute inset-y-0 right-0 w-full lg:w-1/2 flex items-center justify-center
             will-change-transform z-10 bg-[#f9f0e4]"
         >
-          <div className="max-w-md w-full">
+          <div className="w-full px-8 lg:px-24">
             <LoginForm onSwitchToRegister={switchToRegister} />
           </div>
         </div>
 
         <div
           ref={registerRef}
-          className="absolute inset-y-0 left-0 w-full md:w-1/2 p-6 flex items-center justify-center
-    will-change-transform z-10 bg-[#f9f0e4]"
+          className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex items-center justify-center
+            will-change-transform z-10 bg-[#f9f0e4]"
         >
-          <div className="max-w-md w-full">
+          <div className="w-full px-8 lg:px-24">
             <RegisterForm onSwitchToLogin={switchToLogin} />
           </div>
         </div>
