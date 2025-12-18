@@ -9,6 +9,7 @@ export const GET_MEAL_BATCHES = gql`
       quantity
       status
       cookedDate
+      media
       kitchenStaff {
         id
         full_name

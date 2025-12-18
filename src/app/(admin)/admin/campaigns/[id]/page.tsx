@@ -406,7 +406,22 @@ export default function AdminCampaignDetailPage() {
               <TabsContent value="meals">
                 <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
                   <CardContent className="p-6 sm:p-8">
-                    <MealBatchList campaignId={campaign.id} />
+                    {campaign.phases && campaign.phases.length > 0 ? (
+                      <div className="space-y-6">
+                        {campaign.phases.map((phase) => (
+                          <div key={phase.id}>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                              Giai đoạn: {phase.phaseName}
+                            </h3>
+                            <MealBatchList campaignPhaseId={phase.id} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">
+                        Chiến dịch này chưa có giai đoạn nào
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

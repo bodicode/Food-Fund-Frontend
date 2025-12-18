@@ -26,6 +26,8 @@ export interface MealBatch {
     id: string;
     foodName: string;
     quantity: number;
+    cookedDate: string;
+    status: string;
 }
 
 export interface StatusLog {

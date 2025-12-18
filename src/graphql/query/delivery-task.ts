@@ -9,6 +9,13 @@ export const GET_DELIVERY_TASKS = gql`
         id
         full_name
       }
+      mealBatch {
+        id
+        foodName
+        quantity
+        cookedDate
+        status
+      }
       mealBatchId
       status
       created_at
