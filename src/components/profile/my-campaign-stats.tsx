@@ -294,11 +294,10 @@ export function MyCampaignStatsSection() {
                   </div>
 
                   <Link
-                    href={`/profile/my-campaign/${createCampaignSlug(
+                    href={`/campaign/${createCampaignSlug(
                       stats.performance.mostFundedCampaign.title,
                       stats.performance.mostFundedCampaign.id
                     )}`}
-                    target="_blank"
                     className="block group-hover:scale-105 transition-transform duration-300"
                   >
                     <h4 className="font-bold text-gray-900 text-xl mb-3 line-clamp-2 hover:text-yellow-700 transition-colors">
