@@ -9,10 +9,27 @@ import {
   AssignTaskToStaffInput,
   AssignDeliveryTaskResponse,
   DeliveryTask,
+  GetDeliveryTasksParams,
+  GetDeliveryTasksResponse,
 } from "@/types/api/meal-batch";
 import { ASSIGN_DELIVERY_TASK } from "@/graphql/mutations/meal-batch/assign-delivery-task";
+import { GET_DELIVERY_TASKS } from "@/graphql/query/meal-batch/get-delivery-tasks";
 
 export const mealBatchService = {
+  async getDeliveryTasks(params: GetDeliveryTasksParams): Promise<DeliveryTask[]> {
+    try {
+      const result = await client.query<GetDeliveryTasksResponse>({
+        query: GET_DELIVERY_TASKS,
+        variables: params,
+        fetchPolicy: "network-only",
+      });
+
+      return result.data?.deliveryTasks || [];
+    } catch (error) {
+      console.error("❌ Error fetching delivery tasks:", error);
+      throw error;
+    }
+  },
   async getMealBatches(params: GetMealBatchesParams = {}): Promise<MealBatch[]> {
     try {
       const result = await client.query<GetMealBatchesResponse>({

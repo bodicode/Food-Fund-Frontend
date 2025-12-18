@@ -406,7 +406,22 @@ export default function MyCampaignDetailPage() {
 
               <TabsContent value="meals">
                 <div className="bg-white rounded-2xl border p-6">
-                  <MealBatchList campaignId={campaign.id} />
+                  {campaign.phases && campaign.phases.length > 0 ? (
+                    <div className="space-y-6">
+                      {campaign.phases.map((phase) => (
+                        <div key={phase.id}>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            Giai đoạn: {phase.phaseName}
+                          </h3>
+                          <MealBatchList campaignPhaseId={phase.id} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">
+                      Chiến dịch này chưa có giai đoạn nào
+                    </p>
+                  )}
                 </div>
               </TabsContent>
 
@@ -498,10 +513,10 @@ export default function MyCampaignDetailPage() {
               <div className="bg-white rounded-2xl border p-6 mb-8">
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    Phân bổ ngân sách
+                    Phân bổ ngân sách và dự kiến nguyên liệu và thức ăn
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Chi tiết phân bổ và sử dụng ngân sách cho chiến dịch
+                    Chi tiết phân bổ và sử dụng ngân sách và dự kiến nguyên liệu và thức ăn cho chiến dịch
                   </p>
                 </div>
                 <BudgetBreakdown

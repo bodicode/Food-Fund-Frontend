@@ -31,8 +31,10 @@ export interface MealBatch {
 }
 
 export interface MealBatchFilterInput {
-  campaignId?: string;
-  status?: MealBatchStatus;
+  campaignId?: string | null;
+  campaignPhaseId?: string | null;
+  kitchenStaffId?: string | null;
+  status?: MealBatchStatus | null;
 }
 
 export interface GetMealBatchesParams {
@@ -55,9 +57,32 @@ export interface AssignTaskToStaffInput {
 export interface DeliveryTask {
   id: string;
   deliveryStaffId: string;
+  deliveryStaff?: {
+    id: string;
+    full_name: string;
+  };
   mealBatchId: string;
+  mealBatch?: MealBatch;
   status: string;
   created_at: string;
+}
+
+export interface DeliveryTaskFilterInput {
+  campaignId?: string | null;
+  campaignPhaseId?: string | null;
+  mealBatchId?: string | null;
+  deliveryStaffId?: string | null;
+  status?: string | null;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetDeliveryTasksParams {
+  filter: DeliveryTaskFilterInput;
+}
+
+export interface GetDeliveryTasksResponse {
+  deliveryTasks: DeliveryTask[];
 }
 
 export interface AssignDeliveryTaskResponse {
