@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Input } from "../../ui/input";
+import { Button } from "../../ui/button";
+import { Mail, User, Lock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { SignUpInput } from "@/types/api/sign-up";
-import { validateRegisterForm } from "@/lib/validators";
-import { translateError, translateMessage } from "@/lib/translator";
-import { AuthService } from "@/services/auth.service";
+import { Loader } from "../../animate-ui/icons/loader";
+import { SignUpInput } from "../../../types/api/sign-up";
+import { validateRegisterForm } from "../../../lib/validators";
+import { translateError, translateMessage } from "../../../lib/translator";
+import { AuthService } from "../../../services/auth.service";
+import { motion } from "framer-motion";
 
 type Props = {
   authService: AuthService;
@@ -23,15 +24,12 @@ export function RegisterStep({ authService, onSuccess }: Props) {
     password: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
 
-  /** Handle change cho các field input */
   const handleChange = (key: keyof SignUpInput, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  /** Submit đăng ký */
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -66,63 +64,95 @@ export function RegisterStep({ authService, onSuccess }: Props) {
   return (
     <form
       onSubmit={handleRegister}
-      className="flex flex-col space-y-4 animate-fadeIn"
+      className="space-y-4"
     >
-      {/* Họ và tên */}
-      <Input
-        type="text"
-        placeholder="Họ và tên"
-        value={form.name}
-        onChange={(e) => handleChange("name", e.target.value)}
-        className="w-full bg-white border border-[#ad4e28]/30 text-black"
-        required
-      />
+      <div className="space-y-2">
+        {/* Họ và tên */}
+        <div className="relative group/input">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-[#ad4e28] transition-all duration-300 z-10">
+            <User className="h-5 w-5" />
+          </div>
+          <Input
+            type="text"
+            placeholder="Họ và tên của bạn"
+            value={form.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            required
+          />
+        </div>
 
-      {/* Email */}
-      <Input
-        type="email"
-        placeholder="Email"
-        value={form.email}
-        onChange={(e) => handleChange("email", e.target.value)}
-        className="w-full bg-white border border-[#ad4e28]/30 text-black"
-        required
-      />
+        {/* Email */}
+        <div className="relative group/input">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-[#ad4e28] transition-all duration-300 z-10">
+            <Mail className="h-5 w-5" />
+          </div>
+          <Input
+            type="email"
+            placeholder="Email liên hệ"
+            value={form.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            required
+          />
+        </div>
 
-      {/* Mật khẩu */}
-      <Input
-        type="password"
-        placeholder="Mật khẩu"
-        value={form.password}
-        onChange={(e) => handleChange("password", e.target.value)}
-        className="bg-white border border-[#ad4e28]/30 text-black"
-        required
-      />
+        {/* Mật khẩu */}
+        <div className="relative group/input">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-[#ad4e28] transition-all duration-300 z-10">
+            <Lock className="h-5 w-5" />
+          </div>
+          <Input
+            type="password"
+            placeholder="Mật khẩu bảo mật"
+            value={form.password}
+            onChange={(e) => handleChange("password", e.target.value)}
+            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            required
+          />
+        </div>
 
-      {/* Xác nhận mật khẩu */}
-      <Input
-        type="password"
-        placeholder="Xác nhận mật khẩu"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        className="w-full bg-white border border-[#ad4e28]/30 text-black"
-        required
-      />
+        {/* Xác nhận mật khẩu */}
+        <div className="relative group/input">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/input:text-[#ad4e28] transition-all duration-300 z-10">
+            <Lock className="h-5 w-5" />
+          </div>
+          <Input
+            type="password"
+            placeholder="Xác nhận mật mật khẩu"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            required
+          />
+        </div>
+      </div>
 
       {/* Nút submit */}
-      <Button
-        type="submit"
-        disabled={loading}
-        className="font-semibold rounded-lg py-2 btn-color"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
       >
-        {loading ? (
-          <>
-            <Loader animate loop className="h-5 w-5 mr-2" />
-            Đang xử lý...
-          </>
-        ) : (
-          "Đăng ký ngay"
-        )}
-      </Button>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="group relative w-full h-16 font-black text-lg bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[1.5rem] transition-all duration-500 overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          {loading ? (
+            <div className="flex items-center gap-3">
+              <Loader animate loop className="h-6 w-6" />
+              <span>ĐANG XỬ LÝ...</span>
+            </div>
+          ) : (
+            <span className="flex items-center justify-center gap-3 uppercase tracking-widest text-lg">
+              Đăng ký ngay
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+            </span>
+          )}
+        </Button>
+      </motion.div>
     </form>
   );
 }
