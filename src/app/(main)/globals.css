@@ -180,23 +180,27 @@
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: #fdf6e9;
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: #ad4e28;
+    background-color: #c5a059;
     border-radius: 9999px;
-    border: 2px solid transparent;
+    border: 3px solid #fdf6e9;
     background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #a68545;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #ad4e28 transparent;
+    scrollbar-color: #c5a059 #fdf6e9;
   }
 
   @keyframes fadeIn {
