@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LoginForm from "../../../components/auth/login-form";
 import RegisterForm from "../../../components/auth/register-form";
 import { Button } from "../../../components/ui/button";
+import Snowfall from "react-snowfall";
 
 export default function Login() {
   const [activeForm, setActiveForm] = useState<"login" | "register">("login");
@@ -66,13 +67,26 @@ export default function Login() {
   const switchToRegister = useCallback(() => setActiveForm("register"), []);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f9f0e4] text-black">
-      <div className="relative w-screen h-screen overflow-hidden">
-        {/* ==================== IMAGE + TEXT ==================== */}
+    <div className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#f9f0e4]">
+      {/* Snowfall Background Effect */}
+      <div className="absolute inset-0 pointer-events-none z-[100]">
+        <Snowfall
+          color="#dee4e7"
+          snowflakeCount={150}
+          style={{
+            opacity: 0.6,
+            position: 'fixed',
+            width: '100vw',
+            height: '100vh',
+          }}
+        />
+      </div>
+
+      <div className="relative w-full h-full flex overflow-hidden">
+        {/* ==================== IMAGE + TEXT SECTION ==================== */}
         <div
           ref={imageRef}
-          className="hidden lg:block absolute inset-y-0 left-0
-            lg:w-1/2 will-change-transform z-20 bg-[#f9f0e4] overflow-hidden group"
+          className="hidden lg:block absolute inset-y-0 left-0 lg:w-1/2 will-change-transform z-20 overflow-hidden group bg-[#f9f0e4]"
         >
           <Image
             src="/images/login-register.svg"
@@ -88,7 +102,7 @@ export default function Login() {
             ref={textRef}
             className="absolute inset-0 flex flex-col items-center justify-center p-12"
           >
-            <div className="relative w-full max-w-lg backdrop-blur-md bg-white/10 p-10 rounded-[3rem] border border-white/20 shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-lg backdrop-blur-md bg-white/10 p-8 md:p-10 rounded-[2.5rem] border border-white/20 shadow-2xl overflow-hidden">
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#ad4e28]/20 blur-[80px] rounded-full" />
               <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/10 blur-[80px] rounded-full" />
 
@@ -100,20 +114,20 @@ export default function Login() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 1.1, y: -20 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative z-10 text-center space-y-6"
+                    className="relative z-10 text-center space-y-4"
                   >
-                    <h2 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase tracking-tighter">
+                    <h2 className="text-3xl md:text-4xl font-black text-white leading-tight uppercase tracking-tighter">
                       Chào mừng bạn <br />
                       <span className="text-[#f9f0e4]">đến với chúng tôi!</span>
                     </h2>
-                    <p className="text-[#f9f0e4]/80 text-lg font-medium leading-relaxed">
+                    <p className="text-[#f9f0e4]/80 text-sm md:text-base font-medium leading-relaxed max-w-sm mx-auto">
                       Nếu đây là lần đầu tiên bạn ghé thăm, hãy tạo ngay tài khoản để khám phá đầy đủ tính năng và cùng chúng tôi bắt đầu hành trình ý nghĩa.
                     </p>
-                    <div className="pt-4">
+                    <div className="pt-2">
                       <Button
                         variant="link"
                         onClick={switchToRegister}
-                        className="group/btn relative text-white font-black uppercase tracking-widest text-sm p-0 h-auto"
+                        className="group/btn relative text-white font-black uppercase tracking-widest text-[11px] md:text-xs p-0 h-auto"
                       >
                         Đăng ký ngay hôm nay
                         <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left scale-x-100 group-hover/btn:scale-x-50 transition-transform duration-300" />
@@ -127,20 +141,20 @@ export default function Login() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 1.1, y: -20 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative z-10 text-center space-y-6"
+                    className="relative z-10 text-center space-y-4"
                   >
-                    <h2 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase tracking-tighter">
+                    <h2 className="text-3xl md:text-4xl font-black text-white leading-tight uppercase tracking-tighter">
                       Rất vui được <br />
                       <span className="text-[#f9f0e4]">gặp lại bạn!</span>
                     </h2>
-                    <p className="text-[#f9f0e4]/80 text-lg font-medium leading-relaxed">
+                    <p className="text-[#f9f0e4]/80 text-sm md:text-base font-medium leading-relaxed max-w-sm mx-auto">
                       Hãy đăng nhập để tiếp tục hành trình, theo dõi tiến trình của bạn và cùng nhau lan tỏa nhiều điều tốt đẹp hơn.
                     </p>
-                    <div className="pt-4">
+                    <div className="pt-2">
                       <Button
                         variant="link"
                         onClick={switchToLogin}
-                        className="group/btn relative text-white font-black uppercase tracking-widest text-sm p-0 h-auto"
+                        className="group/btn relative text-white font-black uppercase tracking-widest text-[11px] md:text-xs p-0 h-auto"
                       >
                         Đăng nhập để tiếp tục
                         <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left scale-x-100 group-hover/btn:scale-x-50 transition-transform duration-300" />

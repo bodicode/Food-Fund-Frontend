@@ -129,15 +129,15 @@ export function WhatWeDo() {
       <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center relative z-10">
 
         {/* Left Column: Images */}
-        <div className="relative lg:block hidden">
-          <div className="relative z-10">
-            <div className="relative overflow-hidden rounded-[2rem] shadow-2xl w-full max-w-[500px] aspect-[4/5] mx-auto border-4 border-white/50">
+        <div className="relative lg:block hidden h-full">
+          <div className="relative z-10 h-full">
+            <div className="relative overflow-hidden rounded-[3rem] shadow-2xl w-full h-full min-h-[700px] border-8 border-white/50">
               <Image
                 src="/images/what-we-do-1.jpg"
                 alt="Community Support"
                 fill
-                className="image-main object-cover"
-                sizes="(max-width: 768px) 100vw, 500px"
+                className="image-main object-cover hover:scale-105 transition-transform duration-700"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 priority
               />
             </div>
