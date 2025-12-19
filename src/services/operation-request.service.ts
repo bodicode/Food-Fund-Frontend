@@ -13,7 +13,6 @@ import {
   OperationRequestsResponse,
   OperationRequestStats,
   OperationRequestStatsResponse,
-  OperationRequestSortOrder,
   UpdateOperationRequestStatusInput,
   UpdateOperationRequestStatusResponse,
 } from "../types/api/operation-request";

@@ -195,7 +195,7 @@ export function Navigation() {
                     {
                       title: "Cách ủng hộ",
                       desc: "Các hình thức ủng hộ an toàn & nhanh chóng",
-                      href: "/donate/how-to",
+                      href: "/how-to-donate",
                     },
                     {
                       title: "Hành trình yêu thương",
@@ -225,17 +225,12 @@ export function Navigation() {
                     {
                       title: "Tạo chiến dịch mới",
                       desc: "Khởi động chiến dịch chỉ trong 2 phút",
-                      href: "/start",
-                    },
-                    {
-                      title: "Mẫu chiến dịch",
-                      desc: "Chọn mẫu theo mục tiêu: học phí, y tế, bếp ăn...",
-                      href: "/start/templates",
+                      href: "/fundraising-guidelines",
                     },
                     {
                       title: "Tính phí & minh bạch",
                       desc: "Chính sách phí và cách đảm bảo minh bạch",
-                      href: "/start/pricing",
+                      href: "/transparency",
                     },
                   ],
                 },
@@ -246,11 +241,6 @@ export function Navigation() {
                       title: "Mẹo gây quỹ",
                       desc: "Lời khuyên giúp bạn gây quỹ hiệu quả hơn",
                       href: "/start/tips",
-                    },
-                    {
-                      title: "Hợp tác cùng tổ chức",
-                      desc: "Gây quỹ cùng với tổ chức từ thiện",
-                      href: "/partners",
                     },
                     {
                       title: "Câu chuyện thành công",
@@ -476,7 +466,7 @@ export function Navigation() {
                           {
                             title: "Cách ủng hộ",
                             desc: "Các hình thức ủng hộ an toàn & nhanh chóng",
-                            href: "/donate/how-to",
+                            href: "/how-to-donate",
                           },
                           {
                             title: "Hành trình yêu thương",
@@ -497,17 +487,12 @@ export function Navigation() {
                           {
                             title: "Tạo chiến dịch mới",
                             desc: "Khởi động chiến dịch chỉ trong 2 phút",
-                            href: "/start",
-                          },
-                          {
-                            title: "Mẫu chiến dịch",
-                            desc: "Chọn mẫu theo mục tiêu: học phí, y tế, bếp ăn...",
-                            href: "/start/templates",
+                            href: "/fundraising-guidelines",
                           },
                           {
                             title: "Tính phí & minh bạch",
                             desc: "Chính sách phí và minh bạch",
-                            href: "/start/pricing",
+                            href: "/transparency",
                           },
                         ],
                       },

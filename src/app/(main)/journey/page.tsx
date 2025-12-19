@@ -3,8 +3,7 @@
 import { motion } from "framer-motion";
 import StoryCard from "../../../components/shared/article-card";
 import { Button } from "../../../components/ui/button";
-import { Search, MapPin, Calendar, ArrowRight, Sparkles, Heart, Users, Globe, ChevronRight } from "lucide-react";
-import { Input } from "../../../components/ui/input";
+import { MapPin, Calendar, ArrowRight, Sparkles, Heart, Users, Globe, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 const stories = [
@@ -120,18 +119,6 @@ export default function JourneyPage() {
             Mỗi chuyến đi là một câu chuyện, mỗi suất ăn là một niềm hy vọng.
             Cùng chúng tôi nhìn lại những khoảnh khắc đáng nhớ.
           </p>
-
-          <div className="max-w-2xl mx-auto relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-amber-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Tìm kiếm những câu chuyện truyền cảm hứng..."
-                className="pl-14 pr-6 py-8 rounded-full border-none shadow-2xl focus:ring-4 focus:ring-orange-100 bg-white text-lg transition-all"
-              />
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-orange-400" />
-            </div>
-          </div>
         </div>
       </motion.div>
 
