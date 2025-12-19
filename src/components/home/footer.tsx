@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
+import { Separator } from "../../components/ui/separator";
 
 export function Footer() {
   return (
@@ -55,10 +55,10 @@ export function Footer() {
               <Link href="/contact">Liên hệ</Link>
             </li>
             <li>
-              <Link href="#">Hướng dẫn gây quỹ</Link>
+              <Link href="/fundraising-guidelines">Hướng dẫn gây quỹ</Link>
             </li>
             <li>
-              <Link href="#">Câu hỏi thường gặp</Link>
+              <Link href="/faq">Câu hỏi thường gặp</Link>
             </li>
           </ul>
         </div>
@@ -69,16 +69,13 @@ export function Footer() {
           </h4>
           <ul className="space-y-2">
             <li>
-              <Link href="#">Chính sách bảo mật</Link>
+              <Link href="/privacy-policy">Chính sách bảo mật</Link>
             </li>
             <li>
-              <Link href="#">Chính sách cookie</Link>
+              <Link href="/cookie-policy">Chính sách cookie</Link>
             </li>
             <li>
-              <Link href="#">Chính sách hoàn tiền</Link>
-            </li>
-            <li>
-              <Link href="#">Minh bạch & trách nhiệm</Link>
+              <Link href="/transparency">Minh bạch & trách nhiệm</Link>
             </li>
           </ul>
         </div>

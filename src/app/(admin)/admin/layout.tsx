@@ -18,10 +18,10 @@ import {
   Settings,
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../components/ui/button";
 import { useTheme } from "next-themes";
-import { ThemeProvider } from "@/providers/theme-provider";
-import { ThemeTransition } from "@/lib/theme-transition";
+import { ThemeProvider } from "../../../providers/theme-provider";
+import { ThemeTransition } from "../../../lib/theme-transition";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Sheet,
@@ -29,7 +29,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "../../../components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,20 +37,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "../../../components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/store/slices/auth-slice";
+import { logout } from "../../../store/slices/auth-slice";
 import { toast } from "sonner";
-import { LogOutIcon } from "@/components/animate-ui/icons/log-out";
-import { MoonIcon } from "@/components/animate-ui/icons/moon";
-import { SunIcon } from "@/components/animate-ui/icons/sun";
-import { cn } from "@/lib/utils/utils";
+import { LogOutIcon } from "../../../components/animate-ui/icons/log-out";
+import { MoonIcon } from "../../../components/animate-ui/icons/moon";
+import { SunIcon } from "../../../components/animate-ui/icons/sun";
+import { cn } from "../../../lib/utils/utils";
 import Image from "next/image";
-import { userService } from "@/services/user.service";
-import { UserProfile } from "@/types/api/user";
-import { RootState } from "@/store";
-import { translateRole } from "@/lib/translator";
+import { userService } from "../../../services/user.service";
+import { UserProfile } from "../../../types/api/user";
+import { RootState } from "../../../store";
+import { translateRole } from "../../../lib/translator";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -160,7 +160,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
     const name = userProfile?.full_name || authUser?.name || "A";
     return name
       .split(" ")
-      .map((n) => n[0])
+      .map((n: string) => n[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);

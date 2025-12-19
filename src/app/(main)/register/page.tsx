@@ -2,12 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Building2, HeartHandshake, CheckCircle2, Users, Truck, ChefHat, ArrowRight, MapPin, Phone, Globe } from "lucide-react";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { organizationService } from "@/services/organization.service";
-import { Organization } from "@/types/api/organization";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Building2,
+    HeartHandshake,
+    CheckCircle2,
+    Users,
+    Truck,
+    ChefHat,
+    ArrowRight,
+    MapPin,
+    Phone,
+    Globe,
+    PlusCircle,
+    ShieldCheck,
+    Star,
+    Settings2
+} from "lucide-react";
+import { Loader } from "../../../components/animate-ui/icons/loader";
+import { organizationService } from "../../../services/organization.service";
+import { Organization } from "../../../types/api/organization";
+import { Button } from "../../../components/ui/button";
 
 export default function OrgRegisterPage() {
     const router = useRouter();
@@ -20,6 +35,7 @@ export default function OrgRegisterPage() {
                 const org = await organizationService.getMyOrganization();
                 setOrganization(org);
             } catch {
+                setOrganization(null);
             } finally {
                 setChecking(false);
             }
@@ -30,315 +46,248 @@ export default function OrgRegisterPage() {
 
     if (checking) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-white">
-                <Loader className="w-8 h-8 animate-spin text-[#ad4e28]" />
-            </div>
-        );
-    }
-
-    if (organization) {
-        return (
-            <div className="min-h-screen bg-gradient-to-b from-white via-orange-50/30 to-white pt-22 pb-16 px-4">
-                <div className="max-w-4xl mx-auto">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="space-y-8"
-                    >
-                        {/* Header */}
-                        <div className="text-center space-y-4">
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-                                className="flex justify-center"
-                            >
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-green-500/20 blur-xl rounded-full" />
-                                    <CheckCircle2 className="w-14 h-14 text-green-500 relative" />
-                                </div>
-                            </motion.div>
-                            <div>
-                                <h1 className="text-3xl md:text-4xl font-bold text-color">
-                                    Tổ chức của bạn đã sẵn sàng
-                                </h1>
-                                <p className="text-gray-600 text-sm md:text-base mt-2">
-                                    Xác nhận thông tin và bắt đầu tạo chiến dịch gây quỹ
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Organization Card */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            {/* Header with gradient */}
-                            <div className="h-2 bg-gradient-to-r from-[#E77731] to-[#ad4e28]" />
-
-                            <div className="p-8 space-y-6">
-                                {/* Organization Name */}
-                                <div>
-                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tên tổ chức</p>
-                                    <p className="text-2xl font-bold text-color mt-2">
-                                        {organization.name}
-                                    </p>
-                                </div>
-
-                                {/* Details Grid */}
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    {/* Address */}
-                                    <div className="flex gap-4">
-                                        <MapPin className="w-5 h-5 text-orange-600 flex-shrink-0 mt-1" />
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Địa chỉ</p>
-                                            <p className="text-sm text-gray-800 mt-1">
-                                                {organization.address}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Phone */}
-                                    <div className="flex gap-4">
-                                        <Phone className="w-5 h-5 text-orange-600 flex-shrink-0 mt-1" />
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Số điện thoại</p>
-                                            <p className="text-sm text-gray-800 mt-1">
-                                                {organization.phone_number}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Website */}
-                                    <div className="flex gap-4">
-                                        <Globe className="w-5 h-5 text-orange-600 flex-shrink-0 mt-1" />
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Website</p>
-                                            <a
-                                                href={organization.website}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-sm text-orange-600 hover:text-orange-700 mt-1 break-all hover:underline"
-                                            >
-                                                {organization.website}
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    {/* Members */}
-                                    {(organization.active_members || organization.total_members) && (
-                                        <div className="flex gap-4">
-                                            <Users className="w-5 h-5 text-orange-600 flex-shrink-0 mt-1" />
-                                            <div>
-                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Thành viên</p>
-                                                <p className="text-sm text-gray-800 mt-1">
-                                                    {organization.active_members || 0} / {organization.total_members || 0} hoạt động
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Description */}
-                                {organization.description && (
-                                    <>
-                                        <div className="h-px bg-gray-200" />
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mô tả</p>
-                                            <p className="text-sm text-gray-700 mt-2 leading-relaxed">
-                                                {organization.description}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </motion.div>
-
-                        {/* Action Buttons */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex flex-col sm:flex-row gap-3"
-                        >
-                            <Button
-                                onClick={() => router.push("/register/campaign/type")}
-                                className="flex-1 bg-gradient-to-r from-[#E77731] to-[#ad4e28] hover:shadow-lg text-white font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 h-12"
-                            >
-                                Tạo chiến dịch
-                                <ArrowRight className="w-4 h-4" />
-                            </Button>
-                            <Button
-                                onClick={() => router.push("/profile/organization")}
-                                variant="outline"
-                                className="flex-1 py-3 rounded-lg font-semibold h-12"
-                            >
-                                Quản lý tổ chức
-                            </Button>
-                        </motion.div>
-                    </motion.div>
+            <div className="min-h-screen flex items-center justify-center bg-[#fefcf8]">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader className="w-12 h-12 text-[#E77731]" />
+                    <p className="text-gray-400 font-bold animate-pulse">Đang kiểm tra thông tin...</p>
                 </div>
             </div>
         );
     }
 
-    // Case 2: User chưa có organization
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white via-orange-50/40 to-white pt-22 pb-16 px-4">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-[#fefcf8] relative overflow-hidden flex flex-col items-center justify-center py-20 px-4">
+            {/* Background Blobs */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="space-y-8"
-                >
-                    {/* Header */}
-                    <div className="text-center space-y-4">
-                        <h1 className="text-3xl md:text-4xl font-bold text-color">
-                            Bắt đầu với tổ chức của bạn
-                        </h1>
-                        <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
-                            Tổ chức là nền tảng để xây dựng chiến dịch gây quỹ uy tín, quản lý đội ngũ và thực hiện minh bạch
-                        </p>
-                    </div>
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 10, 0],
+                    }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#E77731]/5 rounded-full blur-[100px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1, 1.1, 1],
+                        rotate: [0, -15, 0],
+                    }}
+                    transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-[#ad4e28]/5 rounded-full blur-[120px]"
+                />
+            </div>
 
-                    {/* Main Card */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
-                    >
-                        {/* Header with gradient */}
-                        <div className="h-1 bg-gradient-to-r from-[#E77731] via-orange-500 to-[#ad4e28]" />
-
-                        <div className="p-8 md:p-10 space-y-8">
-                            {/* Icons */}
-                            <div className="flex justify-center gap-8">
-                                <motion.div
-                                    animate={{ y: [0, -6, 0] }}
-                                    transition={{ duration: 3, repeat: Infinity }}
-                                    className="p-4 bg-orange-100 rounded-xl"
-                                >
-                                    <Building2 className="w-8 h-8 text-orange-600" />
-                                </motion.div>
-                                <motion.div
-                                    animate={{ y: [0, -6, 0] }}
-                                    transition={{ duration: 3, repeat: Infinity, delay: 0.2 }}
-                                    className="p-4 bg-orange-100 rounded-xl"
-                                >
-                                    <HeartHandshake className="w-8 h-8 text-orange-600" />
-                                </motion.div>
-                            </div>
-
-                            {/* Benefits Grid */}
-                            <div className="space-y-3">
-                                <h2 className="text-lg font-semibold text-color text-center">
-                                    Lợi ích của tổ chức
-                                </h2>
-                                <div className="grid md:grid-cols-2 gap-3">
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                        className="flex gap-3 p-4 bg-gradient-to-br from-green-50 to-green-50/50 border border-green-200 rounded-lg hover:shadow-sm transition-shadow"
-                                    >
-                                        <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-medium text-sm text-color">Tăng độ uy tín</p>
-                                            <p className="text-xs text-gray-600 mt-0.5">Xây dựng lòng tin từ cộng đồng</p>
-                                        </div>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: 10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.35 }}
-                                        className="flex gap-3 p-4 bg-gradient-to-br from-orange-50 to-orange-50/50 border border-orange-200 rounded-lg hover:shadow-sm transition-shadow"
-                                    >
-                                        <ChefHat className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-medium text-sm text-color">Quản lý bếp</p>
-                                            <p className="text-xs text-gray-600 mt-0.5">Đảm bảo chất lượng thực phẩm</p>
-                                        </div>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.4 }}
-                                        className="flex gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-200 rounded-lg hover:shadow-sm transition-shadow"
-                                    >
-                                        <Truck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-medium text-sm text-color">Quản lý vận chuyển</p>
-                                            <p className="text-xs text-gray-600 mt-0.5">Tối ưu hóa phân phối</p>
-                                        </div>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: 10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.45 }}
-                                        className="flex gap-3 p-4 bg-gradient-to-br from-purple-50 to-purple-50/50 border border-purple-200 rounded-lg hover:shadow-sm transition-shadow"
-                                    >
-                                        <Users className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-medium text-sm text-color">Minh bạch</p>
-                                            <p className="text-xs text-gray-600 mt-0.5">Công khai tài chính & hoạt động</p>
-                                        </div>
-                                    </motion.div>
-                                </div>
-                            </div>
-
-                            {/* Checklist */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-                                <p className="text-sm font-semibold text-gray-900">Chuẩn bị thông tin:</p>
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                        Tên tổ chức
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                        Lĩnh vực hoạt động
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                        Địa chỉ & số điện thoại
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                        Thông tin đại diện pháp lý
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* CTA Button */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                    >
-                        <Button
-                            onClick={() => router.push("/register/organization")}
-                            className="w-full bg-gradient-to-r from-[#E77731] to-[#ad4e28] hover:shadow-lg text-white font-semibold py-4 rounded-lg transition-all duration-300 text-base flex items-center justify-center gap-2 h-12"
+            <div className="container relative z-10 mx-auto max-w-5xl">
+                <AnimatePresence mode="wait">
+                    {organization ? (
+                        <motion.div
+                            key="has-org"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.8 }}
+                            className="space-y-10"
                         >
-                            Tạo tổ chức ngay
-                            <ArrowRight className="w-5 h-5" />
-                        </Button>
-                    </motion.div>
+                            {/* Header Section */}
+                            <div className="text-center">
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                                    className="inline-flex items-center justify-center w-20 h-20 rounded-[2rem] bg-green-50 text-green-500 mb-6 shadow-xl shadow-green-500/10"
+                                >
+                                    <CheckCircle2 className="w-10 h-10" />
+                                </motion.div>
+                                <h1 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">
+                                    Tổ chức của bạn <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E77731] to-[#ad4e28]">đã sẵn sàng</span>
+                                </h1>
+                                <p className="text-gray-500 mt-4 text-lg">Mọi thứ đã được thiết lập để bạn bắt đầu hành trình thay đổi thế giới.</p>
+                            </div>
 
-                    {/* Footer Note */}
-                    <p className="text-center text-xs text-gray-500">
-                        Quá trình tạo tổ chức chỉ mất vài phút. Sau khi xác nhận, bạn có thể bắt đầu tạo chiến dịch gây quỹ.
-                    </p>
-                </motion.div>
+                            {/* Organization Card - Glassmorphism */}
+                            <div className="relative group">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-[#E77731] via-[#ad4e28] to-[#E77731] rounded-[2.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000 group-hover:duration-200" />
+                                <div className="relative bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)]">
+                                    <div className="flex flex-col md:flex-row gap-12">
+                                        {/* Profile Picture / Icon Area */}
+                                        <div className="md:w-1/3 flex flex-col items-center">
+                                            <div className="w-40 h-40 rounded-[2.5rem] bg-gradient-to-br from-[#E77731] to-[#ad4e28] p-1 shadow-2xl">
+                                                <div className="w-full h-full rounded-[2.4rem] bg-white flex items-center justify-center overflow-hidden">
+                                                    <Building2 className="w-20 h-20 text-[#E77731]/40" />
+                                                </div>
+                                            </div>
+                                            <div className="mt-6 flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E77731]/10 text-[#E77731] text-xs font-bold uppercase tracking-widest">
+                                                <ShieldCheck className="w-3 h-3" />
+                                                Đã xác minh
+                                            </div>
+                                        </div>
+
+                                        {/* Info Area */}
+                                        <div className="md:w-2/3 space-y-8">
+                                            <div>
+                                                <h2 className="text-3xl font-black text-gray-900 mb-2">{organization.name}</h2>
+                                                <p className="text-gray-500 leading-relaxed font-medium line-clamp-2 italic">{organization.description || "Chưa có mô tả cho tổ chức này."}</p>
+                                            </div>
+
+                                            <div className="grid sm:grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-[#E77731] shrink-0">
+                                                            <MapPin className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Địa chỉ</p>
+                                                            <p className="text-sm font-bold text-gray-700">{organization.address}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+                                                            <Phone className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Liên hệ</p>
+                                                            <p className="text-sm font-bold text-gray-700">{organization.phone_number}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                                                            <Globe className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Website</p>
+                                                            <a href={organization.website} target="_blank" className="text-sm font-bold text-[#E77731] hover:underline truncate block max-w-xs">{organization.website}</a>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
+                                                            <Users className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cộng sự</p>
+                                                            <p className="text-sm font-bold text-gray-700">{organization.active_members || 0} Thành viên</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col sm:flex-row gap-6">
+                                <Button
+                                    onClick={() => router.push("/register/campaign/type")}
+                                    className="flex-1 h-16 rounded-[1.5rem] bg-[#E77731] hover:bg-[#d16629] text-white font-bold text-xl shadow-2xl shadow-[#E77731]/30 group transition-all"
+                                >
+                                    Tạo chiến dịch mới
+                                    <PlusCircle className="ml-3 w-6 h-6 group-hover:rotate-90 transition-transform" />
+                                </Button>
+                                <Button
+                                    onClick={() => router.push("/profile/organization")}
+                                    variant="outline"
+                                    className="flex-1 h-16 rounded-[1.5rem] border-2 bg-white/50 backdrop-blur-sm border-gray-100 hover:bg-white text-gray-700 font-bold text-xl group"
+                                >
+                                    Quản lý tổ chức
+                                    <Settings2 className="ml-3 w-6 h-6 group-hover:rotate-180 transition-transform duration-500" />
+                                </Button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="no-org"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.8 }}
+                            className="space-y-16"
+                        >
+                            {/* Header */}
+                            <div className="text-center max-w-3xl mx-auto px-4">
+                                <motion.span
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E77731]/10 text-[#E77731] text-xs font-bold tracking-wider uppercase mb-8"
+                                >
+                                    <Star className="w-4 h-4" />
+                                    Fundraising Hub
+                                </motion.span>
+                                <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-[1.1] mb-8">
+                                    Thực hiện sứ mệnh của bạn <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E77731] to-[#ad4e28]">cùng một tổ chức</span>
+                                </h1>
+                                <p className="text-lg md:text-xl text-gray-500 leading-relaxed font-medium">
+                                    Tổ chức là nền tảng để xây dựng lòng tin, quản lý đội ngũ hiệu quả và thực hiện các chiến dịch thiện nguyện minh bạch nhất.
+                                </p>
+                            </div>
+
+                            {/* Features Grid */}
+                            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {[
+                                    { icon: Building2, title: "Tăng uy tín", text: "Xây dựng lòng tin từ hàng ngàn người ủng hộ qua tư cách pháp đoàn.", color: "bg-orange-50 text-[#E77731]" },
+                                    { icon: ChefHat, title: "Quản lý bếp", text: "Đảm bảo chất lượng các bữa ăn thông qua quản lý hệ thống bếp.", color: "bg-green-50 text-green-600" },
+                                    { icon: Truck, title: "Vận chuyển", text: "Tối ưu hóa các điểm phân phối thực phẩm một cách chuyên nghiệp.", color: "bg-blue-50 text-blue-600" },
+                                    { icon: ShieldCheck, title: "Minh bạch", text: "Hệ thống quản lý tài chính và giải ngân công khai 100%.", color: "bg-purple-50 text-purple-600" },
+                                ].map((feature, idx) => (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.4 + idx * 0.1 }}
+                                        className="p-8 rounded-[2rem] bg-white border border-white hover:border-[#E77731]/20 shadow-sm hover:shadow-xl transition-all group"
+                                    >
+                                        <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform`}>
+                                            <feature.icon className="w-7 h-7" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                                        <p className="text-sm text-gray-500 leading-relaxed font-medium italic">{feature.text}</p>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {/* Checklist & CTA Card */}
+                            <div className="grid lg:grid-cols-3 gap-12 items-center">
+                                <div className="lg:col-span-1 space-y-6">
+                                    <h4 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Chuẩn bị thông tin</h4>
+                                    {["Tên tổ chức chính thức", "Lĩnh vực thiện nguyện", "Địa chỉ & Hotline", "Tư cách pháp nhân"].map((item, i) => (
+                                        <div key={i} className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-[#E77731]" />
+                                            <span className="text-gray-700 font-bold">{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="lg:col-span-2">
+                                    <motion.div
+                                        whileHover={{ y: -5 }}
+                                        className="p-10 rounded-[3rem] bg-gray-900 text-white relative overflow-hidden group shadow-2xl"
+                                    >
+                                        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
+                                            <HeartHandshake className="w-64 h-64 -rotate-12" />
+                                        </div>
+                                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+                                            <div className="flex-1">
+                                                <h3 className="text-3xl font-black mb-4">Bạn đã sẵn sàng khởi đầu?</h3>
+                                                <p className="text-gray-400 leading-relaxed">Chỉ mất 5 phút để tạo lập tổ chức và mở cánh cửa đến với hàng ngàn cơ hội giúp đỡ cộng đồng.</p>
+                                            </div>
+                                            <Button
+                                                onClick={() => router.push("/register/organization")}
+                                                className="h-16 px-10 rounded-2xl bg-[#E77731] hover:bg-[#d16629] text-white font-bold text-xl flex items-center gap-3 transition-all"
+                                            >
+                                                Tạo tổ chức ngay
+                                                <ArrowRight className="w-6 h-6" />
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                </div>
+                            </div>
+
+                            <p className="text-center text-gray-400 text-sm font-medium">Quá trình xác thuật sẽ được thực hiện tự động và bảo mật bởi Hệ thống của chúng tôi.</p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
