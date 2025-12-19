@@ -40,13 +40,12 @@ class OperationRequestService {
   }
 
   async getOperationRequests(
-    filter: OperationRequestFilterInput,
-    sortBy?: OperationRequestSortOrder
+    filter: OperationRequestFilterInput
   ): Promise<OperationRequest[]> {
     try {
       const { data } = await client.query<OperationRequestsResponse>({
         query: GET_OPERATION_REQUESTS,
-        variables: { filter, sortBy },
+        variables: { filter },
         fetchPolicy: "no-cache",
       });
 

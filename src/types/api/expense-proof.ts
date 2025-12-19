@@ -40,9 +40,14 @@ export interface ExpenseProof {
   updated_at?: string | null;
 }
 
+export type ExpenseProofSortBy = "NEWEST_FIRST" | "OLDEST_FIRST" | "STATUS_PENDING_FIRST";
+
 export interface ExpenseProofFilterInput {
-  campaignId: string;
+  campaignId?: string | null;
+  campaignPhaseId?: string | null;
+  requestId?: string | null;
   status?: ExpenseProofStatus | null;
+  sortBy?: ExpenseProofSortBy | null;
 }
 
 export interface GetExpenseProofsParams {

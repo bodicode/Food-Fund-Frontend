@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 export const GET_OPERATION_REQUESTS = gql`
-  query OperationRequests($filter: OperationRequestFilterInput!, $sortBy: OperationRequestSortOrder) {
-    operationRequests(filter: $filter, sortBy: $sortBy) {
+  query OperationRequests($filter: OperationRequestFilterInput!) {
+    operationRequests(filter: $filter) {
       id
       title
       expenseType

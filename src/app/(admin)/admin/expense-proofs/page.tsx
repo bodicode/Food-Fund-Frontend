@@ -1,22 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { expenseProofService } from "@/services/expense-proof.service";
-import { ExpenseProof, ExpenseProofStatus } from "@/types/api/expense-proof";
-import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDateTime } from "@/lib/utils/date-utils";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Pagination } from "@/components/ui/pagination";
+import { expenseProofService } from "../../../../services/expense-proof.service";
+import { ExpenseProof, ExpenseProofStatus, ExpenseProofSortBy } from "../../../../types/api/expense-proof";
+import { formatCurrency } from "../../../../lib/utils/currency-utils";
+import { formatDateTime } from "../../../../lib/utils/date-utils";
+import { Loader } from "../../../../components/animate-ui/icons/loader";
+import { Badge } from "../../../../components/ui/badge";
+import { Button } from "../../../../components/ui/button";
+import { Card, CardContent } from "../../../../components/ui/card";
+import { Pagination } from "../../../../components/ui/pagination";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../../components/ui/select";
 import {
   Receipt,
   FileText,
@@ -29,7 +29,7 @@ import {
   DollarSign,
   Calendar1,
 } from "lucide-react";
-import { AdminExpenseProofDetailDialog } from "@/components/admin";
+import { AdminExpenseProofDetailDialog } from "../../../../components/admin";
 
 const statusConfig: Record<
   ExpenseProofStatus,
@@ -60,6 +60,7 @@ export default function AdminExpenseProofsPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ExpenseProofStatus | "ALL">("ALL");
+  const [sortByFilter, setSortByFilter] = useState<ExpenseProofSortBy>("STATUS_PENDING_FIRST");
   const [selectedProofId, setSelectedProofId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalProofs: 0,
@@ -86,8 +87,11 @@ export default function AdminExpenseProofsPage() {
     try {
       const data = await expenseProofService.getExpenseProofs({
         filter: {
-          campaignId: "",
+          campaignId: null,
+          campaignPhaseId: null,
+          requestId: null,
           status: statusFilter === "ALL" ? null : statusFilter,
+          sortBy: sortByFilter,
         },
         limit: 1000,
         offset: 0,
@@ -98,7 +102,7 @@ export default function AdminExpenseProofsPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, sortByFilter]);
 
   const paginateExpenseProofs = React.useCallback(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -108,7 +112,7 @@ export default function AdminExpenseProofsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter]);
+  }, [statusFilter, sortByFilter]);
 
   useEffect(() => {
     fetchAllExpenseProofs();
@@ -235,7 +239,7 @@ export default function AdminExpenseProofsPage() {
             <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Lọc theo trạng thái:</span>
             <Select
               value={statusFilter}
-              onValueChange={(val) => setStatusFilter(val as typeof statusFilter)}
+              onValueChange={(val: string) => setStatusFilter(val as typeof statusFilter)}
             >
               <SelectTrigger className="w-48">
                 <SelectValue />
@@ -247,6 +251,22 @@ export default function AdminExpenseProofsPage() {
                 <SelectItem value="REJECTED">Từ chối</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center gap-3 ml-auto">
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Sắp xếp theo:</span>
+              <Select
+                value={sortByFilter}
+                onValueChange={(val: string) => setSortByFilter(val as ExpenseProofSortBy)}
+              >
+                <SelectTrigger className="w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt mới nhất</SelectItem>
+                  <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

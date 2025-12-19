@@ -66,7 +66,7 @@ export default function OperationRequestsPage() {
   const [operationSearchTerm, setOperationSearchTerm] = useState("");
   const [operationStatusFilter, setOperationStatusFilter] = useState<string>("ALL");
   const [operationCampaignFilter, setOperationCampaignFilter] = useState<string>("ALL");
-  const [operationSortBy, setOperationSortBy] = useState<OperationRequestSortOrder>("OLDEST_FIRST");
+  const [operationSortBy, setOperationSortBy] = useState<OperationRequestSortOrder>("STATUS_PENDING_FIRST");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedOperationRequest, setSelectedOperationRequest] = useState<OperationRequest | null>(null);
   const [isOperationUpdateDialogOpen, setIsOperationUpdateDialogOpen] = useState(false);
@@ -81,7 +81,7 @@ export default function OperationRequestsPage() {
   const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
   const [ingredientStatusFilter, setIngredientStatusFilter] = useState<string>("ALL");
   const [ingredientCampaignFilter, setIngredientCampaignFilter] = useState<string>("ALL");
-  const [ingredientSortBy, setIngredientSortBy] = useState<string>("OLDEST_FIRST");
+  const [ingredientSortBy, setIngredientSortBy] = useState<string>("STATUS_PENDING_FIRST");
   const [selectedIngredientRequestId, setSelectedIngredientRequestId] = useState<string | null>(null);
   const [isIngredientDisbursementDialogOpen, setIsIngredientDisbursementDialogOpen] = useState(false);
   const [selectedIngredientForDisbursement, setSelectedIngredientForDisbursement] =
@@ -105,10 +105,10 @@ export default function OperationRequestsPage() {
           status: operationStatusFilter === "ALL" ? null : operationStatusFilter,
           expenseType: expenseType,
           campaignId: operationCampaignFilter === "ALL" ? null : operationCampaignFilter,
+          sortBy: operationSortBy,
           limit: 100,
           offset: 0,
-        },
-        operationSortBy
+        }
       );
       setOperationRequests(requestsData);
     } catch (error) {
@@ -400,8 +400,9 @@ export default function OperationRequestsPage() {
                   <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt mới nhất</SelectItem>
                   <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
                 </SelectContent>
               </Select>
             </>
@@ -432,8 +433,9 @@ export default function OperationRequestsPage() {
                   <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt mới nhất</SelectItem>
                   <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
                 </SelectContent>
               </Select>
             </>
