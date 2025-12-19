@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { updateForm } from "@/store/slices/campaign-form-slice";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { RootState } from "../../../../../store";
+import { updateForm } from "../../../../../store/slices/campaign-form-slice";
+import { Button } from "../../../../../components/ui/button";
+import { Input } from "../../../../../components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,19 +15,19 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { DateTimeInput } from "@/components/ui/date-time-input";
+} from "../../../../../components/ui/select";
+import { DateTimeInput } from "../../../../../components/ui/date-time-input";
 import { toast } from "sonner";
-import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
+import { formatCurrency, parseCurrency } from "../../../../../lib/utils/currency-utils";
 import {
   formatPercent,
   isValidPercentInput,
   normalizePercentOnBlur,
   parsePercent,
-} from "@/lib/utils/percent-utils";
-import { CreatePhaseInput, PlannedMeal, PlannedIngredient } from "@/types/api/phase";
+} from "../../../../../lib/utils/percent-utils";
+import { CreatePhaseInput, PlannedMeal, PlannedIngredient } from "../../../../../types/api/phase";
 import { Plus, MapPin, Trash2, Utensils, Leaf, X } from "lucide-react";
-import LocationPicker from "@/components/shared/location-picker";
+import LocationPicker from "../../../../../components/shared/location-picker";
 
 
 const UNIT_GROUPS = [
@@ -65,8 +65,30 @@ export default function CreateCampaignStepGoal() {
   }, [form.targetAmount]);
 
   const handleChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseCurrency(e.target.value);
-    setTargetAmount(formatCurrency(raw));
+    const input = e.target;
+    const value = input.value;
+    const selectionStart = input.selectionStart || 0;
+
+    // Get digits before the cursor to maintain cursor position after formatting
+    const digitsBeforeCursor = value.slice(0, selectionStart).replace(/\D/g, "");
+
+    const raw = parseCurrency(value);
+    const currentRaw = parseCurrency(targetAmount);
+
+    // Handle backspacing a separator (dot)
+    // If the raw digits haven't changed but the string got shorter, user likely deleted a separator
+    if (raw === currentRaw && value.length < targetAmount.length) {
+      const newRaw = raw.slice(0, Math.max(0, digitsBeforeCursor.length - 1)) + raw.slice(digitsBeforeCursor.length);
+      setTargetAmount(formatCurrency(newRaw));
+      return;
+    }
+
+    const formatted = formatCurrency(raw);
+    setTargetAmount(formatted);
+
+    // Note: React's state update is async, so we'd normally need a useEffect or 
+    // a small delay to fix the cursor position. But for simple digit addition,
+    // standard React re-render usually handles it if the value change is predictable.
   };
 
   // ===== Timeline =====
@@ -81,8 +103,8 @@ export default function CreateCampaignStepGoal() {
         ingredientBudgetPercentage: p.ingredientBudgetPercentage || "",
         cookingBudgetPercentage: p.cookingBudgetPercentage || "",
         deliveryBudgetPercentage: p.deliveryBudgetPercentage || "",
-        plannedMeals: (p.plannedMeals || []).map(m => ({ ...m, name: m.name || "", quantity: m.quantity || 0 })),
-        plannedIngredients: (p.plannedIngredients || []).map(i => ({ ...i, name: i.name || "", quantity: i.quantity || "", unit: i.unit || "" })),
+        plannedMeals: (p.plannedMeals || []).map((m: PlannedMeal) => ({ ...m, name: m.name || "", quantity: m.quantity || 0 })),
+        plannedIngredients: (p.plannedIngredients || []).map((i: PlannedIngredient) => ({ ...i, name: i.name || "", quantity: i.quantity || "", unit: i.unit || "" })),
       }))
       : [
         {
@@ -233,15 +255,13 @@ export default function CreateCampaignStepGoal() {
         phase.ingredientPurchaseDate?.trim() &&
         phase.cookingDate?.trim() &&
         phase.deliveryDate?.trim() &&
-        (phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "") &&
-        (phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "") &&
-        (phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "") &&
-        (phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "") &&
-        (phase.deliveryBudgetPercentage !== undefined && phase.deliveryBudgetPercentage !== "") &&
+        phase.ingredientBudgetPercentage !== undefined && phase.ingredientBudgetPercentage !== "" &&
+        phase.cookingBudgetPercentage !== undefined && phase.cookingBudgetPercentage !== "" &&
+        phase.deliveryBudgetPercentage !== undefined && phase.deliveryBudgetPercentage !== "" &&
         phase.plannedMeals?.length > 0 &&
-        phase.plannedMeals.every((m) => m.name.trim() && m.quantity > 0) &&
+        phase.plannedMeals.every((m: PlannedMeal) => m.name.trim() && m.quantity > 0) &&
         phase.plannedIngredients?.length > 0 &&
-        phase.plannedIngredients.every((i) => i.name.trim() && i.quantity.trim() && i.unit.trim())
+        phase.plannedIngredients.every((i: PlannedIngredient) => i.name.trim() && i.quantity.trim() && i.unit.trim())
       );
     });
 
@@ -448,13 +468,18 @@ export default function CreateCampaignStepGoal() {
                 <label className="text-sm font-medium text-gray-700">
                   Số tiền mục tiêu (VNĐ)
                 </label>
-                <Input
-                  inputMode="numeric"
-                  placeholder="Nhập số tiền (ví dụ: 200.000.000)"
-                  value={targetAmount}
-                  onChange={handleChangeAmount}
-                  className="h-12 text-lg font-medium"
-                />
+                <div className="relative">
+                  <Input
+                    inputMode="numeric"
+                    placeholder="Nhập số tiền (ví dụ: 200.000.000)"
+                    value={targetAmount}
+                    onChange={handleChangeAmount}
+                    className="h-12 text-lg font-medium pr-10"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 font-medium text-gray-400 pointer-events-none">
+                    ₫
+                  </div>
+                </div>
               </div>
               {!isAmountValid && (
                 <p className="text-sm text-red-600">Số tiền chưa hợp lệ.</p>

@@ -5,8 +5,8 @@ export function parseCurrency(value: string): string {
 export function formatCurrency(value: string | number): string {
   const numericValue =
     typeof value === "string" ? parseCurrency(value) : value.toString();
-  if (!numericValue) return "0 ₫";
-  return `${new Intl.NumberFormat("vi-VN").format(Number(numericValue))}₫`;
+  if (!numericValue) return "";
+  return new Intl.NumberFormat("vi-VN").format(Number(numericValue));
 }
 
 export function handleCurrencyInput(e: React.ChangeEvent<HTMLInputElement>) {

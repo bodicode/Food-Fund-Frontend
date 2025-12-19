@@ -7,9 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import { AlertTriangle, Shield, Scale, FileText } from "lucide-react";
 
 interface TermsConditionsDialogProps {
@@ -61,7 +61,7 @@ export function TermsConditionsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent
-        className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
+        className="sm:max-w-[95vw] lg:max-w-7xl h-[95vh] flex flex-col p-0 gap-0 overflow-hidden"
         onWheel={(e) => e.stopPropagation()} // ✅ chặn scroll bubble ra body
       >
         {/* Header cố định */}
