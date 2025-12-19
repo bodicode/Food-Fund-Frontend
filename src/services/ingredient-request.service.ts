@@ -1,10 +1,10 @@
 "use client";
 
-import { GET_INGREDIENT_REQUESTS } from "@/graphql/query/ingredient-request/get-ingredient-requests";
-import { GET_INGREDIENT_REQUEST } from "@/graphql/query/ingredient-request/get-ingredient-request";
-import { UPDATE_INGREDIENT_REQUEST_STATUS } from "@/graphql/mutations/ingredient-request/update-ingredient-request-status";
-import { GET_INGREDIENT_REQUEST_STATS } from "@/graphql/query/ingredient-request/get-ingredient-request-stats";
-import client from "@/lib/apollo-client";
+import { GET_INGREDIENT_REQUESTS } from "../graphql/query/ingredient-request/get-ingredient-requests";
+import { GET_INGREDIENT_REQUEST } from "../graphql/query/ingredient-request/get-ingredient-request";
+import { UPDATE_INGREDIENT_REQUEST_STATUS } from "../graphql/mutations/ingredient-request/update-ingredient-request-status";
+import { GET_INGREDIENT_REQUEST_STATS } from "../graphql/query/ingredient-request/get-ingredient-request-stats";
+import client from "../lib/apollo-client";
 import {
   IngredientRequest,
   GetIngredientRequestsParams,
@@ -14,7 +14,7 @@ import {
   UpdateIngredientRequestStatusResponse,
   GetIngredientRequestStatsResponse,
   IngredientRequestStats,
-} from "@/types/api/ingredient-request";
+} from "../types/api/ingredient-request";
 
 export const ingredientRequestService = {
   async getIngredientRequests(

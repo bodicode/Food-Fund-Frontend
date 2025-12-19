@@ -1,10 +1,10 @@
 "use client";
 
-import { GET_EXPENSE_PROOFS } from "@/graphql/query/expense-proof/get-expense-proofs";
-import { GET_EXPENSE_PROOF } from "@/graphql/query/expense-proof/get-expense-proof";
-import { GET_EXPENSE_PROOF_STATS } from "@/graphql/query/expense-proof/get-expense-proof-stats";
-import { UPDATE_EXPENSE_PROOF_STATUS } from "@/graphql/mutations/expense-proof/update-expense-proof-status";
-import client from "@/lib/apollo-client";
+import { GET_EXPENSE_PROOFS } from "../graphql/query/expense-proof/get-expense-proofs";
+import { GET_EXPENSE_PROOF } from "../graphql/query/expense-proof/get-expense-proof";
+import { GET_EXPENSE_PROOF_STATS } from "../graphql/query/expense-proof/get-expense-proof-stats";
+import { UPDATE_EXPENSE_PROOF_STATUS } from "../graphql/mutations/expense-proof/update-expense-proof-status";
+import client from "../lib/apollo-client";
 import {
   ExpenseProof,
   GetExpenseProofsParams,
@@ -14,7 +14,7 @@ import {
   GetExpenseProofStatsResponse,
   UpdateExpenseProofStatusInput,
   UpdateExpenseProofStatusResponse,
-} from "@/types/api/expense-proof";
+} from "../types/api/expense-proof";
 
 export const expenseProofService = {
   async getExpenseProofs(
