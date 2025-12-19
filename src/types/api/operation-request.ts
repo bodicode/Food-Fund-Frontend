@@ -10,11 +10,12 @@ export interface OperationRequestFilterInput {
   campaignId?: string | null;
   status?: string | null;
   expenseType?: "COOKING" | "DELIVERY" | null;
+  sortBy?: OperationRequestSortOrder | null;
   limit?: number;
   offset?: number;
 }
 
-export type OperationRequestSortOrder = "NEWEST_FIRST" | "OLDEST_FIRST";
+export type OperationRequestSortOrder = "NEWEST_FIRST" | "OLDEST_FIRST" | "STATUS_PENDING_FIRST";
 
 export interface OperationRequest {
   id: string;
