@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { walletService, FundraiserWallet } from "../../services/wallet.service";
 import { formatCurrency } from "../../lib/utils/currency-utils";
-import { motion, useInView, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
 import { Heart, HandCoins, ArrowUpRight, ShieldCheck, Activity, Globe } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import Link from "next/link";

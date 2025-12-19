@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { mealBatchService } from "../../services/meal-batch.service";
 import { MealBatch } from "../../types/api/meal-batch";
@@ -18,9 +18,9 @@ import {
     Package,
     ChevronRight,
     ChefHat,
-    History,
     TrendingUp,
-    Camera
+    Camera,
+    Play
 } from "lucide-react";
 
 interface MealBatchListProps {
@@ -33,12 +33,10 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
     const [loading, setLoading] = useState(true);
     const [selectedMealBatchId, setSelectedMealBatchId] = useState<string | null>(null);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [openLightboxFirst, setOpenLightboxFirst] = useState(false);
+    const [initialMediaIndex, setInitialMediaIndex] = useState(0);
 
-    useEffect(() => {
-        fetchMealBatches();
-    }, [campaignId, campaignPhaseId]);
-
-    const fetchMealBatches = async () => {
+    const fetchMealBatches = useCallback(async () => {
         setLoading(true);
         try {
             const data = await mealBatchService.getMealBatches({
@@ -55,7 +53,13 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
         } finally {
             setLoading(false);
         }
-    };
+    }, [campaignId, campaignPhaseId]);
+
+    useEffect(() => {
+        fetchMealBatches();
+    }, [fetchMealBatches]);
+
+    const isVideo = (url: string) => /\.(mp4|webm|ogg|mov|quicktime)$/i.test(url) || url.includes("video");
 
     const getStatusBadge = (status: string) => {
         const label = translateStatus(status);
@@ -105,9 +109,9 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2.5 text-[#ad4e28]">
-                            <History className="w-5 h-5" />
-                            <h3 className="text-xl font-black tracking-tight uppercase">
-                                Nhật ký nấu ăn <span className="text-gray-300 ml-1">/ {mealBatches.length} bản ghi</span>
+                            <UtensilsCrossed className="w-5 h-5" />
+                            <h3 className="text-lg font-black tracking-tight uppercase">
+                                Thức ăn đã chuẩn bị
                             </h3>
                         </div>
                         <p className="text-sm text-gray-500 font-medium">Báo cáo chi tiết quá trình chuẩn bị thực phẩm dự án</p>
@@ -131,17 +135,52 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
                                     {/* Food Image Wrapper */}
                                     <div className="relative shrink-0 self-center md:self-stretch w-full md:w-48 lg:w-56 aspect-[4/3] md:aspect-square">
                                         {batch.media && batch.media.length > 0 ? (
-                                            <div className="w-full h-full relative rounded-2xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-                                                <Image
-                                                    src={batch.media[0]}
-                                                    alt={batch.foodName}
-                                                    fill
-                                                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                                                />
-                                                <div className="absolute top-2 right-2 px-2 py-1 bg-black/50 backdrop-blur-md rounded-lg flex items-center gap-1.5 text-white text-[10px] font-bold">
-                                                    <Camera className="w-3 h-3" />
-                                                    {batch.media.length}
-                                                </div>
+                                            <div
+                                                className="w-full h-full relative rounded-2xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow cursor-pointer"
+                                                onClick={() => {
+                                                    setSelectedMealBatchId(batch.id);
+                                                    setInitialMediaIndex(0);
+                                                    setOpenLightboxFirst(true);
+                                                    setDetailDialogOpen(true);
+                                                }}
+                                            >
+                                                {isVideo(batch.media[0]) ? (
+                                                    <div className="w-full h-full relative">
+                                                        <video
+                                                            src={batch.media[0]}
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                            muted
+                                                            playsInline
+                                                            onMouseOver={(e: React.MouseEvent<HTMLVideoElement>) => e.currentTarget.play()}
+                                                            onMouseOut={(e: React.MouseEvent<HTMLVideoElement>) => {
+                                                                e.currentTarget.pause();
+                                                                e.currentTarget.currentTime = 0;
+                                                            }}
+                                                        />
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+                                                            <div className="w-10 h-10 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-white/40">
+                                                                <Play className="w-5 h-5 text-white ml-0.5 fill-white" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute top-2 right-2 px-2 py-1 bg-black/50 backdrop-blur-md rounded-lg flex items-center gap-1.5 text-white text-[10px] font-bold">
+                                                            <Play className="w-3 h-3" />
+                                                            Video
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-full h-full relative">
+                                                        <Image
+                                                            src={batch.media[0]}
+                                                            alt={batch.foodName}
+                                                            fill
+                                                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                                        />
+                                                        <div className="absolute top-2 right-2 px-2 py-1 bg-black/50 backdrop-blur-md rounded-lg flex items-center gap-1.5 text-white text-[10px] font-bold">
+                                                            <Camera className="w-3 h-3" />
+                                                            {batch.media.length}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="w-full h-full bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-100/50">
@@ -213,12 +252,13 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
                                                 variant="ghost"
                                                 onClick={() => {
                                                     setSelectedMealBatchId(batch.id);
+                                                    setOpenLightboxFirst(false);
                                                     setDetailDialogOpen(true);
                                                 }}
                                                 className="group/btn relative h-10 sm:h-12 px-6 sm:px-8 rounded-xl sm:rounded-2xl bg-gray-50 hover:bg-[#ad4e28] hover:text-white transition-all duration-300 font-black text-[10px] sm:text-xs uppercase tracking-widest flex items-center gap-2 overflow-hidden w-full sm:w-auto"
                                             >
                                                 <span className="relative z-10 flex items-center gap-2">
-                                                    Chi tiết bản ghi
+                                                    Xem chi tiết
                                                     <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                                                 </span>
                                                 <div className="absolute inset-0 bg-gradient-to-r from-orange-600/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity" />
@@ -236,7 +276,15 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
                 <MealBatchDetailDialog
                     mealBatchId={selectedMealBatchId}
                     open={detailDialogOpen}
-                    onOpenChange={setDetailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) {
+                            setOpenLightboxFirst(false);
+                            setInitialMediaIndex(0);
+                        }
+                    }}
+                    initialLightboxOpen={openLightboxFirst}
+                    initialMediaIndex={initialMediaIndex}
                 />
             )}
         </>

@@ -6,13 +6,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { mealBatchService } from "@/services/meal-batch.service";
-import { MealBatch } from "@/types/api/meal-batch";
-import { formatDateTime } from "@/lib/utils/date-utils";
-import { translateStatus, getStatusColorClass } from "@/lib/utils/status-utils";
+} from "../ui/dialog";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { mealBatchService } from "../../services/meal-batch.service";
+import { MealBatch, IngredientUsage } from "../../types/api/meal-batch";
+import { formatDateTime } from "../../lib/utils/date-utils";
+import { translateStatus, getStatusColorClass } from "../../lib/utils/status-utils";
 import {
   UtensilsCrossed,
   Calendar,
@@ -25,19 +25,24 @@ import {
   ChevronRight,
   Maximize2,
 } from "lucide-react";
-import { Loader } from "@/components/animate-ui/icons/loader";
+import { Loader } from "../animate-ui/icons/loader";
 import Image from "next/image";
+import React from "react";
 
 interface MealBatchDetailDialogProps {
   mealBatchId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialLightboxOpen?: boolean;
+  initialMediaIndex?: number;
 }
 
 export function MealBatchDetailDialog({
   mealBatchId,
   open,
   onOpenChange,
+  initialLightboxOpen = false,
+  initialMediaIndex = 0,
 }: MealBatchDetailDialogProps) {
   const [mealBatch, setMealBatch] = useState<MealBatch | null>(null);
   const [loading, setLoading] = useState(false);
@@ -62,9 +67,13 @@ export function MealBatchDetailDialog({
   useEffect(() => {
     if (open && mealBatchId) {
       fetchMealBatch();
+      if (initialLightboxOpen) {
+        setCurrentMediaIndex(initialMediaIndex);
+        setLightboxOpen(true);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, mealBatchId]);
+  }, [open, mealBatchId, initialLightboxOpen, initialMediaIndex]);
 
   const fetchMealBatch = async () => {
     setLoading(true);
@@ -78,7 +87,7 @@ export function MealBatchDetailDialog({
     }
   };
 
-  const isVideo = (url: string) => /\.(mp4|webm|ogg)$/i.test(url);
+  const isVideo = (url: string) => /\.(mp4|webm|ogg|mov|quicktime)$/i.test(url) || url.includes("video");
 
   const openLightbox = (index: number) => {
     setCurrentMediaIndex(index);
@@ -132,8 +141,8 @@ export function MealBatchDetailDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange} modal>
         <DialogContent
-          className="max-w-3xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
-          onWheel={(e) => e.stopPropagation()}
+          className="sm:max-w-[95vw] lg:max-w-6xl h-[92vh] flex flex-col p-0 gap-0 overflow-hidden"
+          onWheel={(e: React.WheelEvent) => e.stopPropagation()}
         >
           {/* Header cố định */}
           <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
@@ -170,7 +179,7 @@ export function MealBatchDetailDialog({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Số lượng</p>
-                      <p className="text-2xl font-bold text-[#E77731]">
+                      <p className="text-2xl font-bold text-[#ad4e28]">
                         {mealBatch.quantity} suất
                       </p>
                     </div>
@@ -203,14 +212,14 @@ export function MealBatchDetailDialog({
                   mealBatch.ingredientUsages.length > 0 && (
                     <div className="bg-white rounded-xl border p-6">
                       <div className="flex items-center gap-2 mb-4">
-                        <ShoppingBasket className="w-5 h-5 text-[#E77731]" />
+                        <ShoppingBasket className="w-5 h-5 text-[#ad4e28]" />
                         <h3 className="font-bold text-gray-900 text-lg">
                           Nguyên liệu sử dụng ({mealBatch.ingredientUsages.length})
                         </h3>
                       </div>
 
                       <div className="space-y-2">
-                        {mealBatch.ingredientUsages.map((usage, index) => (
+                        {mealBatch.ingredientUsages.map((usage: IngredientUsage, index: number) => (
                           <div
                             key={index}
                             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -221,7 +230,7 @@ export function MealBatchDetailDialog({
                                 {usage.ingredientItem.ingredientName}
                               </span>
                             </div>
-                            <span className="text-sm font-semibold text-[#E77731]">
+                            <span className="text-sm font-semibold text-[#ad4e28]">
                               {usage.ingredientItem.quantity}
                             </span>
                           </div>
@@ -234,25 +243,32 @@ export function MealBatchDetailDialog({
                 {mealBatch.media && mealBatch.media.length > 0 && (
                   <div className="bg-white rounded-xl border p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <ImageIcon className="w-5 h-5 text-[#E77731]" />
+                      <ImageIcon className="w-5 h-5 text-[#ad4e28]" />
                       <h3 className="font-bold text-gray-900 text-lg">
                         Hình ảnh & Video ({mealBatch.media.length})
                       </h3>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {mealBatch.media.map((url, index) => (
+                      {mealBatch.media.map((url: string, index: number) => (
                         <div
                           key={index}
                           className="relative aspect-square rounded-lg overflow-hidden border group cursor-pointer"
                           onClick={() => openLightbox(index)}
                         >
                           {isVideo(url) ? (
-                            <video
-                              src={url}
-                              className="w-full h-full object-cover"
-                              onClick={(e) => e.stopPropagation()}
-                            />
+                            <div className="relative w-full h-full">
+                              <video
+                                src={url}
+                                className="w-full h-full object-cover"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+                                <div className="w-10 h-10 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-white/40">
+                                  <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                                </div>
+                              </div>
+                            </div>
                           ) : (
                             <Image
                               src={url}

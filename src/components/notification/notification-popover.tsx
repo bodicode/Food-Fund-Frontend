@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { Bell, Trash2, CheckCheck, Loader } from "lucide-react";
@@ -27,14 +27,7 @@ export function NotificationPopover() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Initial load
-  useEffect(() => {
-    if (user && isOpen) {
-      loadNotifications(true);
-    }
-  }, [isOpen, user]);
-
-  const loadNotifications = async (isInitial = false) => {
+  const loadNotifications = useCallback(async (isInitial = false) => {
     try {
       if (isInitial) {
         setLoading(true);
@@ -63,7 +56,14 @@ export function NotificationPopover() {
         setLoadingMore(false);
       }
     }
-  };
+  }, [cursor]);
+
+  // Initial load
+  useEffect(() => {
+    if (user && isOpen) {
+      loadNotifications(true);
+    }
+  }, [isOpen, user, loadNotifications]);
 
   const loadUnreadCount = async () => {
     try {
@@ -177,7 +177,7 @@ export function NotificationPopover() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600 line-clamp-2">
+                      <p className="text-xs text-gray-600 line-clamp-5">
                         {typeof notification.data === "object" && notification.data?.message
                           ? notification.data.message
                           : typeof notification.data === "string"

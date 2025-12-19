@@ -64,6 +64,8 @@ export interface IngredientRequest {
 
 export interface IngredientRequestFilterInput {
   status?: IngredientRequestStatus | null;
+  campaignId?: string | null;
+  sortBy?: string | null;
 }
 
 export interface GetIngredientRequestsParams {

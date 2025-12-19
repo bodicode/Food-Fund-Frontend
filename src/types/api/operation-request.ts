@@ -14,6 +14,8 @@ export interface OperationRequestFilterInput {
   offset?: number;
 }
 
+export type OperationRequestSortOrder = "NEWEST_FIRST" | "OLDEST_FIRST";
+
 export interface OperationRequest {
   id: string;
   title: string;

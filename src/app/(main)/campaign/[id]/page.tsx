@@ -45,7 +45,6 @@ import { DisbursementList } from "../../../../components/campaign/disbursement-l
 import { DeliveryTasksTab } from "../../../../components/campaign/tabs/delivery-tasks-tab";
 
 import { ShareDialog } from "../../../../components/campaign/share-dialog";
-import { CampaignPlanSummary } from "../../../../components/campaign/campaign-plan-summary";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -472,10 +471,10 @@ export default function CampaignDetailPage() {
               <div className="bg-white rounded-2xl border p-6 mb-8 shadow-sm">
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-color mb-1">
-                    Phân bổ ngân sách và dự kiến nguyên liệu và thức ăn
+                    Phân bổ ngân sách, dự kiến nguyên liệu và thức ăn
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Chi tiết phân bổ và sử dụng ngân sách và dự kiến nguyên liệu và thức ăn cho chiến dịch
+                    Chi tiết phân bổ và sử dụng ngân sách, dự kiến nguyên liệu và thức ăn cho chiến dịch
                   </p>
                 </div>
                 <BudgetBreakdown
