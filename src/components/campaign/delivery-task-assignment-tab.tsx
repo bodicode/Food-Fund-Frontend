@@ -1,23 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { mealBatchService } from "@/services/meal-batch.service";
-import { organizationService } from "@/services/organization.service";
-import { MealBatch, DeliveryTask } from "@/types/api/meal-batch";
-import { OrganizationMember } from "@/types/api/organization";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { mealBatchService } from "../../services/meal-batch.service";
+import { organizationService } from "../../services/organization.service";
+import { MealBatch, DeliveryTask } from "../../types/api/meal-batch";
+import { OrganizationMember, OrganizationMembership } from "../../types/api/organization";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 import { toast } from "sonner";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDateTime } from "@/lib/utils/date-utils";
+import { Loader } from "../animate-ui/icons/loader";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { formatDateTime } from "../../lib/utils/date-utils";
 
 interface DeliveryTaskAssignmentTabProps {
     campaignId: string;
@@ -60,12 +60,12 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                     // Filter for active delivery staff
                     const staff = org.members
                         .filter(
-                            (m) =>
+                            (m: OrganizationMembership) =>
                                 m.member_role === "DELIVERY_STAFF" &&
                                 (m.status === "APPROVED" || m.status === "VERIFIED") &&
                                 m.member.is_active
                         )
-                        .map((m) => m.member);
+                        .map((m: OrganizationMembership) => m.member);
                     setDeliveryStaff(staff);
                 }
             } catch (error) {
@@ -248,12 +248,37 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                                             {task.mealBatch?.cookedDate ? formatDateTime(task.mealBatch.cookedDate) : "-"}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium 
-                                                ${task.status === "COMPLETED" ? "bg-green-100 text-green-800" :
-                                                    task.status === "FAILED" ? "bg-red-100 text-red-800" :
-                                                        "bg-blue-100 text-blue-800"}`}>
-                                                {task.status}
-                                            </span>
+                                            {(() => {
+                                                const translateStatus = (status: string) => {
+                                                    switch (status) {
+                                                        case "PENDING": return "Chờ xác nhận";
+                                                        case "ACCEPTED": return "Đã tiếp nhận";
+                                                        case "REJECTED": return "Đã từ chối";
+                                                        case "OUT_FOR_DELIVERY": return "Đang giao hàng";
+                                                        case "COMPLETED": return "Hoàn thành";
+                                                        case "FAILED": return "Thất bại";
+                                                        default: return status;
+                                                    }
+                                                };
+
+                                                const getStatusColor = (status: string) => {
+                                                    switch (status) {
+                                                        case "PENDING": return "bg-gray-100 text-gray-700 border-gray-200";
+                                                        case "ACCEPTED": return "bg-blue-100 text-blue-800 border-blue-200";
+                                                        case "REJECTED": return "bg-red-100 text-red-800 border-red-200";
+                                                        case "OUT_FOR_DELIVERY": return "bg-amber-100 text-amber-800 border-amber-200";
+                                                        case "COMPLETED": return "bg-green-100 text-green-800 border-green-200";
+                                                        case "FAILED": return "bg-rose-100 text-rose-800 border-rose-200";
+                                                        default: return "bg-gray-100 text-gray-800 border-gray-200";
+                                                    }
+                                                };
+
+                                                return (
+                                                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${getStatusColor(task.status)}`}>
+                                                        {translateStatus(task.status)}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-4 py-3 text-right text-gray-500">
                                             {formatDateTime(task.created_at)}

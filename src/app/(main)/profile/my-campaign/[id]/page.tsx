@@ -65,7 +65,6 @@ import { ExtendCampaignDialog } from "../../../../../components/campaign/extend-
 import { getCampaignIdFromSlug, createCampaignSlug } from "../../../../../lib/utils/slug-utils";
 import { DeliveryTaskAssignmentTab } from "../../../../../components/campaign/delivery-task-assignment-tab";
 import { DeliveryTasksTab } from "../../../../../components/campaign/tabs/delivery-tasks-tab";
-import { CampaignPlanSummary } from "../../../../../components/campaign/campaign-plan-summary";
 
 export default function MyCampaignDetailPage() {
   const { id } = useParams();
@@ -513,10 +512,10 @@ export default function MyCampaignDetailPage() {
               <div className="bg-white rounded-2xl border p-6 mb-8">
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    Phân bổ ngân sách và dự kiến nguyên liệu và thức ăn
+                    Phân bổ ngân sách, dự kiến nguyên liệu và thức ăn
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Chi tiết phân bổ và sử dụng ngân sách và dự kiến nguyên liệu và thức ăn cho chiến dịch
+                    Chi tiết phân bổ và sử dụng ngân sách, dự kiến nguyên liệu và thức ăn cho chiến dịch
                   </p>
                 </div>
                 <BudgetBreakdown

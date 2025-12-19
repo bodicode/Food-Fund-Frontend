@@ -1,9 +1,9 @@
-import client from "@/lib/apollo-client";
-import { CREATE_OPERATION_REQUEST } from "@/graphql/mutations/operation-request/create-operation-request";
-import { UPDATE_OPERATION_REQUEST_STATUS } from "@/graphql/mutations/operation-request/update-operation-request-status";
-import { GET_OPERATION_REQUESTS } from "@/graphql/query/operation-request/get-operation-requests";
-import { GET_OPERATION_REQUEST } from "@/graphql/query/operation-request/get-operation-request";
-import { GET_OPERATION_REQUEST_STATS } from "@/graphql/query/operation-request/get-operation-request-stats";
+import client from "../lib/apollo-client";
+import { CREATE_OPERATION_REQUEST } from "../graphql/mutations/operation-request/create-operation-request";
+import { UPDATE_OPERATION_REQUEST_STATUS } from "../graphql/mutations/operation-request/update-operation-request-status";
+import { GET_OPERATION_REQUESTS } from "../graphql/query/operation-request/get-operation-requests";
+import { GET_OPERATION_REQUEST } from "../graphql/query/operation-request/get-operation-request";
+import { GET_OPERATION_REQUEST_STATS } from "../graphql/query/operation-request/get-operation-request-stats";
 import {
   CreateOperationRequestInput,
   CreateOperationRequestResponse,
@@ -13,9 +13,10 @@ import {
   OperationRequestsResponse,
   OperationRequestStats,
   OperationRequestStatsResponse,
+  OperationRequestSortOrder,
   UpdateOperationRequestStatusInput,
   UpdateOperationRequestStatusResponse,
-} from "@/types/api/operation-request";
+} from "../types/api/operation-request";
 
 class OperationRequestService {
   async createOperationRequest(
@@ -39,12 +40,13 @@ class OperationRequestService {
   }
 
   async getOperationRequests(
-    filter: OperationRequestFilterInput
+    filter: OperationRequestFilterInput,
+    sortBy?: OperationRequestSortOrder
   ): Promise<OperationRequest[]> {
     try {
       const { data } = await client.query<OperationRequestsResponse>({
         query: GET_OPERATION_REQUESTS,
-        variables: { filter },
+        variables: { filter, sortBy },
         fetchPolicy: "no-cache",
       });
 

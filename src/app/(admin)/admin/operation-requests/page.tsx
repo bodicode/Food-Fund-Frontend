@@ -2,24 +2,26 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { operationRequestService } from "@/services/operation-request.service";
-import { ingredientRequestService } from "@/services/ingredient-request.service";
-import { OperationRequest } from "@/types/api/operation-request";
-import { IngredientRequest, IngredientRequestStats } from "@/types/api/ingredient-request";
-import { createCampaignSlug } from "@/lib/utils/slug-utils";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { operationRequestService } from "../../../../services/operation-request.service";
+import { ingredientRequestService } from "../../../../services/ingredient-request.service";
+import { campaignService } from "../../../../services/campaign.service";
+import { OperationRequest, OperationRequestSortOrder } from "../../../../types/api/operation-request";
+import { Campaign } from "../../../../types/api/campaign";
+import { IngredientRequest, IngredientRequestStats } from "../../../../types/api/ingredient-request";
+import { createCampaignSlug } from "../../../../lib/utils/slug-utils";
+import { Loader } from "../../../../components/animate-ui/icons/loader";
+import { Badge } from "../../../../components/ui/badge";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils/currency-utils";
-import { formatDateTime } from "@/lib/utils/date-utils";
+} from "../../../../components/ui/select";
+import { formatCurrency } from "../../../../lib/utils/currency-utils";
+import { formatDateTime } from "../../../../lib/utils/date-utils";
 import {
   DollarSign,
   Calendar,
@@ -38,12 +40,12 @@ import {
   Truck,
   Utensils,
 } from "lucide-react";
-import { UpdateOperationRequestDialog } from "@/components/admin/update-operation-request-dialog";
-import { CreateDisbursementDialog } from "@/components/admin/create-disbursement-dialog";
-import { AdminIngredientRequestDetailDialog } from "@/components/admin";
-import { DisbursementDetailDialog } from "@/components/admin/disbursement-detail-dialog";
-import { RequestDetailDialog } from "@/components/admin/request-detail-dialog";
-import { disbursementService } from "@/services/disbursement.service";
+import { UpdateOperationRequestDialog } from "../../../../components/admin/update-operation-request-dialog";
+import { CreateDisbursementDialog } from "../../../../components/admin/create-disbursement-dialog";
+import { AdminIngredientRequestDetailDialog } from "../../../../components/admin";
+import { DisbursementDetailDialog } from "../../../../components/admin/disbursement-detail-dialog";
+import { RequestDetailDialog } from "../../../../components/admin/request-detail-dialog";
+import { disbursementService } from "../../../../services/disbursement.service";
 import { toast } from "sonner";
 
 type TabType = "ingredient" | "cooking" | "delivery";
@@ -63,6 +65,9 @@ export default function OperationRequestsPage() {
   const [operationLoading, setOperationLoading] = useState(true);
   const [operationSearchTerm, setOperationSearchTerm] = useState("");
   const [operationStatusFilter, setOperationStatusFilter] = useState<string>("ALL");
+  const [operationCampaignFilter, setOperationCampaignFilter] = useState<string>("ALL");
+  const [operationSortBy, setOperationSortBy] = useState<OperationRequestSortOrder>("OLDEST_FIRST");
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedOperationRequest, setSelectedOperationRequest] = useState<OperationRequest | null>(null);
   const [isOperationUpdateDialogOpen, setIsOperationUpdateDialogOpen] = useState(false);
   const [isOperationDisbursementDialogOpen, setIsOperationDisbursementDialogOpen] = useState(false);
@@ -75,6 +80,8 @@ export default function OperationRequestsPage() {
   const [ingredientLoading, setIngredientLoading] = useState(true);
   const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
   const [ingredientStatusFilter, setIngredientStatusFilter] = useState<string>("ALL");
+  const [ingredientCampaignFilter, setIngredientCampaignFilter] = useState<string>("ALL");
+  const [ingredientSortBy, setIngredientSortBy] = useState<string>("OLDEST_FIRST");
   const [selectedIngredientRequestId, setSelectedIngredientRequestId] = useState<string | null>(null);
   const [isIngredientDisbursementDialogOpen, setIsIngredientDisbursementDialogOpen] = useState(false);
   const [selectedIngredientForDisbursement, setSelectedIngredientForDisbursement] =
@@ -93,19 +100,35 @@ export default function OperationRequestsPage() {
     setOperationLoading(true);
     try {
       const expenseType = activeTab === "cooking" ? "COOKING" : "DELIVERY";
-      const requestsData = await operationRequestService.getOperationRequests({
-        status: operationStatusFilter === "ALL" ? null : operationStatusFilter,
-        expenseType: expenseType,
-        limit: 100,
-        offset: 0,
-      });
+      const requestsData = await operationRequestService.getOperationRequests(
+        {
+          status: operationStatusFilter === "ALL" ? null : operationStatusFilter,
+          expenseType: expenseType,
+          campaignId: operationCampaignFilter === "ALL" ? null : operationCampaignFilter,
+          limit: 100,
+          offset: 0,
+        },
+        operationSortBy
+      );
       setOperationRequests(requestsData);
     } catch (error) {
       console.error("Error fetching operation data:", error);
     } finally {
       setOperationLoading(false);
     }
-  }, [activeTab, operationStatusFilter]);
+  }, [activeTab, operationStatusFilter, operationCampaignFilter, operationSortBy]);
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const data = await campaignService.getCampaigns({ limit: 100 });
+        setCampaigns(data || []);
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+      }
+    };
+    fetchCampaigns();
+  }, []);
 
   const fetchIngredientData = useCallback(async () => {
     setIngredientLoading(true);
@@ -114,6 +137,8 @@ export default function OperationRequestsPage() {
         ingredientRequestService.getIngredientRequests({
           filter: {
             status: ingredientStatusFilter === "ALL" ? null : (ingredientStatusFilter as "PENDING" | "APPROVED" | "REJECTED" | "DISBURSED"),
+            campaignId: ingredientCampaignFilter === "ALL" ? null : ingredientCampaignFilter,
+            sortBy: ingredientSortBy,
           },
           limit: 100,
           offset: 0,
@@ -127,7 +152,7 @@ export default function OperationRequestsPage() {
     } finally {
       setIngredientLoading(false);
     }
-  }, [ingredientStatusFilter]);
+  }, [ingredientStatusFilter, ingredientCampaignFilter, ingredientSortBy]);
 
   useEffect(() => {
     if (activeTab === "ingredient") {
@@ -336,17 +361,83 @@ export default function OperationRequestsPage() {
             value={activeTab === "ingredient" ? ingredientStatusFilter : operationStatusFilter}
             onValueChange={(val) => activeTab === "ingredient" ? setIngredientStatusFilter(val) : setOperationStatusFilter(val)}
           >
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Lọc theo trạng thái" />
+            <SelectTrigger className="w-full md:w-[150px]">
+              <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Tất cả</SelectItem>
+              <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
               <SelectItem value="PENDING">Chờ duyệt</SelectItem>
               <SelectItem value="APPROVED">Đã duyệt</SelectItem>
               <SelectItem value="REJECTED">Từ chối</SelectItem>
               {activeTab !== "ingredient" && <SelectItem value="DISBURSED">Đã giải ngân</SelectItem>}
             </SelectContent>
           </Select>
+
+          {activeTab === "ingredient" ? (
+            <>
+              <Select
+                value={ingredientCampaignFilter}
+                onValueChange={(val) => setIngredientCampaignFilter(val)}
+              >
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Chọn chiến dịch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả chiến dịch</SelectItem>
+                  {campaigns.map((campaign: Campaign) => (
+                    <SelectItem key={campaign.id} value={campaign.id}>
+                      {campaign.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={ingredientSortBy}
+                onValueChange={(val) => setIngredientSortBy(val)}
+              >
+                <SelectTrigger className="w-full md:w-[150px]">
+                  <SelectValue placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                  <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          ) : (
+            <>
+              <Select
+                value={operationCampaignFilter}
+                onValueChange={(val) => setOperationCampaignFilter(val)}
+              >
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Chọn chiến dịch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả chiến dịch</SelectItem>
+                  {campaigns.map((campaign: Campaign) => (
+                    <SelectItem key={campaign.id} value={campaign.id}>
+                      {campaign.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={operationSortBy}
+                onValueChange={(val) => setOperationSortBy(val as OperationRequestSortOrder)}
+              >
+                <SelectTrigger className="w-full md:w-[150px]">
+                  <SelectValue placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
+                  <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          )}
         </div>
       </div>
 
