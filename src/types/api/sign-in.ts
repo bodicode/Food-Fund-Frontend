@@ -42,6 +42,7 @@ export type GoogleAuthUser = {
 export type GoogleAuthResponse = {
   googleAuthentication: {
     accessToken: string;
+    expiresIn: number;
     idToken: string;
     isNewUser: boolean;
     message: string;

@@ -1,8 +1,8 @@
-import client from "@/lib/apollo-client";
-import { LOGIN_MUTATION } from "@/graphql/mutations/auth/login";
-import { SIGNUP_MUTATION } from "@/graphql/mutations/auth/signup";
-import { CONFIRM_SIGNUP_MUTATION } from "@/graphql/mutations/auth/confirm-signup";
-import { RESEND_CONFIRM_CODE_MUTATION } from "@/graphql/mutations/auth/resend-confirm-code";
+import client from "../lib/apollo-client";
+import { LOGIN_MUTATION } from "../graphql/mutations/auth/login";
+import { SIGNUP_MUTATION } from "../graphql/mutations/auth/signup";
+import { CONFIRM_SIGNUP_MUTATION } from "../graphql/mutations/auth/confirm-signup";
+import { RESEND_CONFIRM_CODE_MUTATION } from "../graphql/mutations/auth/resend-confirm-code";
 
 import {
   SignUpInput,
@@ -11,40 +11,24 @@ import {
   ConfirmSignUpResponse,
   ResendCodeResponse,
   ResendCodeInput,
-} from "@/types/api/sign-up";
+} from "../types/api/sign-up";
 import {
   ConfirmForgotPasswordInput,
   ConfirmForgotPasswordResponse,
   ForgotPasswordInput,
   ForgotPasswordResponse,
-} from "@/types/api/forgot-password";
-import { FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/auth/forgor-password";
-import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "@/graphql/mutations/auth/confirm-forgot-password";
-import { decodeIdToken } from "@/lib/jwt-utils";
-import { SignInInput, SignInResponse, GoogleAuthInput, GoogleAuthResponse } from "@/types/api/sign-in";
-import { SIGNOUT_MUTATION } from "@/graphql/mutations/auth/signout";
-import { GOOGLE_AUTH_MUTATION } from "@/graphql/mutations/auth/google-auth";
-import { REFRESH_TOKEN_MUTATION } from "@/graphql/mutations/auth/refresh-token";
+} from "../types/api/forgot-password";
+import { FORGOT_PASSWORD_MUTATION } from "../graphql/mutations/auth/forgor-password";
+import { CONFIRM_FORGOT_PASSWORD_MUTATION } from "../graphql/mutations/auth/confirm-forgot-password";
+import { decodeIdToken } from "../lib/jwt-utils";
+import { SignInInput, SignInResponse, GoogleAuthInput, GoogleAuthResponse } from "../types/api/sign-in";
+import { SIGNOUT_MUTATION } from "../graphql/mutations/auth/signout";
+import { GOOGLE_AUTH_MUTATION } from "../graphql/mutations/auth/google-auth";
+import { REFRESH_TOKEN_MUTATION } from "../graphql/mutations/auth/refresh-token";
 
 export interface AuthService {
   login(input: SignInInput): Promise<SignInResponse["signIn"]>;
-  googleAuthentication(input: { idToken: string }): Promise<{
-    accessToken: string;
-    idToken: string;
-    isNewUser: boolean;
-    message: string;
-    refreshToken: string;
-    user: {
-      createdAt: string;
-      email: string;
-      emailVerified: boolean;
-      id: string;
-      name: string;
-      phoneNumber?: string | null;
-      provider: string;
-      updatedAt: string;
-      username: string;
-    };
+  googleAuthentication(input: { idToken: string }): Promise<GoogleAuthResponse["googleAuthentication"] & {
     decodedUser: ReturnType<typeof decodeIdToken>;
   }>;
   signup(input: SignUpInput): Promise<SignUpResponse["signUp"]>;

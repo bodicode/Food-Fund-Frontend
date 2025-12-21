@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
-import { COOKIE_NAMES } from "@/constants";
+import { COOKIE_NAMES } from "../../constants";
 
 interface User {
   id: string;
@@ -33,30 +33,45 @@ const authSlice = createSlice({
         user: User;
         accessToken: string;
         refreshToken: string;
+        idToken?: string;
+        expiresIn?: number;
       }>
     ) => {
-      const { user, accessToken, refreshToken } = action.payload;
+      const { user, accessToken, refreshToken, idToken } = action.payload;
 
       state.user = user;
       state.accessToken = accessToken;
       state.refreshToken = refreshToken;
 
-      // Save user info in localStorage (UI only)
+      // Save user info in localStorage
       localStorage.setItem("user", JSON.stringify(user));
 
-      // Save tokens & role in cookies (for security + middleware)
-      // Access Token: 1 hour
+      // QUAN TRỌNG: 
+      // Dù Token hết hạn sau 1h (3600s), chúng ta set Cookie sống 1 ngày (expires: 1)
+      // Điều này giúp Middleware không đá người dùng ra ngay lập tức, 
+      // tạo điều kiện cho Apollo Link thực hiện Refresh Token khi Token thực sự hết hạn.
       Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, accessToken, {
         secure: true,
         sameSite: "strict",
-        expires: 1 / 24,
+        expires: 1, // 1 ngày
       });
-      // Refresh Token: 30 days
+
+      // Refresh Token sống 30 ngày
       Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, {
         secure: true,
         sameSite: "strict",
         expires: 30,
       });
+
+      // ID Token sống 30 ngày (để luôn có username cho logic Refresh)
+      if (idToken) {
+        Cookies.set(COOKIE_NAMES.ID_TOKEN, idToken, {
+          secure: true,
+          sameSite: "strict",
+          expires: 30,
+        });
+      }
+
       if (user.role) {
         Cookies.set(COOKIE_NAMES.ROLE, user.role, {
           secure: true,
@@ -64,8 +79,6 @@ const authSlice = createSlice({
           expires: 30,
         });
       }
-
-
     },
 
     restoreSession: (state) => {

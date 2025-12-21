@@ -4,6 +4,7 @@ export const GOOGLE_AUTH_MUTATION = gql`
   mutation googleAuthentication($googleAuthenticationInput2: GoogleAuthInput!) {
     googleAuthentication(input: $googleAuthenticationInput2) {
       accessToken
+      expiresIn
       idToken
       isNewUser
       message
