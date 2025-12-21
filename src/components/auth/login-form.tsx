@@ -56,29 +56,10 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           },
           accessToken: signInRes.accessToken,
           refreshToken: signInRes.refreshToken,
+          idToken: signInRes.idToken,
+          expiresIn: signInRes.expiresIn,
         })
       );
-
-      Cookies.set(COOKIE_NAMES.ID_TOKEN, signInRes.idToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 1 / 24, // 1 hour
-      });
-      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, signInRes.accessToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 1 / 24, // 1 hour
-      });
-      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, signInRes.refreshToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 30, // 30 days
-      });
-      Cookies.set(COOKIE_NAMES.ROLE, decoded["custom:role"] || USER_ROLES.DONOR, {
-        secure: true,
-        sameSite: "strict",
-        expires: 30, // 30 days
-      });
 
       const role = decoded["custom:role"]?.toUpperCase();
       if (role === USER_ROLES.ADMIN) router.push("/admin");
@@ -119,29 +100,10 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           },
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
+          idToken: res.idToken,
+          expiresIn: res.expiresIn,
         })
       );
-
-      Cookies.set(COOKIE_NAMES.ID_TOKEN, res.idToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 1 / 24, // 1 hour
-      });
-      Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, res.accessToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 1 / 24, // 1 hour
-      });
-      Cookies.set(COOKIE_NAMES.REFRESH_TOKEN, res.refreshToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 30, // 30 days
-      });
-      Cookies.set(COOKIE_NAMES.ROLE, decoded["custom:role"] || USER_ROLES.DONOR, {
-        secure: true,
-        sameSite: "strict",
-        expires: 30, // 30 days
-      });
 
       const role = decoded["custom:role"]?.toUpperCase();
       if (role === USER_ROLES.ADMIN) router.push("/admin/users");

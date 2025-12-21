@@ -7,12 +7,12 @@ import {
   Observable,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
-import { logout, setCredentials } from "@/store/slices/auth-slice";
-import { store } from "@/store";
+import { logout, setCredentials } from "../store/slices/auth-slice";
+import { store } from "../store";
 import Cookies from "js-cookie";
-import { API_URLS, COOKIE_NAMES, ROUTES } from "@/constants";
-import { decodeIdToken } from "@/lib/jwt-utils";
-import { normalizeApolloError } from "@/lib/apollo-error";
+import { API_URLS, COOKIE_NAMES, ROUTES } from "../constants";
+import { decodeIdToken } from "../lib/jwt-utils";
+import { normalizeApolloError } from "../lib/apollo-error";
 
 // --- AUTH LINK ---
 const authLink = new ApolloLink((operation, forward) => {
@@ -153,22 +153,20 @@ const errorLink = onError((errorResponse) => {
 
         console.log("-> [Auth] Refreshing Token...");
 
-        import("@/services/auth.service")
+        import("../services/auth.service")
           .then(({ graphQLAuthService }) => graphQLAuthService.refreshToken(refreshToken, userName))
           .then((response) => {
             console.log("-> [Auth] Refresh Success!");
 
-            // 1. Cập nhật Cookies
-            Cookies.set(COOKIE_NAMES.ACCESS_TOKEN, response.accessToken, { secure: true, sameSite: "strict", expires: 1 / 24 });
-            Cookies.set(COOKIE_NAMES.ID_TOKEN, response.idToken, { secure: true, sameSite: "strict", expires: 1 / 24 });
-
-            // 2. Cập nhật Redux Store
+            // 1. Cập nhật Redux Store & Cookies (setCredentials sẽ tự động set Cookies với expiration đúng)
             const newDecoded = decodeIdToken(response.idToken);
             if (newDecoded) {
               store.dispatch(setCredentials({
                 user: { id: newDecoded.sub!, name: newDecoded.name || "", email: newDecoded.email || "", role: newDecoded["custom:role"] },
                 accessToken: response.accessToken,
-                refreshToken: refreshToken
+                refreshToken: refreshToken,
+                idToken: response.idToken,
+                expiresIn: response.expiresIn,
               }));
             }
 
