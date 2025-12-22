@@ -109,6 +109,7 @@ export const STATUS_ACTIONS = {
       variant: "destructive" as const,
     },
   ],
+  PROCESSING: [],
   REJECTED: [],
   COMPLETED: [],
   CANCELLED: [],

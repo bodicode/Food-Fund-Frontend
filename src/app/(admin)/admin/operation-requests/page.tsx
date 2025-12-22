@@ -302,42 +302,36 @@ export default function OperationRequestsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b overflow-x-auto">
+      <div className="flex p-1.5 bg-gray-100/50 dark:bg-slate-800/50 rounded-2xl gap-2 mb-8 border border-gray-100 dark:border-slate-800">
         <button
           onClick={() => setActiveTab("ingredient")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "ingredient"
-            ? "border-[#E77731] text-[#E77731]"
-            : "border-transparent text-gray-600 hover:text-gray-900"
+          className={`flex-1 flex items-center justify-center gap-3 px-6 py-3.5 font-semibold transition-all rounded-xl ${activeTab === "ingredient"
+            ? "bg-white text-[#E77731] shadow-md scale-[1.02]"
+            : "text-gray-500 hover:bg-white/50 hover:text-gray-900"
             }`}
         >
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4" />
-            Chi phí mua nguyên liệu
-          </div>
+          <ShoppingCart className="h-5 w-5" />
+          Chi phí mua nguyên liệu
         </button>
         <button
           onClick={() => setActiveTab("cooking")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "cooking"
-            ? "border-[#E77731] text-[#E77731]"
-            : "border-transparent text-gray-600 hover:text-gray-900"
+          className={`flex-1 flex items-center justify-center gap-3 px-6 py-3.5 font-semibold transition-all rounded-xl ${activeTab === "cooking"
+            ? "bg-white text-[#E77731] shadow-md scale-[1.02]"
+            : "text-gray-500 hover:bg-white/50 hover:text-gray-900"
             }`}
         >
-          <div className="flex items-center gap-2">
-            <Utensils className="h-4 w-4" />
-            Chi phí nấu ăn
-          </div>
+          <Utensils className="h-5 w-5" />
+          Chi phí nấu ăn
         </button>
         <button
           onClick={() => setActiveTab("delivery")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "delivery"
-            ? "border-[#E77731] text-[#E77731]"
-            : "border-transparent text-gray-600 hover:text-gray-900"
+          className={`flex-1 flex items-center justify-center gap-3 px-6 py-3.5 font-semibold transition-all rounded-xl ${activeTab === "delivery"
+            ? "bg-white text-[#E77731] shadow-md scale-[1.02]"
+            : "text-gray-500 hover:bg-white/50 hover:text-gray-900"
             }`}
         >
-          <div className="flex items-center gap-2">
-            <Truck className="h-4 w-4" />
-            Chi phí vận chuyển
-          </div>
+          <Truck className="h-5 w-5" />
+          Chi phí vận chuyển
         </button>
       </div>
 

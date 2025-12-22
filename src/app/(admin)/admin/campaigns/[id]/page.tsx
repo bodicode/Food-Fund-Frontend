@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { campaignService } from "@/services/campaign.service";
-import { Campaign } from "@/types/api/campaign";
-import { userService } from "@/services/user.service";
-import { UserProfile } from "@/types/api/user";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader } from "@/components/animate-ui/icons/loader";
+import { campaignService } from "../../../../../services/campaign.service";
+import { Campaign } from "../../../../../types/api/campaign";
+import { userService } from "../../../../../services/user.service";
+import { UserProfile } from "../../../../../types/api/user";
+import { Button } from "../../../../../components/ui/button";
+import { Badge } from "../../../../../components/ui/badge";
+import { Card, CardContent } from "../../../../../components/ui/card";
+import { Loader } from "../../../../../components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import {
   CalendarDays,
@@ -24,10 +24,11 @@ import {
   Clock,
   Utensils,
   Leaf,
+  ShieldCheck,
 } from "lucide-react";
-import { statusConfig } from "@/lib/translator";
-import { formatDate } from "@/lib/utils/date-utils";
-import { getCampaignIdFromSlug, titleToSlug } from "@/lib/utils/slug-utils";
+import { statusConfig } from "../../../../../lib/translator";
+import { formatDate, formatDateTime } from "../../../../../lib/utils/date-utils";
+import { getCampaignIdFromSlug, titleToSlug } from "../../../../../lib/utils/slug-utils";
 import {
   Dialog,
   DialogContent,
@@ -35,15 +36,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DonationList } from "@/components/campaign/donation-list";
-import { CampaignPosts } from "@/components/campaign/campaign-posts";
-import { MealBatchList } from "@/components/campaign/meal-batch-list";
-import { DisbursementList } from "@/components/campaign/disbursement-list";
-import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
-import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
+} from "../../../../../components/ui/dialog";
+import { Textarea } from "../../../../../components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../../components/ui/tabs";
+import { DonationList } from "../../../../../components/campaign/donation-list";
+import { CampaignPosts } from "../../../../../components/campaign/campaign-posts";
+import { MealBatchList } from "../../../../../components/campaign/meal-batch-list";
+import { DisbursementList } from "../../../../../components/campaign/disbursement-list";
+import { ExpenseProofList } from "../../../../../components/campaign/expense-proof-list";
+import { DeliveryTasksTab } from "../../../../../components/campaign/tabs/delivery-tasks-tab";
 
 export default function AdminCampaignDetailPage() {
   const { id } = useParams();
@@ -82,7 +83,7 @@ export default function AdminCampaignDetailPage() {
 
             if (searchResult && searchResult.items.length > 0) {
               // 2. Find the exact match by re-slugifying the titles
-              const matchedCampaign = searchResult.items.find(c => titleToSlug(c.title) === slug);
+              const matchedCampaign = searchResult.items.find((c: Campaign) => titleToSlug(c.title) === slug);
               if (matchedCampaign) {
                 setCampaign(matchedCampaign);
                 setLoading(false);
@@ -192,36 +193,46 @@ export default function AdminCampaignDetailPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#0f172a] dark:to-[#1e293b]">
-        <div className="text-center space-y-4">
-          <Loader animate loop className="w-8 h-8 mx-auto text-[#38bdf8]" />
-          <p className="text-gray-600 dark:text-gray-300 font-medium">
-            Đang tải...
-          </p>
+      <div className="min-h-[80vh] flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="text-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-3xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto">
+              <Loader animate="spin" className="w-8 h-8 text-blue-600" />
+            </div>
+            <div className="absolute inset-0 bg-blue-400 blur-2xl opacity-20 -z-10 animate-pulse" />
+          </div>
+          <div>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">Đang tải thông tin</p>
+            <p className="text-sm text-gray-400">Vui lòng đợi trong giây lát...</p>
+          </div>
         </div>
       </div>
     );
 
   if (!campaign)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#0f172a] dark:to-[#1e293b]">
-        <Card className="max-w-md mx-4 border-gray-200 dark:border-gray-700 dark:bg-[#1e293b]">
-          <CardContent className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto">
-              <XCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Không tìm thấy chiến dịch
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="max-w-md w-full mx-auto px-6 text-center space-y-8">
+          <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-[2.5rem] flex items-center justify-center mx-auto">
+            <XCircle className="w-10 h-10 text-red-500" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-3xl font-medium text-gray-900 dark:text-white">
+              Lỗi dữ liệu
             </h3>
-            <Button
-              onClick={() => router.push("/admin/campaigns")}
-              className="bg-[#38bdf8] hover:bg-[#0ea5e9] dark:bg-[#38bdf8] dark:hover:bg-[#0ea5e9]"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay lại danh sách
-            </Button>
-          </CardContent>
-        </Card>
+            <p className="text-gray-500 font-normal leading-relaxed">
+              Chúng tôi không thể tìm thấy thông tin chi tiết về chiến dịch quyên góp này. Có thể nó đã bị xóa hoặc đường dẫn không chính xác.
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/admin/campaigns")}
+            className="h-14 px-8 rounded-2xl bg-gray-50 hover:bg-gray-100 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 text-gray-600 dark:text-gray-300 font-medium transition-all"
+          >
+            <ArrowLeft className="w-5 h-5 mr-3" />
+            Quay lại danh sách
+          </Button>
+        </div>
       </div>
     );
 
@@ -231,37 +242,37 @@ export default function AdminCampaignDetailPage() {
       : (Number(campaign.receivedAmount) / Number(campaign.targetAmount)) * 100 || 0;
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0f172a] dark:via-[#0f172a] dark:to-[#1e293b] transition-colors">
-      <div className="sticky top-0 z-50 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors relative pt-12">
+
+      <div className="relative z-10">
+        <div className="container max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => router.push("/admin/campaigns")}
-              className="hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="border-slate-200 dark:border-slate-800 rounded-2xl h-12 px-6 font-semibold transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay lại
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Quay lại danh sách
             </Button>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {campaign.status === "PENDING" && (
                 <>
                   <Button
                     onClick={() => handleStatusChange("APPROVED")}
                     disabled={isUpdating}
-                    className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-2xl h-12 px-6 font-medium transition-all shadow-lg shadow-emerald-600/20"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className="w-5 h-5 mr-2" />
                     Duyệt chiến dịch
                   </Button>
                   <Button
                     onClick={() => handleStatusChange("REJECTED")}
                     disabled={isUpdating}
-                    variant="destructive"
-                    className="shadow-md hover:shadow-lg transition-all"
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-2xl h-12 px-6 font-medium transition-all shadow-lg shadow-red-600/20"
                   >
-                    <XCircle className="w-4 h-4 mr-2" />
+                    <XCircle className="w-5 h-5 mr-2" />
                     Từ chối
                   </Button>
                 </>
@@ -271,122 +282,140 @@ export default function AdminCampaignDetailPage() {
                 <Button
                   onClick={() => handleStatusChange("CANCELLED")}
                   disabled={isUpdating}
-                  variant="destructive"
-                  className="shadow-md hover:shadow-lg transition-all"
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-2xl h-12 px-6 font-medium transition-all shadow-lg shadow-red-600/20"
                 >
-                  <XCircle className="w-4 h-4 mr-2" />
+                  <XCircle className="w-5 h-5 mr-2" />
                   Hủy chiến dịch
                 </Button>
               )}
             </div>
           </div>
+
+          <div className="space-y-6 mb-12">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge
+                className={`${statusConfig[campaign.status].color} px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm`}
+              >
+                {statusConfig[campaign.status].label}
+              </Badge>
+              <Badge variant="secondary" className="px-4 py-1.5 rounded-full text-xs font-semibold text-slate-500 border-slate-200 uppercase tracking-widest">
+                {campaign.category?.title || "Chung"}
+              </Badge>
+              <div className="px-4 py-1.5 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-400 text-[10px] font-medium uppercase tracking-widest">
+                ID: <span className="text-slate-600 dark:text-slate-200 font-mono tracking-normal lowercase">{campaign.id}</span>
+              </div>
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">
+              {campaign.title}
+            </h1>
+          </div>
         </div>
       </div>
 
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <Badge
-              className={`${statusConfig[campaign.status].color
-                } border-0 px-4 py-1.5 text-sm font-semibold shadow-sm`}
-            >
-              {statusConfig[campaign.status].label}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="border-2 border-[#38bdf8] text-[#38bdf8] bg-[#38bdf8]/10 dark:border-[#38bdf8] dark:text-[#38bdf8] dark:bg-[#38bdf8]/10 px-4 py-1.5 text-sm font-semibold"
-            >
-              {campaign.category?.title}
-            </Badge>
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full">
-              ID: {campaign.id}
-            </span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
-            {campaign.title}
-          </h1>
-        </div>
-
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 pb-20 relative z-20 space-y-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-0 overflow-hidden group dark:bg-[#1e293b]">
-              <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px]">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Image Card Container */}
+            <div className="rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 group shadow-sm transition-all duration-300">
+              <div className="relative w-full h-[400px] sm:h-[500px]">
                 <Image
                   src={campaign.coverImage || ""}
                   alt={campaign.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                   priority
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               </div>
-            </Card>
+            </div>
 
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 dark:bg-[#1e293b]">
-              <CardContent className="p-6 space-y-4">
+            {/* Progress Card */}
+            <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
+              <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    Tiến độ quyên góp
-                  </h3>
-                  <span className="text-2xl font-bold text-green-700 dark:text-green-400">
-                    {progress.toFixed(1)}%
-                  </span>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-medium text-emerald-600 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      Tiến độ quyên góp
+                    </p>
+                    <h3 className="text-4xl font-semibold text-gray-900 dark:text-white">
+                      {progress.toFixed(1)}%
+                    </h3>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-1">Đóng góp</p>
+                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                      {campaign.donationCount || 0} <span className="text-sm text-gray-400 font-normal">lượt</span>
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="w-full bg-white/60 dark:bg-gray-800/60 rounded-full h-4 shadow-inner">
+                <div className="space-y-4">
+                  <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
                     <div
-                      className="h-4 rounded-full bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 dark:from-green-400 dark:via-green-500 dark:to-emerald-500 shadow-md transition-all duration-500 relative overflow-hidden"
+                      className="h-full bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 rounded-full transition-all duration-1000 ease-out"
                       style={{ width: `${Math.min(progress, 100)}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8 pt-2">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">Đã nhận được</p>
+                      <p className="text-xl font-semibold text-emerald-600">
+                        {formatCurrency(campaign.receivedAmount)}
+                      </p>
                     </div>
-                  </div>
-
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">
-                      Đã nhận: {formatCurrency(campaign.receivedAmount)}
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Mục tiêu: {formatCurrency(campaign.targetAmount)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                    <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <span className="font-semibold text-2xl">
-                      {campaign.donationCount || 0}
-                    </span>
-                    <span className="text-sm">lượt đóng góp</span>
+                    <div className="space-y-1 text-right">
+                      <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">Mục tiêu chiến dịch</p>
+                      <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        {formatCurrency(campaign.targetAmount)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 mb-6 h-auto gap-2">
-                <TabsTrigger value="details" className="text-xs sm:text-sm">Chi tiết</TabsTrigger>
-                <TabsTrigger value="posts" className="text-xs sm:text-sm">Bài viết</TabsTrigger>
-                <TabsTrigger value="meals" className="text-xs sm:text-sm">Thức ăn</TabsTrigger>
-                <TabsTrigger value="donations" className="text-xs sm:text-sm">Ủng hộ</TabsTrigger>
-                <TabsTrigger value="disbursements" className="text-xs sm:text-sm">Giải ngân</TabsTrigger>
-                <TabsTrigger value="expenses" className="text-xs sm:text-sm">Chi phí</TabsTrigger>
-                <TabsTrigger value="delivery-tasks" className="text-xs sm:text-sm">Vận chuyển</TabsTrigger>
+              <TabsList className="flex flex-wrap h-auto p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl gap-1 mb-6 border border-slate-100 dark:border-slate-800">
+                {[
+                  { id: "details", label: "Chi tiết", icon: Clock },
+                  { id: "posts", label: "Bài viết", icon: TrendingUp },
+                  { id: "meals", label: "Hoạt động", icon: Utensils },
+                  { id: "donations", label: "Ủng hộ", icon: Users },
+                  { id: "disbursements", label: "Giải ngân", icon: DollarSign },
+                  { id: "expenses", label: "Hóa đơn", icon: ShieldCheck },
+                  { id: "delivery-tasks", label: "Vận chuyển", icon: MapPin },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="rounded-xl flex-1 min-w-[120px] py-3 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-md transition-all text-sm font-semibold"
+                    >
+                      <Icon className="w-4.5 h-4.5 mr-2.5" />
+                      {tab.label}
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
 
-              <TabsContent value="details">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
-                    <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <div className="w-1 h-8 bg-gradient-to-b from-[#38bdf8] to-[#0ea5e9] rounded-full" />
-                      Câu chuyện chiến dịch
-                    </h2>
+              <TabsContent value="details" className="mt-0">
+                <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
+                  <CardContent className="p-8 sm:p-10">
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Câu chuyện chiến dịch</h2>
+                        <p className="text-sm text-gray-400 font-normal">Sứ mệnh và niềm tin gửi gắm qua từng con chữ</p>
+                      </div>
+                    </div>
                     <div
-                      className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 leading-relaxed dark:prose-invert"
+                      className="prose prose-lg max-w-none text-gray-600 dark:text-gray-300 leading-relaxed dark:prose-invert"
                       dangerouslySetInnerHTML={{
                         __html: campaign.description || "<p>Không có mô tả</p>",
                       }}
@@ -395,22 +424,24 @@ export default function AdminCampaignDetailPage() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="posts">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
-                    <CampaignPosts campaignId={campaign.id} currentUserId={currentUser?.id} />
+              <TabsContent value="posts" className="mt-0">
+                <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
+                  <CardContent className="p-8">
+                    <CampaignPosts campaignId={campaign?.id || ""} currentUserId={currentUser?.id} />
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="meals">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
+              <TabsContent value="meals" className="mt-0">
+                <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
+                  <CardContent className="p-10">
                     {campaign.phases && campaign.phases.length > 0 ? (
-                      <div className="space-y-6">
+                      <div className="space-y-12">
                         {campaign.phases.map((phase) => (
-                          <div key={phase.id}>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                          <div key={phase.id} className="relative pl-10">
+                            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-100 dark:bg-slate-800" />
+                            <div className="absolute left-[-4px] top-0 w-2 h-8 bg-blue-500 rounded-full" />
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                               Giai đoạn: {phase.phaseName}
                             </h3>
                             <MealBatchList campaignPhaseId={phase.id} />
@@ -418,34 +449,43 @@ export default function AdminCampaignDetailPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-center py-8">
-                        Chiến dịch này chưa có giai đoạn nào
-                      </p>
+                      <div className="py-20 text-center">
+                        <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Utensils className="w-8 h-8 text-gray-300" />
+                        </div>
+                        <p className="text-gray-400 font-normal">Chiến dịch này chưa có hoạt động thực phẩm nào</p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="donations">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
-                    <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full" />
-                      Danh sách ủng hộ
-                    </h2>
+              <TabsContent value="donations" className="mt-0">
+                <Card className="border border-gray-100 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden">
+                  <CardContent className="p-8">
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+                        <Users className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-medium text-gray-900 dark:text-white">Lịch sử ủng hộ</h2>
+                        <p className="text-sm text-gray-400 font-normal">Sự đồng lòng từ cộng đồng cho chiến dịch</p>
+                      </div>
+                    </div>
                     <DonationList campaignId={campaign.id} />
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="disbursements">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
+              <TabsContent value="disbursements" className="mt-0">
+                <Card className="border border-gray-100 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden">
+                  <CardContent className="p-8">
                     {campaign.phases && campaign.phases.length > 0 ? (
-                      <div className="space-y-6">
+                      <div className="space-y-10">
                         {campaign.phases.map((phase) => (
                           <div key={phase.id}>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center gap-2">
+                              <DollarSign className="w-5 h-5 text-amber-500" />
                               Giai đoạn: {phase.phaseName}
                             </h3>
                             <DisbursementList campaignPhaseId={phase.id} />
@@ -453,25 +493,25 @@ export default function AdminCampaignDetailPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-center py-8">
-                        Chiến dịch này chưa có giai đoạn nào
-                      </p>
+                      <div className="py-20 text-center">
+                        <p className="text-gray-400 font-normal">Chưa có thông tin giải ngân</p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="expenses">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
+              <TabsContent value="expenses" className="mt-0">
+                <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
+                  <CardContent className="p-8">
                     <ExpenseProofList campaignId={campaign.id} />
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="delivery-tasks">
-                <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                  <CardContent className="p-6 sm:p-8">
+              <TabsContent value="delivery-tasks" className="mt-0">
+                <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
+                  <CardContent className="p-8">
                     <DeliveryTasksTab campaignId={campaign.id} />
                   </CardContent>
                 </Card>
@@ -480,190 +520,155 @@ export default function AdminCampaignDetailPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="border-0 shadow-lg dark:shadow-2xl sticky top-24 dark:bg-[#1e293b] dark:border-gray-700">
-              <CardContent className="p-6 space-y-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  Thông tin chiến dịch
-                </h3>
-
-                <div className="space-y-5">
-                  <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-[#38bdf8]/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-blue-600 dark:text-[#38bdf8]" />
+            <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden sticky top-8 shadow-sm">
+              <CardContent className="p-8 space-y-8">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Thông tin cốt lõi</h3>
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-blue-600">
+                        <MapPin className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-0.5">Quy mô</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {campaign.phases?.length || 0} giai đoạn chính
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">
-                        Số giai đoạn
+
+                    <div className="p-5 rounded-3xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-emerald-600">
+                        <DollarSign className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-emerald-600/70 uppercase tracking-widest mb-0.5">Tiền huy động</p>
+                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">
+                          {formatCurrency(campaign.targetAmount)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-amber-500">
+                        <CalendarDays className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-0.5">Lộ trình</p>
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                          {formatDate(campaign.fundraisingStartDate)} - {formatDate(campaign.fundraisingEndDate)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-50 dark:border-slate-800">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Trách nhiệm tổ chức</h3>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white text-base">
+                        {campaign.organization?.name || "N/A"}
                       </p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100 break-words">
-                        {campaign.phases?.length || 0} giai đoạn thực hiện
-                      </p>
+                      <p className="text-xs text-gray-400 font-normal">Đơn vị chủ trì thực hiện</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                    <div className="w-10 h-10 bg-green-100 dark:bg-green-800/30 rounded-full flex items-center justify-center flex-shrink-0">
-                      <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400">Đại diện</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        {campaign.organization?.representative?.full_name || "—"}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">
-                        Mục tiêu
-                      </p>
-                      <p className="font-bold text-green-700 dark:text-green-400 text-lg">
-                        {formatCurrency(campaign.targetAmount)}
-                      </p>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400">Liên hệ</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        {campaign.organization?.phone_number || "—"}
+                      </span>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
-                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-800/30 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">
-                        Ngày bắt đầu
-                      </p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {formatDate(campaign.fundraisingStartDate)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors">
-                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-800/30 rounded-full flex items-center justify-center flex-shrink-0">
-                      <CalendarDays className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">
-                        Ngày kết thúc
-                      </p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {formatDate(campaign.fundraisingEndDate)}
-                      </p>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400">Ngày khởi tạo</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        {formatDateTime(campaign.created_at)}
+                      </span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* ==== Giai đoạn thực hiện ==== */}
+            {/* Implementation Timeline Card */}
             {campaign.phases && campaign.phases.length > 0 && (
-              <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-                <CardContent className="p-6 space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-[#38bdf8]" />
-                    Giai đoạn thực hiện
+              <Card className="border border-white/40 bg-white/40 backdrop-blur-xl dark:bg-slate-900/40 rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
+                    Chi tiết các giai đoạn
                   </h3>
-
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {campaign.phases.map((phase, index) => (
-                      <div key={phase.id || index} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                          {phase.phaseName}
-                        </h4>
-                        <div className="space-y-3 text-sm">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">Địa điểm:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100 break-words">
-                              {phase.location || "—"}
-                            </span>
+                      <div key={phase.id || index} className="group p-6 rounded-[2rem] bg-white/50 dark:bg-slate-800/30 border border-white/60 dark:border-slate-800 transition-all hover:bg-white dark:hover:bg-slate-800">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {phase.phaseName}
+                          </h4>
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-blue-500 mt-0.5" />
+                            <p className="text-xs text-gray-500 font-normal leading-relaxed">{phase.location || "Chưa cập nhật địa điểm"}</p>
                           </div>
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                            <span className="text-gray-600 dark:text-gray-400 shrink-0">Mua nguyên liệu:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {formatDate(phase.ingredientPurchaseDate)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                            <span className="text-gray-600 dark:text-gray-400 shrink-0">Nấu ăn:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {formatDate(phase.cookingDate)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                            <span className="text-gray-600 dark:text-gray-400 shrink-0">Giao hàng:</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {formatDate(phase.deliveryDate)}
-                            </span>
-                          </div>
-                          {/* Budget percentages */}
-                          {(phase.ingredientBudgetPercentage || phase.cookingBudgetPercentage || phase.deliveryBudgetPercentage) && (
-                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Phân bổ ngân sách:</p>
-                              <div className="grid grid-cols-3 gap-2">
-                                {phase.ingredientBudgetPercentage && (
-                                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Nguyên liệu</p>
-                                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                      {phase.ingredientBudgetPercentage}%
-                                    </p>
-                                  </div>
-                                )}
-                                {phase.cookingBudgetPercentage && (
-                                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Nấu ăn</p>
-                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                                      {phase.cookingBudgetPercentage}%
-                                    </p>
-                                  </div>
-                                )}
-                                {phase.deliveryBudgetPercentage && (
-                                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-900/20 rounded">
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Vận chuyển</p>
-                                    <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                                      {phase.deliveryBudgetPercentage}%
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
+
+                          <div className="flex flex-col gap-4 pt-2">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-gray-400 uppercase tracking-widest">Nguyên liệu</span>
+                              <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{formatDateTime(phase.ingredientPurchaseDate)}</span>
                             </div>
-                          )}
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-gray-400 uppercase tracking-widest">Nấu ăn & Giao hàng</span>
+                              <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{formatDateTime(phase.cookingDate)} - {formatDateTime(phase.deliveryDate)}</span>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Planned Items */}
-                        {/* Planned Items */}
-                        <div className="mt-4 space-y-3">
+                        <div className="grid grid-cols-1 gap-3">
                           {phase.plannedMeals && phase.plannedMeals.length > 0 && (
-                            <div className="bg-orange-50/80 border border-orange-100 rounded-lg p-4">
-                              <h5 className="text-sm font-semibold text-orange-800 mb-3 flex items-center gap-2">
-                                <div className="p-1 bg-white rounded-full shadow-sm">
-                                  <Utensils className="w-3.5 h-3.5" />
-                                </div>
-                                Món ăn dự kiến
+                            <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-2xl p-4">
+                              <h5 className="text-[10px] font-medium text-amber-700 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                                <Utensils className="w-3 h-3" />
+                                Thực đơn
                               </h5>
-                              <ul className="space-y-2">
+                              <div className="space-y-2">
                                 {phase.plannedMeals.map((meal, idx) => (
-                                  <li key={idx} className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-700 font-medium">{meal.name}</span>
-                                    <span className="text-xs bg-white text-orange-700 px-2 py-0.5 rounded-full border border-orange-200 font-semibold shadow-sm">
-                                      x{meal.quantity}
-                                    </span>
-                                  </li>
+                                  <div key={idx} className="flex justify-between items-center text-xs">
+                                    <span className="text-gray-600 dark:text-gray-400 font-semibold">{meal.name}</span>
+                                    <span className="bg-white dark:bg-slate-900 text-amber-600 px-2 py-0.5 rounded-lg font-semibold border border-amber-100 dark:border-amber-900/30">x{meal.quantity}</span>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             </div>
                           )}
 
                           {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
-                            <div className="bg-green-50/80 border border-green-100 rounded-lg p-4">
-                              <h5 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
-                                <div className="p-1 bg-white rounded-full shadow-sm">
-                                  <Leaf className="w-3.5 h-3.5" />
-                                </div>
-                                Nguyên liệu dự kiến
+                            <div className="bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-2xl p-4">
+                              <h5 className="text-[10px] font-medium text-emerald-700 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                                <Leaf className="w-3 h-3" />
+                                Nguyên liệu
                               </h5>
-                              <ul className="space-y-2">
+                              <div className="space-y-2">
                                 {phase.plannedIngredients.map((ing, idx) => (
-                                  <li key={idx} className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-700 font-medium truncate mr-2" title={ing.name}>
-                                      {ing.name}
-                                    </span>
-                                    <span className="text-xs bg-white text-green-700 px-2 py-0.5 rounded-full border border-green-200 font-semibold shadow-sm whitespace-nowrap">
-                                      {ing.quantity} {ing.unit}
-                                    </span>
-                                  </li>
+                                  <div key={idx} className="flex justify-between items-center text-xs">
+                                    <span className="text-gray-600 dark:text-gray-400 font-semibold truncate max-w-[150px]">{ing.name}</span>
+                                    <span className="bg-white dark:bg-slate-900 text-emerald-600 px-2 py-0.5 rounded-lg font-semibold border border-emerald-100 dark:border-emerald-900/30">{ing.quantity} {ing.unit}</span>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -673,68 +678,6 @@ export default function AdminCampaignDetailPage() {
                 </CardContent>
               </Card>
             )}
-
-            {/* ==== Mốc thời gian gây quỹ ==== */}
-            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-              <CardContent className="p-6 space-y-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <CalendarDays className="w-5 h-5 text-[#38bdf8]" />
-                  Thời gian gây quỹ
-                </h3>
-
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Ngày tạo chiến dịch
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(new Date(campaign.created_at))}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Bắt đầu gây quỹ
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.fundraisingStartDate)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Kết thúc gây quỹ
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatDate(campaign.fundraisingEndDate)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* ==== Người tạo chiến dịch ==== */}
-            <Card className="border-0 shadow-lg dark:shadow-2xl dark:bg-[#1e293b] dark:border-gray-700">
-              <CardContent className="p-6 space-y-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#38bdf8]" />
-                  Người tạo chiến dịch
-                </h3>
-
-                <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-                  <p>
-                    <span className="font-semibold">Họ tên:</span>{" "}
-                    {campaign.organization?.representative?.full_name || "—"}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Email:</span>{" "}
-                    {campaign.organization?.representative?.email || "—"}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Số điện thoại:</span>{" "}
-                    {campaign.organization?.phone_number || "—"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
@@ -749,14 +692,14 @@ export default function AdminCampaignDetailPage() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="rounded-[2rem] border-none shadow-2xl">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-2xl font-semibold">
               {pendingStatus === "CANCELLED"
                 ? "Hủy chiến dịch"
                 : "Từ chối chiến dịch"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-400 font-normal">
               Vui lòng nhập lý do{" "}
               {pendingStatus === "CANCELLED" ? "hủy" : "từ chối"} chiến dịch này.
               Hành động này không thể hoàn tác.
@@ -766,15 +709,16 @@ export default function AdminCampaignDetailPage() {
             <Textarea
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="Nhập lý do..."
-              className="min-h-[100px]"
+              placeholder="Nhập lý do chi tiết..."
+              className="min-h-[120px] rounded-2xl bg-gray-50 border-gray-100 focus:ring-2 focus:ring-red-500/10 focus:border-red-500 transition-all"
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setIsRejectDialogOpen(false)}
               disabled={isUpdating}
+              className="rounded-xl flex-1 hover:bg-gray-100"
             >
               Hủy bỏ
             </Button>
@@ -782,9 +726,10 @@ export default function AdminCampaignDetailPage() {
               variant="destructive"
               onClick={handleConfirmReject}
               disabled={isUpdating || !rejectionReason.trim()}
+              className="rounded-xl flex-1 bg-red-600 hover:bg-red-700"
             >
               {isUpdating && <Loader animate="spin" className="w-4 h-4 mr-2" />}
-              Xác nhận
+              Xác nhận thực hiện
             </Button>
           </DialogFooter>
         </DialogContent>

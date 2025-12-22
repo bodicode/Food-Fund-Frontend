@@ -13,8 +13,7 @@ import { graphQLAuthService } from "../../services/auth.service";
 import { translateError, translateMessage } from "../../lib/translator";
 import { SignInInput } from "../../types/api/sign-in";
 import { decodeIdToken } from "../../lib/jwt-utils";
-import Cookies from "js-cookie";
-import { USER_ROLES, ROUTES, COOKIE_NAMES } from "../../constants";
+import { USER_ROLES, ROUTES } from "../../constants";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Home, ArrowRight } from "lucide-react";
@@ -138,7 +137,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-5xl md:text-6xl font-black tracking-tighter"
+            className="text-5xl md:text-6xl font-bold tracking-tighter"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ad4e28] via-[#d76c42] to-[#ad4e28] bg-[length:200%_auto] animate-gradient-slow">
               Chào mừng trở lại
@@ -224,7 +223,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="group relative w-full h-18 font-black text-xl bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[2rem] transition-all duration-500 overflow-hidden"
+              className="group relative w-full h-18 font-bold text-xl bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[2rem] transition-all duration-500 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               {loading ? (
@@ -285,7 +284,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               type="button"
               onClick={onSwitchToRegister}
               variant="link"
-              className="p-0 h-auto font-black text-[#ad4e28] hover:text-[#8f4021] text-lg transition-all"
+              className="p-0 h-auto font-bold text-[#ad4e28] hover:text-[#8f4021] text-lg transition-all"
             >
               TẠO NGAY
             </Button>
@@ -293,7 +292,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-black text-gray-400 hover:text-[#ad4e28] transition-all duration-300 group uppercase tracking-widest"
+            className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-[#ad4e28] transition-all duration-300 group uppercase tracking-widest"
           >
             <Home className="w-5 h-5" />
             VỀ TRANG CHỦ

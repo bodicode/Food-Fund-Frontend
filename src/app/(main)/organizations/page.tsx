@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
-import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { organizationService } from "@/services/organization.service";
-import { Organization, OrganizationRole } from "@/types/api/organization";
-import { Loader } from "@/components/animate-ui/icons/loader";
+import { LoginRequiredDialog } from "../../../components/shared/login-required-dialog";
+import { useAuthGuard } from "../../../hooks/use-auth-guard";
+import { organizationService } from "../../../services/organization.service";
+import { Organization, OrganizationRole } from "../../../types/api/organization";
+import { Loader } from "../../../components/animate-ui/icons/loader";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils/date-utils";
-import { translateRole, translateMessage } from "@/lib/translator";
-import { USER_ROLES } from "@/constants";
+import { formatDate } from "../../../lib/utils/date-utils";
+import { translateRole, translateMessage } from "../../../lib/translator";
+import { USER_ROLES } from "../../../constants";
 import {
   Building2,
   Globe,
@@ -24,10 +24,10 @@ import {
   UserPlus,
   Plus,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -35,14 +35,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "../../../components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../components/ui/select";
 
 const createSlug = (name: string) => {
   return name
