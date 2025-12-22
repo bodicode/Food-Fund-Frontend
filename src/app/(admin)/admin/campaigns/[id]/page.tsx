@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { campaignService } from "../../../../../services/campaign.service";
-import { Campaign } from "../../../../../types/api/campaign";
-import { userService } from "../../../../../services/user.service";
-import { UserProfile } from "../../../../../types/api/user";
-import { Button } from "../../../../../components/ui/button";
-import { Badge } from "../../../../../components/ui/badge";
-import { Card, CardContent } from "../../../../../components/ui/card";
-import { Loader } from "../../../../../components/animate-ui/icons/loader";
+import { campaignService } from "@/services/campaign.service";
+import { Campaign } from "@/types/api/campaign";
+import { userService } from "@/services/user.service";
+import { UserProfile } from "@/types/api/user";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
 import {
   CalendarDays,
@@ -26,9 +26,9 @@ import {
   Leaf,
   ShieldCheck,
 } from "lucide-react";
-import { statusConfig } from "../../../../../lib/translator";
-import { formatDate, formatDateTime } from "../../../../../lib/utils/date-utils";
-import { getCampaignIdFromSlug, titleToSlug } from "../../../../../lib/utils/slug-utils";
+import { statusConfig } from "@/lib/translator";
+import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
+import { getCampaignIdFromSlug, titleToSlug } from "@/lib/utils/slug-utils";
 import {
   Dialog,
   DialogContent,
@@ -36,15 +36,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../../../components/ui/dialog";
-import { Textarea } from "../../../../../components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../../components/ui/tabs";
-import { DonationList } from "../../../../../components/campaign/donation-list";
-import { CampaignPosts } from "../../../../../components/campaign/campaign-posts";
-import { MealBatchList } from "../../../../../components/campaign/meal-batch-list";
-import { DisbursementList } from "../../../../../components/campaign/disbursement-list";
-import { ExpenseProofList } from "../../../../../components/campaign/expense-proof-list";
-import { DeliveryTasksTab } from "../../../../../components/campaign/tabs/delivery-tasks-tab";
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DonationList } from "@/components/campaign/donation-list";
+import { CampaignPosts } from "@/components/campaign/campaign-posts";
+import { MealBatchList } from "@/components/campaign/meal-batch-list";
+import { DisbursementList } from "@/components/campaign/disbursement-list";
+import { ExpenseProofList } from "@/components/campaign/expense-proof-list";
+import { DeliveryTasksTab } from "@/components/campaign/tabs/delivery-tasks-tab";
 
 export default function AdminCampaignDetailPage() {
   const { id } = useParams();

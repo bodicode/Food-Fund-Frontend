@@ -145,6 +145,7 @@ export default function OrganizationDetailPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, router]);
 
   useEffect(() => {
@@ -537,7 +538,7 @@ export default function OrganizationDetailPage() {
                             {(organization.representative.email || organization.representative.phone_number) && (
                               <div className="space-y-1">
                                 {organization.representative.email && (
-                                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  <div className="flex items-center gap-3 text-sm text-gray-600">
                                     <Mail className="w-3.5 h-3.5" />
                                     <span className="truncate">{organization.representative.email}</span>
                                   </div>

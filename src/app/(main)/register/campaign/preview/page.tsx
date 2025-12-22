@@ -4,19 +4,42 @@ import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { resetForm } from "@/store/slices/campaign-form-slice";
-import { campaignService } from "@/services/campaign.service";
-import { categoryService } from "@/services/category.service";
+import { motion } from "framer-motion";
+import { RootState } from "../../../../../store";
+import { resetForm } from "../../../../../store/slices/campaign-form-slice";
+import { campaignService } from "../../../../../services/campaign.service";
+import { categoryService } from "../../../../../services/category.service";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/animate-ui/icons/loader";
-import { buildCoverUrl } from "@/lib/build-image";
-import { BookOpen, CalendarDays, Goal, MapPin, Tag, Utensils, Leaf } from "lucide-react";
-import { CreateCampaignInput } from "@/types/api/campaign";
-import { TermsConditionsDialog } from "@/components/campaign/terms-conditions-dialog";
-import { translateError } from "@/lib/translator";
+import { Button } from "../../../../../components/ui/button";
+import { Loader } from "../../../../../components/animate-ui/icons/loader";
+import { buildCoverUrl } from "../../../../../lib/build-image";
+import {
+  BookOpen,
+  CalendarDays,
+  Goal,
+  MapPin,
+  Tag,
+  Utensils,
+  Leaf,
+  CheckCircle2,
+  ChevronLeft,
+  Clock,
+  ArrowRight,
+  AlertCircle
+} from "lucide-react";
+import { CreateCampaignInput } from "../../../../../types/api/campaign";
+import { CreatePhaseInput, PlannedMeal, PlannedIngredient } from "../../../../../types/api/phase";
+import { TermsConditionsDialog } from "../../../../../components/campaign/terms-conditions-dialog";
+import { translateError } from "../../../../../lib/translator";
+
+const STEPS = [
+  { id: 1, title: "Loại", active: false },
+  { id: 2, title: "Mục tiêu", active: false },
+  { id: 3, title: "Media", active: false },
+  { id: 4, title: "Câu chuyện", active: false },
+  { id: 5, title: "Xem trước", active: true },
+];
 
 export default function CreateCampaignStepPreview() {
   const router = useRouter();
@@ -29,7 +52,7 @@ export default function CreateCampaignStepPreview() {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const coverUrl = useMemo(
-    () => buildCoverUrl(form.coverImageFileKey),
+    () => form.coverImageFileKey ? buildCoverUrl(form.coverImageFileKey) : "",
     [form.coverImageFileKey]
   );
 
@@ -46,18 +69,10 @@ export default function CreateCampaignStepPreview() {
     fetchCategory();
   }, [form.categoryId]);
 
-  const handleEdit = (stepOrPath: string) => {
-    if (stepOrPath.startsWith("/")) {
-      router.push(stepOrPath);
-    } else {
-      router.push(`/register/campaign/${stepOrPath}`);
-    }
-  };
-
   const fmtDateTime = (iso?: string) => {
-    if (!iso) return "";
+    if (!iso) return "—";
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return "";
+    if (isNaN(d.getTime())) return "—";
     return d.toLocaleString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -66,8 +81,6 @@ export default function CreateCampaignStepPreview() {
       year: "numeric",
     });
   };
-
-
 
   const handleCreateCampaign = () => {
     if (!termsAccepted) {
@@ -79,6 +92,7 @@ export default function CreateCampaignStepPreview() {
 
   const handleTermsAccept = () => {
     setTermsAccepted(true);
+    setShowTermsDialog(false);
     handleSubmit();
   };
 
@@ -86,125 +100,33 @@ export default function CreateCampaignStepPreview() {
     try {
       setLoading(true);
 
-      // Validation
-      if (!form.title?.trim()) {
-        toast.error("Thiếu tiêu đề chiến dịch");
+      // Strict validations
+      if (!form.title?.trim() || !form.description?.trim() || !form.coverImageFileKey || !form.targetAmount || !form.categoryId || !form.fundraisingStartDate || !form.fundraisingEndDate || !form.phases) {
+        toast.error("Vui lòng hoàn thiện tất cả các bước trước đó.");
         setLoading(false);
         return;
       }
 
-      if (!form.description?.trim()) {
-        toast.error("Thiếu mô tả chiến dịch");
-        setLoading(false);
-        return;
-      }
-
-      if (!form.coverImageFileKey?.trim()) {
-        toast.error("Thiếu ảnh bìa");
-        setLoading(false);
-        return;
-      }
-
-      if (!form.targetAmount) {
-        toast.error("Thiếu mục tiêu quyên góp");
-        setLoading(false);
-        return;
-      }
-
-      if (!form.categoryId?.trim()) {
-        toast.error("Thiếu danh mục");
-        setLoading(false);
-        return;
-      }
-
-      if (!form.phases || form.phases.length === 0) {
-        toast.error("Thiếu thông tin giai đoạn thực hiện");
-        setLoading(false);
-        return;
-      }
-
-      // Validate phases
-      for (let i = 0; i < form.phases.length; i++) {
-        const phase = form.phases[i];
-        if (!phase.phaseName?.trim()) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu tên giai đoạn`);
-          setLoading(false);
-          return;
-        }
-        if (!phase.location?.trim()) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu địa điểm`);
-          setLoading(false);
-          return;
-        }
-        if (!phase.ingredientPurchaseDate) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày mua nguyên liệu`);
-          setLoading(false);
-          return;
-        }
-        if (!phase.cookingDate) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày nấu ăn`);
-          setLoading(false);
-          return;
-        }
-        if (!phase.deliveryDate) {
-          toast.error(`Giai đoạn ${i + 1}: Thiếu ngày giao hàng`);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Parse ISO strings without timezone conversion
-      const parseLocalDateTime = (isoString: string): Date => {
-        const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-        if (match) {
-          return new Date(
-            parseInt(match[1]),
-            parseInt(match[2]) - 1,
-            parseInt(match[3]),
-            parseInt(match[4]),
-            parseInt(match[5])
-          );
-        }
-        return new Date(isoString);
-      };
-
-      const startISO = form.fundraisingStartDate!;
-      const endISO = form.fundraisingEndDate!;
-      if (parseLocalDateTime(startISO) > parseLocalDateTime(endISO)) {
-        toast.error("Ngày kết thúc phải sau ngày bắt đầu.");
-        setLoading(false);
-        return;
-      }
-
-      // Helper to add 7 hours to ISO string to compensate for UTC conversion
       const addSevenHours = (isoString: string): string => {
         if (!isoString) return "";
         const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
         if (!match) return isoString;
-
-        const date = new Date(
-          parseInt(match[1]),
-          parseInt(match[2]) - 1,
-          parseInt(match[3]),
-          parseInt(match[4]),
-          parseInt(match[5])
-        );
+        const date = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]), parseInt(match[4]), parseInt(match[5]));
         date.setHours(date.getHours() + 7);
         return date.toISOString();
       };
 
-      // Add 7 hours to compensate for UTC conversion
-      const phasesIso = form.phases!.map((p) => ({
-        phaseName: p.phaseName,
-        location: p.location,
+      const phasesIso: CreatePhaseInput[] = form.phases.map((p: CreatePhaseInput) => ({
+        phaseName: p.phaseName || "",
+        location: p.location || "",
         ingredientPurchaseDate: addSevenHours(p.ingredientPurchaseDate || ""),
         cookingDate: addSevenHours(p.cookingDate || ""),
         deliveryDate: addSevenHours(p.deliveryDate || ""),
-        ingredientBudgetPercentage: p.ingredientBudgetPercentage,
-        cookingBudgetPercentage: p.cookingBudgetPercentage,
-        deliveryBudgetPercentage: p.deliveryBudgetPercentage,
-        plannedMeals: p.plannedMeals,
-        plannedIngredients: p.plannedIngredients,
+        ingredientBudgetPercentage: p.ingredientBudgetPercentage || "0",
+        cookingBudgetPercentage: p.cookingBudgetPercentage || "0",
+        deliveryBudgetPercentage: p.deliveryBudgetPercentage || "0",
+        plannedMeals: (p.plannedMeals || []).map((m: PlannedMeal) => ({ name: m.name || "", quantity: m.quantity || 0 })),
+        plannedIngredients: (p.plannedIngredients || []).map((ing: PlannedIngredient) => ({ name: ing.name || "", quantity: ing.quantity || "", unit: ing.unit || "" }))
       }));
 
       const input: CreateCampaignInput = {
@@ -213,391 +135,250 @@ export default function CreateCampaignStepPreview() {
         coverImageFileKey: form.coverImageFileKey!,
         targetAmount: String(form.targetAmount!),
         categoryId: form.categoryId!,
-        fundraisingStartDate: addSevenHours(startISO),
-        fundraisingEndDate: addSevenHours(endISO),
+        fundraisingStartDate: addSevenHours(form.fundraisingStartDate!),
+        fundraisingEndDate: addSevenHours(form.fundraisingEndDate!),
         phases: phasesIso,
       };
 
-      try {
-        const result = await campaignService.createCampaign(input);
-
-        if (result) {
-          toast.success("Chiến dịch đã được tạo thành công!");
-          dispatch(resetForm());
-          router.push("/profile?tab=campaigns");
-        }
-      } catch (error) {
-        const errorMessage = translateError(error);
-        toast.error(errorMessage);
-      } finally {
-        setLoading(false);
+      const result = await campaignService.createCampaign(input);
+      if (result) {
+        toast.success("Chiến dịch đã được gửi đi và đang chờ phê duyệt!");
+        dispatch(resetForm());
+        router.push("/profile?tab=campaigns");
       }
-    } catch {
-      toast.error("Có lỗi không mong muốn xảy ra. Vui lòng thử lại!");
+    } catch (error) {
+      toast.error(translateError(error));
+    } finally {
       setLoading(false);
     }
   };
 
-  const milestones = [
-    {
-      key: "fundraisingStartDate",
-      label: "Bắt đầu gây quỹ",
-      datetime: fmtDateTime(form.fundraisingStartDate),
-    },
-    {
-      key: "fundraisingEndDate",
-      label: "Kết thúc gây quỹ",
-      datetime: fmtDateTime(form.fundraisingEndDate),
-    },
-    ...(form.phases || []).flatMap((phase, index: number) => [
-      {
-        key: `phase-${index}-ingredient`,
-        label: `${phase.phaseName || ""} - Mua nguyên liệu`,
-        datetime: fmtDateTime(phase.ingredientPurchaseDate || ""),
-      },
-      {
-        key: `phase-${index}-cooking`,
-        label: `${phase.phaseName || ""} - Nấu ăn`,
-        datetime: fmtDateTime(phase.cookingDate || ""),
-      },
-      {
-        key: `phase-${index}-delivery`,
-        label: `${phase.phaseName || ""} - Giao hàng`,
-        datetime: fmtDateTime(phase.deliveryDate || ""),
-      },
-    ]),
-  ].filter((m) => m.datetime);
+  const milestones = useMemo(() => {
+    const list = [
+      { label: "Bắt đầu gây quỹ", date: form.fundraisingStartDate },
+      { label: "Kết thúc gây quỹ", date: form.fundraisingEndDate },
+      ...(form.phases || []).flatMap((p: CreatePhaseInput) => [
+        { label: `${p.phaseName} - Mua nguyên liệu`, date: p.ingredientPurchaseDate },
+        { label: `${p.phaseName} - Thực hiện nấu ăn`, date: p.cookingDate },
+        { label: `${p.phaseName} - Giao hàng`, date: p.deliveryDate }
+      ])
+    ].filter(m => !!m.date);
+
+    return list.sort((a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime());
+  }, [form.fundraisingStartDate, form.fundraisingEndDate, form.phases]);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 sm:pt-24 pb-16">
+    <div className="min-h-screen bg-white pt-24 pb-20">
       <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
-        <h1 className="text-2xl sm:text-3xl text-center font-bold mb-8 text-gray-900">
-          Xem lại chiến dịch trước khi tạo
-        </h1>
-
-        <div className="mb-8">
-          {coverUrl ? (
-            <div className="relative w-full aspect-[4/3] sm:aspect-square rounded-2xl overflow-hidden bg-gray-100 mx-auto max-w-2xl">
-              <Image
-                unoptimized
-                fill
-                src={coverUrl}
-                alt="Ảnh bìa chiến dịch"
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center aspect-[4/3] sm:aspect-square rounded-2xl bg-gray-100 text-gray-500 text-sm sm:text-base">
-              Chưa có ảnh bìa
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-6 text-gray-800">
-          <div className="flex items-center gap-x-1">
-            <p className="text-sm text-gray-500">Tiêu đề:</p>
-            <p className="text-base sm:text-lg font-semibold break-words">
-              {form.title || "—"}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                <MapPin className="inline w-4 h-4 mr-1" />
-                Số giai đoạn
-              </p>
-              <p className="font-medium">
-                {form.phases?.length || 0} giai đoạn
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                <Tag className="inline w-4 h-4 mr-1" />
-                Danh mục
-              </p>
-              <p className="font-medium">
-                {categoryTitle || form.categoryId || "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                <Goal className="inline w-4 h-4 mr-1" />
-                Mục tiêu quyên góp
-              </p>
-              <p className="font-semibold text-color">
-                {form.targetAmount
-                  ? Number(form.targetAmount).toLocaleString("vi-VN") + " ₫"
-                  : "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">
-                <CalendarDays className="inline w-4 h-4 mr-1" />
-                Thời gian gây quỹ
-              </p>
-              <p className="font-medium">
-                {(form.fundraisingStartDate &&
-                  fmtDateTime(form.fundraisingStartDate)) ||
-                  "—"}{" "}
-                →{" "}
-                {(form.fundraisingEndDate &&
-                  fmtDateTime(form.fundraisingEndDate)) ||
-                  "—"}
-              </p>
-            </div>
+        {/* Step Indicator */}
+        <div className="mb-14">
+          <div className="flex items-center justify-between max-w-3xl mx-auto relative px-4">
+            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gray-100 -translate-y-1/2 z-0" />
+            {STEPS.map((step) => {
+              const isActive = step.id === 5;
+              const isCompleted = step.id < 5;
+              return (
+                <div key={step.id} className="relative z-10 flex flex-col items-center">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all duration-300 ${isActive
+                      ? "bg-[#ad4e28] border-[#ad4e28] text-white shadow-lg scale-110"
+                      : isCompleted
+                        ? "bg-[#ad4e28] border-[#ad4e28] text-white"
+                        : "bg-white border-gray-200 text-gray-300"
+                      }`}
+                  >
+                    {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <span className="text-[13px] font-bold">{step.id}</span>}
+                  </div>
+                  <span className={`text-[11px] mt-2 font-bold uppercase tracking-wider ${isActive ? "text-[#ad4e28]" : "text-gray-400"}`}>
+                    {step.title}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Phases Section */}
-        {form.phases && form.phases.length > 0 && (
-          <div className="mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">
-              Giai đoạn thực hiện
-            </h2>
-            <div className="space-y-4">
-              {form.phases.map((phase, index: number) => {
-                const phaseBudgetSum =
-                  parseFloat((phase.ingredientBudgetPercentage as string) || "0") +
-                  parseFloat((phase.cookingBudgetPercentage as string) || "0") +
-                  parseFloat((phase.deliveryBudgetPercentage as string) || "0");
-                const phaseBudgetValid = Math.abs(phaseBudgetSum - 100) <= 0.01;
-
-                return (
-                  <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                    <h3 className="font-semibold text-gray-900 mb-3">
-                      {(phase.phaseName as string) || ""}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
-                      <div>
-                        <span className="text-gray-500">Địa điểm:</span>
-                        <p className="font-medium">{(phase.location as string) || "—"}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Mua nguyên liệu:</span>
-                        <p className="font-medium">
-                          {fmtDateTime((phase.ingredientPurchaseDate as string) || "") || "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Nấu ăn:</span>
-                        <p className="font-medium">
-                          {fmtDateTime((phase.cookingDate as string) || "") || "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Giao hàng:</span>
-                        <p className="font-medium">
-                          {fmtDateTime(phase.deliveryDate) || "—"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Phase Budget */}
-                    <div className="border-t pt-3 mt-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">
-                          Phân bổ ngân sách giai đoạn
-                        </span>
-                        <span
-                          className={`text-xs ${phaseBudgetValid ? "text-gray-600" : "text-red-600"
-                            }`}
-                        >
-                          Tổng: {phaseBudgetSum.toFixed(2)}%
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div className="bg-white p-2 rounded border">
-                          <div className="text-gray-500 mb-1">Nguyên liệu</div>
-                          <div className="font-semibold text-gray-900">
-                            {phase.ingredientBudgetPercentage || "0"}%
-                          </div>
-                        </div>
-                        <div className="bg-white p-2 rounded border">
-                          <div className="text-gray-500 mb-1">Nấu ăn</div>
-                          <div className="font-semibold text-gray-900">
-                            {phase.cookingBudgetPercentage || "0"}%
-                          </div>
-                        </div>
-                        <div className="bg-white p-2 rounded border">
-                          <div className="text-gray-500 mb-1">Giao hàng</div>
-                          <div className="font-semibold text-gray-900">
-                            {phase.deliveryBudgetPercentage || "0"}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Planned Meals */}
-                    {phase.plannedMeals && phase.plannedMeals.length > 0 && (
-                      <div className="border-t pt-3 mt-3">
-                        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
-                          <Utensils className="w-4 h-4 text-orange-500" />
-                          <span>Món ăn dự kiến</span>
-                        </div>
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {phase.plannedMeals.map((meal, idx) => (
-                            <li key={idx} className="bg-white px-3 py-2 rounded border border-gray-100 text-sm flex justify-between items-center">
-                              <span className="font-medium text-gray-800">{meal.name}</span>
-                              <span className="text-gray-500 bg-gray-50 px-2 py-0.5 rounded text-xs border">
-                                x{meal.quantity}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Planned Ingredients */}
-                    {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
-                      <div className="border-t pt-3 mt-3">
-                        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
-                          <Leaf className="w-4 h-4 text-green-500" />
-                          <span>Nguyên liệu dự kiến</span>
-                        </div>
-                        <div className="bg-white rounded border p-3">
-                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                            {phase.plannedIngredients.map((ing, idx) => (
-                              <li key={idx} className="flex items-center justify-between border-b last:border-0 border-gray-100 border-dashed pb-1">
-                                <span className="text-gray-600 truncate mr-2" title={ing.name}>{ing.name}</span>
-                                <span className="font-medium text-gray-900 whitespace-nowrap">
-                                  {ing.quantity} {ing.unit}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+        <div className="max-w-4xl mx-auto space-y-12">
+          {/* Header */}
+          <div className="text-center">
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
+              <h1 className="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Kiểm tra thông tin</h1>
+              <p className="text-gray-500 max-w-lg mx-auto font-medium">
+                Vui lòng xem lại tất cả chi tiết chiến dịch lần cuối trước khi gửi phê duyệt.
+              </p>
+            </motion.div>
           </div>
-        )}
 
-        {milestones.length > 0 && (
-          <div className="mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900">
-              Lộ trình chiến dịch
-            </h2>
+          {/* Cover Image & Primary Info */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-gray-50 group">
+              {coverUrl ? (
+                <Image unoptimized fill src={coverUrl} alt="Cover" className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              ) : (
+                <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-300 font-bold uppercase tracking-widest text-sm">Chưa có ảnh bìa</div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+              <div className="absolute bottom-6 left-8 right-8">
+                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">{form.title || "Chưa đặt tiêu đề"}</h2>
+              </div>
+            </div>
 
-            <div className="md:hidden space-y-4">
-              {milestones.map((m) => (
-                <div
-                  key={m.key}
-                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 p-4 shadow-sm"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <CalendarDays className="w-4 h-4 text-sky-500" />
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {m.label}
-                    </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { label: "Mục tiêu quyên góp", value: form.targetAmount ? Number(form.targetAmount).toLocaleString("vi-VN") + " ₫" : "—", icon: Goal, color: "text-[#ad4e28]" },
+                { label: "Danh mục", value: categoryTitle || "—", icon: Tag, color: "text-blue-500" },
+              ].map((item, i) => (
+                <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 transition-all hover:border-[#ad4e28]/20">
+                  <div className={`w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center ${item.color}`}>
+                    <item.icon className="w-6 h-6" />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {m.datetime}
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5">{item.label}</p>
+                    <p className="text-lg font-black text-gray-900 leading-none">{item.value}</p>
+                  </div>
                 </div>
               ))}
             </div>
+          </motion.div>
 
-            <div className="hidden md:block">
-              <div className="space-y-6">
-                {milestones.map((m, idx) => {
-                  const isLeft = idx % 2 === 0;
-                  return (
-                    <div
-                      key={m.key}
-                      className="grid grid-cols-[1fr_32px_1fr] items-stretch gap-x-6"
-                    >
-                      <div
-                        className={
-                          isLeft ? "" : "opacity-0 pointer-events-none"
-                        }
-                      >
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CalendarDays className="w-4 h-4 text-sky-500" />
-                            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                              {m.label}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {m.datetime}
-                          </p>
+          {/* Fundraising Period */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 px-2">
+              <CalendarDays className="w-4 h-4 text-[#ad4e28]" />
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Thời gian gây quỹ</h3>
+            </div>
+            <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex items-center justify-center gap-10">
+              <div className="text-center">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bắt đầu</p>
+                <p className="text-base font-black text-gray-900">{fmtDateTime(form.fundraisingStartDate)}</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-gray-200 shrink-0" />
+              <div className="text-center">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kết thúc</p>
+                <p className="text-base font-black text-gray-900">{fmtDateTime(form.fundraisingEndDate)}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Story */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 px-2">
+              <BookOpen className="w-4 h-4 text-[#ad4e28]" />
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Câu chuyện gây quỹ</h3>
+            </div>
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm transition-all hover:border-[#ad4e28]/20 prose prose-gray max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: form.description || "<p>Chưa có nội dung mô tả.</p>" }} />
+            </div>
+          </section>
+
+          {/* Phases */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#ad4e28]" />
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Giai đoạn thực hiện ({form.phases?.length || 0})</h3>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {form.phases?.map((phase: CreatePhaseInput, idx: number) => (
+                <motion.div key={idx} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6 flex flex-col hover:border-[#ad4e28]/20 transition-all group">
+                  <div className="flex items-center gap-4 border-b border-gray-50 pb-4">
+                    <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#ad4e28] flex items-center justify-center font-black text-sm">{idx + 1}</div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 leading-tight">{phase.phaseName}</h4>
+                      <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" /> {phase.location}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: "M.Liệu", val: phase.ingredientBudgetPercentage },
+                        { label: "Nấu ăn", val: phase.cookingBudgetPercentage },
+                        { label: "Giao", val: phase.deliveryBudgetPercentage }
+                      ].map((b, bi) => (
+                        <div key={bi} className="bg-gray-50/50 p-2.5 rounded-xl border border-gray-50 group-hover:bg-white transition-colors">
+                          <p className="text-[9px] font-bold text-gray-400 uppercase leading-none mb-1">{b.label}</p>
+                          <p className="text-sm font-black text-gray-900 leading-none">{b.val || 0}%</p>
                         </div>
-                      </div>
+                      ))}
+                    </div>
+                  </div>
 
-                      <div className="relative flex items-center">
-                        <div className="absolute left-1/2 -translate-x-1/2 h-full w-px bg-gray-200 dark:bg-gray-700" />
-
-                        <span className="relative z-10 mx-auto w-3.5 h-3.5 rounded-full bg-sky-400 ring-4 ring-white dark:ring-slate-900 shadow" />
-                      </div>
-
-                      <div
-                        className={
-                          !isLeft ? "" : "opacity-0 pointer-events-none"
-                        }
-                      >
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CalendarDays className="w-4 h-4 text-sky-500" />
-                            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                              {m.label}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {m.datetime}
-                          </p>
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-start gap-3">
+                      <Utensils className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Món ăn dự kiến</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {phase.plannedMeals?.map((m: PlannedMeal, mi: number) => (
+                            <span key={mi} className="text-[10px] font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">{m.name} <span className="text-[#ad4e28]">x{m.quantity}</span></span>
+                          ))}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="flex items-start gap-3 border-t border-gray-50 pt-4">
+                      <Leaf className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Nguyên liệu dự kiến</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {phase.plannedIngredients?.map((ing: PlannedIngredient, ii: number) => (
+                            <span key={ii} className="text-[10px] font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">{ing.name} <span className="text-blue-500">{ing.quantity} {ing.unit}</span></span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* Timeline */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 px-2">
+              <Clock className="w-4 h-4 text-[#ad4e28]" />
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Dòng thời gian dự kiến</h3>
+            </div>
+            <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-orange-200 before:to-gray-100">
+              {milestones.map((m, mi) => (
+                <div key={mi} className="relative group">
+                  <div className="absolute -left-[24px] top-1 w-4 h-4 rounded-full bg-white border-4 border-orange-400 z-10 shadow-sm transition-transform group-hover:scale-125" />
+                  <div>
+                    <p className="text-xs font-black text-gray-900 leading-none mb-1 group-hover:text-[#ad4e28] transition-colors">{m.label}</p>
+                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider leading-none">{fmtDateTime(m.date)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Warning Card */}
+          <div className="bg-blue-50/50 border border-blue-100 rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-blue-500 shrink-0">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-blue-900 uppercase tracking-tight mb-1">Xác nhận thông tin</h4>
+              <p className="text-xs text-blue-700/70 font-medium italic">Bằng cách nhấn &quot;Tạo chiến dịch&quot;, bạn đồng ý rằng tất cả thông tin trên là chính xác và tuân thủ các điều khoản hoạt động.</p>
             </div>
           </div>
-        )}
 
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm space-y-2 text-gray-800 mt-8">
-          <p className="text-sm text-gray-500">
-            <BookOpen className="inline w-4 h-4 mr-1" />
-            Câu chuyện
-          </p>
-          <div
-            className="prose prose-sm max-w-none text-gray-700"
-            dangerouslySetInnerHTML={{
-              __html: form.description || "<p>—</p>",
-            }}
-          />
+          {/* Footer Navigation */}
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-10 border-t border-gray-100 gap-4">
+            <Button variant="ghost" size="lg" onClick={() => router.push("/register/campaign/story")} className="group h-14 px-8 rounded-2xl font-bold text-gray-400 hover:text-gray-900 transition-all w-full sm:w-auto">
+              <ChevronLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" /> Chỉnh sửa lại
+            </Button>
+            <Button size="lg" onClick={handleCreateCampaign} disabled={loading} className={`group min-w-[240px] h-14 text-lg font-bold rounded-2xl transition-all duration-300 w-full sm:w-auto ${loading ? "bg-gray-100 text-gray-400" : "btn-color shadow-xl shadow-orange-200/50 hover:-translate-y-1"}`}>
+              {loading && <Loader className="animate-spin w-5 h-5 mr-3" />}
+              {loading ? "Đang xử lý..." : "Gửi yêu cầu tạo chiến dịch"}
+              {!loading && <CheckCircle2 className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />}
+            </Button>
+          </div>
         </div>
-
-        <div className="flex flex-col sm:flex-row justify-between mt-10 gap-4">
-          <Button
-            variant="outline"
-            onClick={() => handleEdit("/register/campaign/story")}
-            className="h-12 px-6 w-full sm:w-auto"
-          >
-            ← Chỉnh sửa
-          </Button>
-
-          <Button
-            onClick={handleCreateCampaign}
-            disabled={loading}
-            className={`h-12 px-6 w-full sm:w-auto text-base font-semibold flex items-center justify-center gap-2 ${loading ? "bg-gray-300 text-gray-500" : "btn-color text-white"
-              }`}
-          >
-            {loading && <Loader className="animate-spin w-5 h-5" />}
-            {loading ? "Đang tạo..." : "Tạo chiến dịch"}
-          </Button>
-        </div>
-
-        <TermsConditionsDialog
-          open={showTermsDialog}
-          onOpenChange={setShowTermsDialog}
-          onAccept={handleTermsAccept}
-        />
       </div>
+
+      <TermsConditionsDialog open={showTermsDialog} onOpenChange={setShowTermsDialog} onAccept={handleTermsAccept} />
     </div>
   );
 }
