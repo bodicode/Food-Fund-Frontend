@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import { RootState } from "../../../../../store";
 import { updateForm } from "../../../../../store/slices/campaign-form-slice";
 import { Button } from "../../../../../components/ui/button";
@@ -26,9 +27,24 @@ import {
   parsePercent,
 } from "../../../../../lib/utils/percent-utils";
 import { CreatePhaseInput, PlannedMeal, PlannedIngredient } from "../../../../../types/api/phase";
-import { Plus, MapPin, Trash2, Utensils, Leaf, X } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  X,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+  AlertCircle
+} from "lucide-react";
 import LocationPicker from "../../../../../components/shared/location-picker";
 
+const STEPS = [
+  { id: 1, title: "Loại", active: false },
+  { id: 2, title: "Mục tiêu", active: true },
+  { id: 3, title: "Câu chuyện", active: false },
+  { id: 4, title: "Media", active: false },
+  { id: 5, title: "Xem trước", active: false },
+];
 
 const UNIT_GROUPS = [
   {
@@ -68,15 +84,10 @@ export default function CreateCampaignStepGoal() {
     const input = e.target;
     const value = input.value;
     const selectionStart = input.selectionStart || 0;
-
-    // Get digits before the cursor to maintain cursor position after formatting
     const digitsBeforeCursor = value.slice(0, selectionStart).replace(/\D/g, "");
-
     const raw = parseCurrency(value);
     const currentRaw = parseCurrency(targetAmount);
 
-    // Handle backspacing a separator (dot)
-    // If the raw digits haven't changed but the string got shorter, user likely deleted a separator
     if (raw === currentRaw && value.length < targetAmount.length) {
       const newRaw = raw.slice(0, Math.max(0, digitsBeforeCursor.length - 1)) + raw.slice(digitsBeforeCursor.length);
       setTargetAmount(formatCurrency(newRaw));
@@ -85,10 +96,6 @@ export default function CreateCampaignStepGoal() {
 
     const formatted = formatCurrency(raw);
     setTargetAmount(formatted);
-
-    // Note: React's state update is async, so we'd normally need a useEffect or 
-    // a small delay to fix the cursor position. But for simple digit addition,
-    // standard React re-render usually handles it if the value change is predictable.
   };
 
   // ===== Timeline =====
@@ -122,11 +129,7 @@ export default function CreateCampaignStepGoal() {
       ]
   );
 
-  const updatePhase = (
-    index: number,
-    field: keyof CreatePhaseInput,
-    value: string
-  ) => {
+  const updatePhase = (index: number, field: keyof CreatePhaseInput, value: string) => {
     const newPhases = [...phases];
     newPhases[index] = { ...newPhases[index], [field]: value };
     setPhases(newPhases);
@@ -156,11 +159,6 @@ export default function CreateCampaignStepGoal() {
     }
   };
 
-
-
-
-
-  // ===== Meals & Ingredients Handlers =====
   const addMeal = (phaseIndex: number) => {
     const newPhases = [...phases];
     newPhases[phaseIndex] = {
@@ -181,12 +179,7 @@ export default function CreateCampaignStepGoal() {
     setPhases(newPhases);
   };
 
-  const updateMeal = (
-    phaseIndex: number,
-    mealIndex: number,
-    field: keyof PlannedMeal,
-    value: string | number
-  ) => {
+  const updateMeal = (phaseIndex: number, mealIndex: number, field: keyof PlannedMeal, value: string | number) => {
     const newPhases = [...phases];
     const meals = [...(newPhases[phaseIndex].plannedMeals || [])];
     meals[mealIndex] = { ...meals[mealIndex], [field]: value };
@@ -217,12 +210,7 @@ export default function CreateCampaignStepGoal() {
     setPhases(newPhases);
   };
 
-  const updateIngredient = (
-    phaseIndex: number,
-    ingredientIndex: number,
-    field: keyof PlannedIngredient,
-    value: string
-  ) => {
+  const updateIngredient = (phaseIndex: number, ingredientIndex: number, field: keyof PlannedIngredient, value: string) => {
     const newPhases = [...phases];
     const ingredients = [...(newPhases[phaseIndex].plannedIngredients || [])];
     ingredients[ingredientIndex] = {
@@ -236,18 +224,12 @@ export default function CreateCampaignStepGoal() {
     setPhases(newPhases);
   };
 
-  // ====== Derived validations  ======
+  // ====== Validations ======
   const amountNumeric = parseCurrency(targetAmount);
-  const isAmountValid =
-    !!amountNumeric &&
-    !isNaN(Number(amountNumeric)) &&
-    Number(amountNumeric) > 0;
-
+  const isAmountValid = !!amountNumeric && !isNaN(Number(amountNumeric)) && Number(amountNumeric) > 0;
   const timelineAllFilled = !!fundStart && !!fundEnd;
 
-  // Validate phases based on number of phases
   const phasesValid = (() => {
-    // Check all phases have required fields
     const allFieldsFilled = phases.every((phase) => {
       return (
         phase.phaseName?.trim() &&
@@ -267,710 +249,367 @@ export default function CreateCampaignStepGoal() {
 
     if (!allFieldsFilled) return false;
 
-    if (phases.length === 1) {
-      // Single phase: its budget must equal 100%
-      const phaseBudgetSum =
-        parsePercent(phases[0].ingredientBudgetPercentage || "0") +
-        parsePercent(phases[0].cookingBudgetPercentage || "0") +
-        parsePercent(phases[0].deliveryBudgetPercentage || "0");
-      return Math.abs(phaseBudgetSum - 100) <= 0.5;
-    } else {
-      // Multiple phases: total budget of all phases must equal 100%
-      const totalBudget = phases.reduce((sum, phase) => {
-        return (
-          sum +
-          parsePercent(phase.ingredientBudgetPercentage || "0") +
-          parsePercent(phase.cookingBudgetPercentage || "0") +
-          parsePercent(phase.deliveryBudgetPercentage || "0")
-        );
-      }, 0);
-      return Math.abs(totalBudget - 100) <= 0.5;
-    }
+    const totalBudget = phases.reduce((sum, phase) => {
+      return (
+        sum +
+        parsePercent(phase.ingredientBudgetPercentage || "0") +
+        parsePercent(phase.cookingBudgetPercentage || "0") +
+        parsePercent(phase.deliveryBudgetPercentage || "0")
+      );
+    }, 0);
+    return Math.abs(totalBudget - 100) <= 0.5;
   })();
 
-  // Parse ISO strings without timezone conversion
   const parseLocalDateTime = (isoString: string): Date => {
     const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (match) {
-      return new Date(
-        parseInt(match[1]),
-        parseInt(match[2]) - 1,
-        parseInt(match[3]),
-        parseInt(match[4]),
-        parseInt(match[5])
-      );
+      return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]), parseInt(match[4]), parseInt(match[5]));
     }
     return new Date(isoString);
   };
 
-  // Detailed timeline validation (with hour and minute precision)
   const timelineValidation = (() => {
-    if (!timelineAllFilled) {
-      return { isValid: false, errors: [] };
-    }
-
+    if (!timelineAllFilled) return { isValid: false, errors: [] };
     const errors: string[] = [];
     const fundStartDate = parseLocalDateTime(fundStart);
     const fundEndDate = parseLocalDateTime(fundEnd);
 
-    // Check 1: Start < End (with hour and minute precision)
-    if (fundEndDate <= fundStartDate) {
-      errors.push("Thời gian kết thúc gây quỹ phải sau thời gian bắt đầu");
-    }
+    if (fundEndDate <= fundStartDate) errors.push("Thời gian kết thúc gây quỹ phải sau thời gian bắt đầu");
 
-    // Check phases - only validate if all dates are filled
     for (let i = 0; i < phases.length; i++) {
       const phase = phases[i];
-      if (
-        !phase.ingredientPurchaseDate ||
-        !phase.cookingDate ||
-        !phase.deliveryDate
-      ) {
-        continue;
-      }
+      if (!phase.ingredientPurchaseDate || !phase.cookingDate || !phase.deliveryDate) continue;
 
       const ingDate = parseLocalDateTime(phase.ingredientPurchaseDate);
       const cookDate = parseLocalDateTime(phase.cookingDate);
       const deliveryDate = parseLocalDateTime(phase.deliveryDate);
 
-      // Validate dates are valid
-      if (isNaN(ingDate.getTime()) || isNaN(cookDate.getTime()) || isNaN(deliveryDate.getTime())) {
-        continue;
-      }
+      if (isNaN(ingDate.getTime()) || isNaN(cookDate.getTime()) || isNaN(deliveryDate.getTime())) continue;
 
-      // Check 2: Phase timeline order (ingredient < cooking < delivery)
-      // Using strict less than (not <=) to allow same time
-      if (cookDate <= ingDate) {
-        errors.push(
-          `Giai đoạn ${i + 1}: Thời gian nấu ăn phải sau thời gian mua nguyên liệu`
-        );
-      }
-      if (deliveryDate <= cookDate) {
-        errors.push(
-          `Giai đoạn ${i + 1}: Thời gian giao hàng phải sau thời gian nấu ăn`
-        );
-      }
+      if (cookDate <= ingDate) errors.push(`Giai đoạn ${i + 1}: Thời gian nấu ăn phải sau thời gian mua nguyên liệu`);
+      if (deliveryDate <= cookDate) errors.push(`Giai đoạn ${i + 1}: Thời gian giao hàng phải sau thời gian nấu ăn`);
+      if (ingDate <= fundEndDate) errors.push(`Giai đoạn ${i + 1}: Thời gian thực hiện phải sau ngày kết thúc gây quỹ`);
 
-      // Check 3: Phase cannot start before fundraising ends
-      // Ingredient purchase must be > fundraising end time (must be after, not same day)
-      if (ingDate <= fundEndDate) {
-        errors.push(
-          `Giai đoạn ${i + 1}: Thời gian thực hiện phải sau ngày kết thúc gây quỹ (không thể cùng ngày)`
-        );
-      }
-
-      // Check 4: Compare with previous phases
       if (i > 0) {
         const prevPhase = phases[i - 1];
-        if (
-          prevPhase.ingredientPurchaseDate &&
-          prevPhase.cookingDate &&
-          prevPhase.deliveryDate
-        ) {
-          const prevIngDate = parseLocalDateTime(prevPhase.ingredientPurchaseDate);
-          const prevCookDate = parseLocalDateTime(prevPhase.cookingDate);
+        if (prevPhase.deliveryDate) {
           const prevDeliveryDate = parseLocalDateTime(prevPhase.deliveryDate);
-
-          // Validate previous dates are valid
-          if (isNaN(prevIngDate.getTime()) || isNaN(prevCookDate.getTime()) || isNaN(prevDeliveryDate.getTime())) {
-            continue;
-          }
-
-          // Check 5: Phases cannot overlap
-          // Current phase must start after previous phase ends
-          if (ingDate < prevDeliveryDate) {
-            errors.push(
-              `Giai đoạn ${i + 1} và Giai đoạn ${i} không được trùng ngày`
-            );
-          }
-
-          // Check 6: Later phase cannot start before earlier phase
-          if (ingDate < prevIngDate) {
-            errors.push(
-              `Giai đoạn ${i + 1} không thể sớm hơn Giai đoạn ${i}`
-            );
-          }
+          if (ingDate < prevDeliveryDate) errors.push(`Giai đoạn ${i + 1} và Giai đoạn ${i} không được trùng ngày hoặc bị đè lên nhau`);
         }
       }
     }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
+    return { isValid: errors.length === 0, errors };
   })();
 
   const timelineOrderOk = timelineValidation.isValid;
+  const canContinue = isAmountValid && timelineAllFilled && phasesValid && timelineOrderOk;
 
-  const canContinue =
-    isAmountValid &&
-    timelineAllFilled &&
-    phasesValid &&
-    timelineOrderOk;
-
-  // ===== Submit =====
   const handleNextStep = () => {
     if (!canContinue) {
-      if (!isAmountValid) {
-        toast.error("Vui lòng nhập số tiền hợp lệ.");
-        return;
-      }
-      if (!timelineAllFilled) {
-        toast.error("Vui lòng chọn đầy đủ thời gian gây quỹ.");
-        return;
-      }
-      if (!phasesValid) {
-        toast.error(
-          "Vui lòng điền đầy đủ thông tin các giai đoạn và ngân sách mỗi giai đoạn phải bằng 100%."
-        );
-        return;
-      }
-      if (!timelineOrderOk) {
-        timelineValidation.errors.forEach((error) => toast.error(error));
-        return;
-      }
+      if (!isAmountValid) return toast.error("Vui lòng nhập số tiền hợp lệ.");
+      if (!timelineAllFilled) return toast.error("Vui lòng chọn đầy đủ thời gian gây quỹ.");
+      if (!phasesValid) return toast.error("Vui lòng điền đầy đủ thông tin các giai đoạn và tổng ngân sách phải bằng 100%.");
+      if (!timelineOrderOk) return timelineValidation.errors.forEach((e) => toast.error(e));
     }
 
-    dispatch(
-      updateForm({
-        targetAmount: amountNumeric,
-        fundraisingStartDate: fundStart,
-        fundraisingEndDate: fundEnd,
-        phases: phases,
-      })
-    );
-
+    dispatch(updateForm({
+      targetAmount: amountNumeric,
+      fundraisingStartDate: fundStart,
+      fundraisingEndDate: fundEnd,
+      phases: phases,
+    }));
     router.push("/register/campaign/media");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24">
-      <div className="container mx-auto px-6 py-12 lg:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-20 items-start lg:divide-x lg:divide-gray-200">
-          <div className="lg:col-span-1 lg:sticky lg:top-20 pr-8">
-            <p className="text-sm text-gray-500 mb-3">Bước 2</p>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900 leading-snug">
-              Đặt mục tiêu <br /> gây quỹ của bạn
-            </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Xác định số tiền, phân bổ ngân sách và các giai đoạn thực hiện
-              chiến dịch.
-            </p>
+    <div className="min-h-screen bg-white pt-24 pb-20">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
+        {/* Step Indicator */}
+        <div className="mb-14">
+          <div className="flex items-center justify-between max-w-3xl mx-auto relative px-4">
+            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gray-100 -translate-y-1/2 z-0" />
+            {STEPS.map((step) => {
+              const isActive = step.id === 2;
+              const isCompleted = step.id < 2;
+              return (
+                <div key={step.id} className="relative z-10 flex flex-col items-center">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all duration-300 ${isActive
+                      ? "bg-[#ad4e28] border-[#ad4e28] text-white shadow-lg scale-110"
+                      : isCompleted
+                        ? "bg-[#ad4e28] border-[#ad4e28] text-white"
+                        : "bg-white border-gray-200 text-gray-300"
+                      }`}
+                  >
+                    {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <span className="text-[13px] font-bold">{step.id}</span>}
+                  </div>
+                  <span className={`text-[11px] mt-2 font-bold uppercase tracking-wider ${isActive ? "text-[#ad4e28]" : "text-gray-400"}`}>
+                    {step.title}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-12">
+          <div className="text-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Kế hoạch chiến dịch</h1>
+            <p className="text-gray-500 max-w-lg mx-auto font-medium">Xác định các mục tiêu và lộ trình thực hiện chi tiết cho chiến dịch của bạn.</p>
           </div>
 
-          <div className="lg:col-span-2 space-y-10 pl-0 lg:pl-8">
-            {/* Target Amount */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-color">
-                Bạn muốn quyên góp bao nhiêu?
+          <div className="space-y-8">
+            {/* Section 1: Goal & Fundraising Timeline */}
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
+              <h2 className="text-xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-50 flex items-center gap-2">
+                1. Mục tiêu tài chính & Thời hạn
               </h2>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Số tiền mục tiêu (VNĐ)
-                </label>
-                <div className="relative">
-                  <Input
-                    inputMode="numeric"
-                    placeholder="Nhập số tiền (ví dụ: 200.000.000)"
-                    value={targetAmount}
-                    onChange={handleChangeAmount}
-                    className="h-12 text-lg font-medium pr-10"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 font-medium text-gray-400 pointer-events-none">
-                    ₫
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                <div className="md:col-span-5 space-y-3">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Số tiền mục tiêu (VNĐ)</label>
+                  <div className="relative group">
+                    <Input
+                      inputMode="numeric"
+                      placeholder="Nhập số tiền..."
+                      value={targetAmount}
+                      onChange={handleChangeAmount}
+                      className="h-14 text-xl font-bold pl-12 rounded-xl border-gray-100 bg-gray-50/30 transition-all focus:border-[#ad4e28]/30 focus:bg-white focus:ring-0"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#ad4e28] text-lg">₫</div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-7 space-y-3">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Giai đoạn gây quỹ</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase ml-1">Bắt đầu</span>
+                      <DateTimeInput value={fundStart} onChange={setFundStart} />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase ml-1">Kết thúc</span>
+                      <DateTimeInput value={fundEnd} onChange={setFundEnd} />
+                    </div>
                   </div>
                 </div>
               </div>
-              {!isAmountValid && (
-                <p className="text-sm text-red-600">Số tiền chưa hợp lệ.</p>
-              )}
             </div>
 
-            {/* Fundraising Timeline */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-color">
-                Thời gian gây quỹ
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Bắt đầu gây quỹ
-                  </label>
-                  <DateTimeInput value={fundStart} onChange={setFundStart} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Kết thúc gây quỹ
-                  </label>
-                  <DateTimeInput value={fundEnd} onChange={setFundEnd} />
-                </div>
-              </div>
-            </div>
-
-            {/* Phases */}
+            {/* Section 2: Detailed Phases */}
             <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold text-color mb-2">
-                  Giai đoạn thực hiện
-                </h2>
-                <p className="text-sm text-gray-600">
-                  {phases.length === 1
-                    ? "Ngân sách của giai đoạn này phải bằng 100%"
-                    : `Tổng ngân sách của ${phases.length} giai đoạn phải bằng 100%`}
-                </p>
+              <div className="flex items-center justify-between px-2">
+                <h2 className="text-xl font-bold text-gray-900">2. Chi tiết các giai đoạn</h2>
+                <Button
+                  onClick={addPhase}
+                  variant="outline"
+                  className="rounded-xl border-gray-100 text-[#ad4e28] hover:bg-[#ad4e28] hover:text-white transition-all font-bold h-10"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Thêm giai đoạn
+                </Button>
               </div>
 
-              {phases.map((phase, index) => {
-                const phaseBudgetSum =
-                  parsePercent(phase.ingredientBudgetPercentage || "0") +
-                  parsePercent(phase.cookingBudgetPercentage || "0") +
-                  parsePercent(phase.deliveryBudgetPercentage || "0");
-
-                return (
-                  <div
-                    key={index}
-                    className="p-6 border rounded-lg bg-white shadow-sm"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium">
-                        Giai đoạn {index + 1}
-                      </h3>
-                      {phases.length > 1 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removePhase(index)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Phase Name */}
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">
-                          Tên giai đoạn
-                        </label>
-                        <Input
-                          value={phase.phaseName}
-                          onChange={(e) =>
-                            updatePhase(index, "phaseName", e.target.value)
-                          }
-                          placeholder="Ví dụ: Khu Bắc Quận 1"
-                          className="h-11"
-                        />
-                      </div>
-
-                      {/* Location */}
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                          <MapPin className="inline w-4 h-4 mr-1" />
-                          Địa điểm thực hiện
-                        </label>
-
-                        <LocationPicker
-                          value={phase.location}
-                          onChange={(location) =>
-                            updatePhase(index, "location", location)
-                          }
-                          placeholder="Chọn địa điểm thực hiện"
-                        />
-                      </div>
-
-                      {/* Budget Allocation for this Phase */}
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                          Phân bổ ngân sách giai đoạn này (%)
-                        </label>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div>
-                            <label className="text-xs text-gray-600">
-                              Nguyên liệu
-                            </label>
-                            <Input
-                              inputMode="decimal"
-                              placeholder="%"
-                              value={phase.ingredientBudgetPercentage}
-                              onChange={(e) => {
-                                const raw = e.target.value;
-                                if (isValidPercentInput(raw)) {
-                                  updatePhase(
-                                    index,
-                                    "ingredientBudgetPercentage",
-                                    raw
-                                  );
-                                }
-                              }}
-                              onBlur={() => {
-                                updatePhase(
-                                  index,
-                                  "ingredientBudgetPercentage",
-                                  normalizePercentOnBlur(
-                                    phase.ingredientBudgetPercentage
-                                  )
-                                );
-                              }}
-                              className="h-10 text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600">
-                              Nấu ăn
-                            </label>
-                            <Input
-                              inputMode="decimal"
-                              placeholder="%"
-                              value={phase.cookingBudgetPercentage}
-                              onChange={(e) => {
-                                const raw = e.target.value;
-                                if (isValidPercentInput(raw)) {
-                                  updatePhase(
-                                    index,
-                                    "cookingBudgetPercentage",
-                                    raw
-                                  );
-                                }
-                              }}
-                              onBlur={() => {
-                                updatePhase(
-                                  index,
-                                  "cookingBudgetPercentage",
-                                  normalizePercentOnBlur(
-                                    phase.cookingBudgetPercentage
-                                  )
-                                );
-                              }}
-                              className="h-10 text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-600">
-                              Giao hàng
-                            </label>
-                            <Input
-                              inputMode="decimal"
-                              placeholder="%"
-                              value={phase.deliveryBudgetPercentage}
-                              onChange={(e) => {
-                                const raw = e.target.value;
-                                if (isValidPercentInput(raw)) {
-                                  updatePhase(
-                                    index,
-                                    "deliveryBudgetPercentage",
-                                    raw
-                                  );
-                                }
-                              }}
-                              onBlur={() => {
-                                updatePhase(
-                                  index,
-                                  "deliveryBudgetPercentage",
-                                  normalizePercentOnBlur(
-                                    phase.deliveryBudgetPercentage
-                                  )
-                                );
-                              }}
-                              className="h-10 text-sm"
-                            />
-                          </div>
-                        </div>
-                        <p
-                          className={`text-xs mt-1 ${Math.abs(phaseBudgetSum - 100) <= 0.5 ? "text-green-600" : "text-red-600"
-                            }`}
-                        >
-                          Tổng giai đoạn này: {formatPercent(phaseBudgetSum)}%
-                          {phases.length === 1 && Math.abs(phaseBudgetSum - 100) > 0.5 && " — Phải bằng 100%"}
-                        </p>
-                      </div>
-
-                      {/* Timeline */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-gray-700 mb-2 block">
-                            Mua nguyên liệu
-                          </label>
-                          <DateTimeInput
-                            value={phase.ingredientPurchaseDate}
-                            onChange={(value) =>
-                              updatePhase(index, "ingredientPurchaseDate", value)
-                            }
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-700 mb-2 block">
-                            Nấu ăn
-                          </label>
-                          <DateTimeInput
-                            value={phase.cookingDate}
-                            onChange={(value) =>
-                              updatePhase(index, "cookingDate", value)
-                            }
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-700 mb-2 block">
-                            Giao hàng
-                          </label>
-                          <DateTimeInput
-                            value={phase.deliveryDate}
-                            onChange={(value) =>
-                              updatePhase(index, "deliveryDate", value)
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      {/* Planned Meals */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                            <Utensils className="w-4 h-4" />
-                            Danh sách món ăn dự kiến
-                          </label>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addMeal(index)}
-                            className="text-blue-600 hover:text-blue-700 h-8"
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Thêm món
-                          </Button>
-                        </div>
-
-                        {(!phase.plannedMeals || phase.plannedMeals.length === 0) && (
-                          <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded border border-dashed text-center">
-                            Chưa có món ăn nào. Vui lòng thêm ít nhất 1 món.
-                          </div>
-                        )}
-
-                        <div className="space-y-2">
-                          {phase.plannedMeals?.map((meal, mealIdx) => (
-                            <div key={mealIdx} className="flex gap-2 items-start">
-                              <Input
-                                placeholder="Tên món ăn"
-                                value={meal.name}
-                                onChange={(e) => updateMeal(index, mealIdx, "name", e.target.value)}
-                                className="flex-1"
-                              />
-                              <Input
-                                type="number"
-                                placeholder="SL"
-                                value={meal.quantity || ""}
-                                onChange={(e) => updateMeal(index, mealIdx, "quantity", parseInt(e.target.value) || 0)}
-                                className="w-20"
-                                min={1}
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeMeal(index, mealIdx)}
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Planned Ingredients */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                            <Leaf className="w-4 h-4" />
-                            Danh sách nguyên liệu dự kiến
-                          </label>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addIngredient(index)}
-                            className="text-blue-600 hover:text-blue-700 h-8"
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Thêm nguyên liệu
-                          </Button>
-                        </div>
-
-                        {(!phase.plannedIngredients || phase.plannedIngredients.length === 0) && (
-                          <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded border border-dashed text-center">
-                            Chưa có nguyên liệu nào. Vui lòng thêm ít nhất 1 nguyên liệu.
-                          </div>
-                        )}
-
-                        <div className="space-y-2">
-                          {phase.plannedIngredients?.map((ing, ingIdx) => (
-                            <div key={ingIdx} className="grid grid-cols-[2fr_1fr_110px_auto] gap-2 items-start">
-                              <Input
-                                placeholder="Tên nguyên liệu"
-                                value={ing.name || ""}
-                                onChange={(e) => updateIngredient(index, ingIdx, "name", e.target.value)}
-                              />
-                              <Input
-                                placeholder="Số lượng"
-                                value={ing.quantity || ""}
-                                onChange={(e) => updateIngredient(index, ingIdx, "quantity", e.target.value)}
-                              />
-                              <Select
-                                value={ing.unit || ""}
-                                onValueChange={(value) => updateIngredient(index, ingIdx, "unit", value)}
-                              >
-                                <SelectTrigger className="w-[110px]">
-                                  <SelectValue placeholder="Đơn vị" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {UNIT_GROUPS.map((group) => (
-                                    <SelectGroup key={group.label}>
-                                      <SelectLabel>{group.label}</SelectLabel>
-                                      {group.units.map((unit) => (
-                                        <SelectItem key={unit} value={unit}>
-                                          {unit}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectGroup>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeIngredient(index, ingIdx)}
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Total Budget Summary for Multiple Phases */}
-              {phases.length > 1 && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm font-medium text-blue-900 mb-2">
-                    Tổng ngân sách của tất cả giai đoạn:
-                  </p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-blue-600">
-                      {formatPercent(
-                        phases.reduce((sum, phase) => {
-                          return (
-                            sum +
-                            parsePercent(phase.ingredientBudgetPercentage || "0") +
-                            parsePercent(phase.cookingBudgetPercentage || "0") +
-                            parsePercent(phase.deliveryBudgetPercentage || "0")
-                          );
-                        }, 0)
-                      )}
-                      %
-                    </span>
-                    <span className={`text-sm ${Math.abs(
-                      phases.reduce((sum, phase) => {
-                        return (
-                          sum +
-                          parsePercent(phase.ingredientBudgetPercentage || "0") +
-                          parsePercent(phase.cookingBudgetPercentage || "0") +
-                          parsePercent(phase.deliveryBudgetPercentage || "0")
-                        );
-                      }, 0) - 100
-                    ) <= 0.5
-                      ? "text-green-700"
-                      : "text-red-700"}`}
+              <AnimatePresence mode="popLayout">
+                {phases.map((phase, index) => {
+                  const phaseBudgetSum = parsePercent(phase.ingredientBudgetPercentage || "0") + parsePercent(phase.cookingBudgetPercentage || "0") + parsePercent(phase.deliveryBudgetPercentage || "0");
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      layout
+                      className="bg-white p-8 rounded-2xl border border-gray-100 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.02)] relative group"
                     >
-                      {Math.abs(
-                        phases.reduce((sum, phase) => {
-                          return (
-                            sum +
-                            parsePercent(phase.ingredientBudgetPercentage || "0") +
-                            parsePercent(phase.cookingBudgetPercentage || "0") +
-                            parsePercent(phase.deliveryBudgetPercentage || "0")
-                          );
-                        }, 0) - 100
-                      ) <= 0.5
-                        ? "✓ Hợp lệ"
-                        : "✗ Chưa đúng"}
+                      <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center font-bold text-[#ad4e28] text-xs">
+                            {index + 1}
+                          </div>
+                          <Input
+                            value={phase.phaseName}
+                            onChange={(e) => updatePhase(index, "phaseName", e.target.value)}
+                            className="text-lg font-bold border-none bg-transparent h-auto p-0 focus-visible:ring-0 placeholder:text-gray-200 flex-1"
+                            placeholder="Tên giai đoạn (vd: Giai đoạn Quận 1)..."
+                          />
+                        </div>
+                        {phases.length > 1 && (
+                          <Button variant="ghost" size="icon" onClick={() => removePhase(index)} className="text-gray-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Trash2 className="w-5 h-5" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+                        {/* Phase Core Info */}
+                        <div className="space-y-8">
+                          <div className="space-y-3">
+                            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Địa điểm triển khai</label>
+                            <LocationPicker value={phase.location} onChange={(loc) => updatePhase(index, "location", loc)} />
+                          </div>
+
+                          <div className="space-y-3">
+                            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Lịch trình chi tiết</label>
+                            <div className="grid grid-cols-1 gap-4 bg-gray-50/30 p-4 rounded-xl">
+                              <div className="flex items-center gap-4">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase w-28">Nguyên liệu:</span>
+                                <div className="flex-1"><DateTimeInput value={phase.ingredientPurchaseDate} onChange={(v) => updatePhase(index, "ingredientPurchaseDate", v)} /></div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase w-28">Nấu ăn:</span>
+                                <div className="flex-1"><DateTimeInput value={phase.cookingDate} onChange={(v) => updatePhase(index, "cookingDate", v)} /></div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase w-28">Giao hàng:</span>
+                                <div className="flex-1"><DateTimeInput value={phase.deliveryDate} onChange={(v) => updatePhase(index, "deliveryDate", v)} /></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center ml-1">
+                              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Phân bổ ngân sách</label>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${Math.abs(phaseBudgetSum - 100) <= 0.5 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-400"}`}>
+                                Tổng: {formatPercent(phaseBudgetSum)}%
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                              {["ingredient", "cooking", "delivery"].map((field) => (
+                                <div key={field} className="space-y-1.5">
+                                  <span className="text-[9px] font-bold text-gray-300 uppercase ml-1">
+                                    {field === "ingredient" ? "M.Liệu" : field === "cooking" ? "Nấu" : "Giao"}
+                                  </span>
+                                  <Input
+                                    inputMode="decimal" placeholder="%"
+                                    value={(phase as CreatePhaseInput)[`${field}BudgetPercentage` as keyof CreatePhaseInput] as string}
+                                    onChange={(e) => isValidPercentInput(e.target.value) && updatePhase(index, `${field}BudgetPercentage` as keyof CreatePhaseInput, e.target.value)}
+                                    onBlur={() => updatePhase(index, `${field}BudgetPercentage` as keyof CreatePhaseInput, normalizePercentOnBlur((phase as CreatePhaseInput)[`${field}BudgetPercentage` as keyof CreatePhaseInput] as string))}
+                                    className="h-10 text-center font-bold text-sm bg-gray-50/30 border-none"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Phase Content (Meals/Ingredients) */}
+                        <div className="bg-gray-50/20 rounded-2xl p-6 space-y-8 border border-gray-50/50">
+                          {/* Meals List */}
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Món ăn</h4>
+                              <Button variant="ghost" size="sm" onClick={() => addMeal(index)} className="h-7 text-[10px] font-bold uppercase text-[#ad4e28] hover:bg-white bg-white/50 px-2 rounded-lg">
+                                <Plus className="w-3 h-3 mr-1" /> Thêm
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              {phase.plannedMeals?.length === 0 ? (
+                                <p className="text-[10px] text-gray-300 text-center py-4 italic">Chưa có món ăn</p>
+                              ) : (
+                                phase.plannedMeals?.map((meal, mIdx) => (
+                                  <div key={mIdx} className="flex gap-2 items-center group/item">
+                                    <Input placeholder="Tên món" value={meal.name} onChange={(e) => updateMeal(index, mIdx, "name", e.target.value)} className="h-9 text-xs bg-white flex-[3] border-gray-100" />
+                                    <Input type="number" placeholder="SL" value={meal.quantity || ""} onChange={(e) => updateMeal(index, mIdx, "quantity", parseInt(e.target.value) || 0)} className="h-9 text-xs bg-white flex-1 min-w-[60px] border-gray-100" />
+                                    <Button variant="ghost" size="icon" onClick={() => removeMeal(index, mIdx)} className="h-7 w-7 text-gray-200 hover:text-red-400"><X className="w-3 h-3" /></Button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Ingredients List */}
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Nguyên liệu</h4>
+                              <Button variant="ghost" size="sm" onClick={() => addIngredient(index)} className="h-7 text-[10px] font-bold uppercase text-[#ad4e28] hover:bg-white bg-white/50 px-2 rounded-lg">
+                                <Plus className="w-3 h-3 mr-1" /> Thêm
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              {phase.plannedIngredients?.length === 0 ? (
+                                <p className="text-[10px] text-gray-300 text-center py-4 italic">Chưa có nguyên liệu</p>
+                              ) : (
+                                phase.plannedIngredients?.map((ing, iIdx) => (
+                                  <div key={iIdx} className="grid grid-cols-[2fr_1fr_80px_auto] gap-2 items-center">
+                                    <Input placeholder="Tên" value={ing.name || ""} onChange={(e) => updateIngredient(index, iIdx, "name", e.target.value)} className="h-9 text-xs bg-white border-gray-100" />
+                                    <Input placeholder="SL" value={ing.quantity || ""} onChange={(e) => updateIngredient(index, iIdx, "quantity", e.target.value)} className="h-9 text-xs bg-white border-gray-100" />
+                                    <Select value={ing.unit || ""} onValueChange={(v) => updateIngredient(index, iIdx, "unit", v)}>
+                                      <SelectTrigger className="h-9 text-[10px] bg-white border-gray-100"><SelectValue placeholder="ĐV" /></SelectTrigger>
+                                      <SelectContent>
+                                        {UNIT_GROUPS.map((g) => (
+                                          <SelectGroup key={g.label}><SelectLabel className="text-[10px] opacity-40">{g.label}</SelectLabel>{g.units.map((u) => <SelectItem key={u} value={u} className="text-xs">{u}</SelectItem>)}</SelectGroup>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Button variant="ghost" size="icon" onClick={() => removeIngredient(index, iIdx)} className="h-7 w-7 text-gray-200 hover:text-red-400"><X className="w-3 h-3" /></Button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+
+              {/* Multiphase Summary */}
+              {phases.length > 1 && (
+                <div className="p-8 border-2 border-dashed border-gray-100 rounded-2xl flex items-center justify-between bg-white">
+                  <div>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Tổng phân bổ đa giai đoạn</h3>
+                    <p className="text-sm text-gray-600 font-medium">Đảm bảo tổng tất cả giai đoạn là 100%</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className={`text-4xl font-black ${Math.abs(phases.reduce((s, p) => s + parsePercent(p.ingredientBudgetPercentage || "0") + parsePercent(p.cookingBudgetPercentage || "0") + parsePercent(p.deliveryBudgetPercentage || "0"), 0) - 100) <= 0.5 ? "text-[#ad4e28]" : "text-red-300"}`}>
+                      {formatPercent(phases.reduce((s, p) => s + parsePercent(p.ingredientBudgetPercentage || "0") + parsePercent(p.cookingBudgetPercentage || "0") + parsePercent(p.deliveryBudgetPercentage || "0"), 0))}%
                     </span>
                   </div>
                 </div>
               )}
-
-              {/* Add Phase Button */}
-              <div className="text-center">
-                <Button
-                  variant="outline"
-                  onClick={addPhase}
-                  className="flex items-center gap-2 mx-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  Thêm giai đoạn {phases.length + 1}
-                </Button>
-                <p className="text-sm text-gray-500 mt-2">
-                  Thêm giai đoạn mới nếu chiến dịch của bạn cần nhiều địa điểm
-                  thực hiện
-                </p>
-              </div>
             </div>
 
-            {/* Validation Status */}
-            {!canContinue && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="font-medium text-yellow-800 mb-2">
-                  Cần hoàn thành:
-                </h3>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  {!isAmountValid && <li>• Nhập số tiền mục tiêu hợp lệ</li>}
-                  {!timelineAllFilled && (
-                    <li>• Chọn thời gian bắt đầu và kết thúc gây quỹ</li>
-                  )}
-                  {!phasesValid && (
-                    <li>
-                      • Điền đầy đủ thông tin các giai đoạn và{" "}
-                      {phases.length === 1
-                        ? "ngân sách giai đoạn phải bằng 100%"
-                        : `tổng ngân sách ${phases.length} giai đoạn phải bằng 100%`}
-                    </li>
-                  )}
-                  {timelineAllFilled && !timelineOrderOk && (
-                    <>
-                      <li className="font-medium mt-2">Lỗi thời gian:</li>
-                      {timelineValidation.errors.map((error, idx) => (
-                        <li key={idx}>• {error}</li>
-                      ))}
-                    </>
-                  )}
-                </ul>
-              </div>
-            )}
+            {/* Error States */}
+            <AnimatePresence>
+              {!canContinue && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-6 bg-red-50/30 rounded-2xl border border-red-50">
+                  <div className="flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-300 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-red-900 uppercase tracking-wider mb-2">Thông tin chưa hoàn thiện</h4>
+                      <ul className="text-xs text-red-700/70 space-y-1 font-medium">
+                        {!isAmountValid && <li>• Số tiền mục tiêu chưa hợp lệ</li>}
+                        {!timelineAllFilled && <li>• Thời gian gây quỹ chưa đầy đủ</li>}
+                        {!phasesValid && <li>• Kiểm tra lại thông tin các giai đoạn & phân bổ ngân sách</li>}
+                        {timelineAllFilled && !timelineOrderOk && timelineValidation.errors.map((e, idx) => <li key={idx}>• {e}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {/* Navigation */}
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-8 gap-4">
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-10 border-t border-gray-50">
               <Button
-                variant="outline"
-                className="h-12 px-6 w-full sm:w-auto"
+                variant="ghost"
                 onClick={() => router.push("/register/campaign/type")}
+                className="h-12 px-6 rounded-xl font-bold text-gray-400 hover:text-gray-900 transition-colors"
               >
-                ← Quay lại
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Quay lại
               </Button>
-
               <Button
-                className={`h-12 px-8 text-base font-semibold w-full sm:w-auto ${!canContinue
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "btn-color text-white"
-                  }`}
-                disabled={!canContinue}
+                size="lg"
                 onClick={handleNextStep}
+                disabled={!canContinue}
+                className={`h-14 px-10 rounded-2xl font-bold transition-all duration-300 ${!canContinue ? "bg-gray-100 text-gray-300 cursor-not-allowed shadow-none" : "btn-color shadow-xl shadow-orange-200/50 hover:-translate-y-1"
+                  }`}
               >
                 Tiếp tục
+                <ChevronRight className="ml-2 w-5 h-5" />
               </Button>
             </div>
           </div>

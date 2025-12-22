@@ -115,20 +115,20 @@ export function DateTimeInput({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-between text-left font-normal h-11 px-3 border-gray-200 hover:border-blue-400 hover:bg-blue-50/30 transition-all rounded-lg",
-            !date && "text-gray-400",
+            "w-full justify-between text-left font-normal h-11 px-3 border-gray-100 hover:border-blue-200 hover:bg-blue-50/20 transition-all rounded-xl shadow-none focus-visible:ring-1 focus-visible:ring-blue-100",
+            !date && "text-gray-300",
             className
           )}
         >
           <div className="flex items-center overflow-hidden">
-            <CalendarIcon className="mr-2 h-4 w-4 text-blue-500 flex-shrink-0" />
+            <CalendarIcon className="mr-2 h-4 w-4 text-blue-600 flex-shrink-0" />
             <span className="truncate">
               {date ? (
-                <span className="text-gray-900 font-medium">
+                <span className="text-gray-700 font-bold text-sm">
                   {format(date, "dd/MM/yyyy HH:mm", { locale: vi })}
                 </span>
               ) : (
-                <span>{placeholder}</span>
+                <span className="text-xs font-semibold">{placeholder}</span>
               )}
             </span>
           </div>
@@ -136,7 +136,7 @@ export function DateTimeInput({
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-fit p-0 shadow-2xl border-blue-100 rounded-xl overflow-hidden z-50 gap-0"
+        className="max-w-fit p-0 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-gray-100 rounded-3xl overflow-hidden z-50 gap-0"
         showCloseButton={false}
         onWheel={(e: React.WheelEvent) => e.stopPropagation()}
       >
@@ -144,34 +144,63 @@ export function DateTimeInput({
           <DialogTitle>{placeholder}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col md:flex-row bg-white">
-          <div className="p-2 border-r border-gray-50">
+          <div className="p-4 border-r border-gray-50 flex flex-col">
+            <div className="mb-2 px-2 flex justify-between items-center">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Chọn ngày</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-[10px] font-bold text-blue-600 h-6 px-2 hover:bg-blue-50"
+                onClick={() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  handleDateSelect(tomorrow);
+                }}
+              >
+                Ngày mai
+              </Button>
+            </div>
             <Calendar
               mode="single"
               selected={date}
               onSelect={handleDateSelect}
               initialFocus
               locale={vi}
-              className="rounded-md border-none"
+              className="p-1"
               disabled={(d: Date) => d <= today}
+              classNames={{
+                root: "w-full",
+                month: "w-full space-y-4",
+                table: "w-full border-collapse space-y-1",
+              }}
+              modifiersClassNames={{
+                selected: "!bg-blue-600 !text-white !rounded-xl shadow-lg shadow-blue-100 hover:!bg-blue-600 hover:!text-white"
+              }}
             />
           </div>
-          <div className="flex flex-col border-t md:border-t-0 bg-gray-50/30 w-[160px]">
-            <div className="flex items-center justify-center py-3 border-b border-gray-100 bg-white shadow-sm">
-              <Clock className="w-4 h-4 mr-2 text-blue-500" />
-              <span className="text-sm font-semibold text-gray-700">Thời gian</span>
+          <div className="flex flex-col border-t md:border-t-0 bg-gray-50/20 w-[180px]">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-50 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-blue-600" />
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Thời gian</span>
+              </div>
+              <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                {date ? format(date, "HH:mm") : "--:--"}
+              </span>
             </div>
-            <div className="flex h-[300px] overflow-hidden">
-              <ScrollArea className="flex-1 h-full border-r border-gray-100 [&>[data-radix-scroll-area-viewport]]:overscroll-contain">
+            <div className="flex h-[320px] overflow-hidden">
+              <ScrollArea className="flex-1 h-full border-r border-gray-50 [&>[data-radix-scroll-area-viewport]]:overscroll-contain bg-white/50">
                 <div className="flex flex-col p-2 min-h-min">
+                  <div className="text-[9px] font-bold text-gray-300 text-center mb-1 py-1 sticky top-0 bg-white z-10">GIỜ</div>
                   {Array.from({ length: 24 }).map((_, i) => (
                     <Button
                       key={i}
-                      variant={date?.getHours() === i ? "default" : "ghost"}
+                      variant="ghost"
                       className={cn(
-                        "h-9 w-full mb-1 text-sm font-medium rounded-md justify-center px-0 shrink-0",
+                        "h-10 w-full mb-1 text-sm font-bold rounded-xl justify-center transition-all",
                         date?.getHours() === i
-                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                          : "text-gray-600 hover:bg-blue-100 hover:text-blue-700"
+                          ? "bg-blue-600 text-white hover:bg-blue-600 hover:text-white shadow-lg shadow-blue-100"
+                          : "text-gray-500 hover:bg-blue-50 hover:text-blue-600"
                       )}
                       type="button"
                       onClick={(e: React.MouseEvent) => {
@@ -184,17 +213,18 @@ export function DateTimeInput({
                   ))}
                 </div>
               </ScrollArea>
-              <ScrollArea className="flex-1 h-full [&>[data-radix-scroll-area-viewport]]:overscroll-contain">
+              <ScrollArea className="flex-1 h-full [&>[data-radix-scroll-area-viewport]]:overscroll-contain bg-white/50">
                 <div className="flex flex-col p-2 min-h-min">
+                  <div className="text-[9px] font-bold text-gray-300 text-center mb-1 py-1 sticky top-0 bg-white z-10">PHÚT</div>
                   {Array.from({ length: 60 }).map((_, i) => (
                     <Button
                       key={i}
-                      variant={date?.getMinutes() === i ? "default" : "ghost"}
+                      variant="ghost"
                       className={cn(
-                        "h-9 w-full mb-1 text-sm font-medium rounded-md justify-center px-0 shrink-0",
+                        "h-10 w-full mb-1 text-sm font-bold rounded-xl justify-center transition-all",
                         date?.getMinutes() === i
-                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                          : "text-gray-600 hover:bg-blue-100 hover:text-blue-700"
+                          ? "bg-blue-600 text-white hover:bg-blue-600 hover:text-white shadow-lg shadow-blue-100"
+                          : "text-gray-500 hover:bg-blue-50 hover:text-blue-600"
                       )}
                       type="button"
                       onClick={(e: React.MouseEvent) => {
@@ -210,8 +240,18 @@ export function DateTimeInput({
             </div>
           </div>
         </div>
-        <div className="p-3 border-t border-gray-100 bg-gray-50 flex justify-end">
-          <Button size="sm" onClick={() => setOpen(false)} className="bg-blue-600 hover:bg-blue-700">
+        <div className="p-4 border-t border-gray-50 bg-white flex items-center justify-between">
+          <p className="text-[10px] text-gray-400 font-medium italic">
+            * Chọn ngày trước khi chỉnh giờ
+          </p>
+          <Button
+            size="sm"
+            onClick={() => {
+              if (!date) handleDateSelect(new Date());
+              setOpen(false);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 px-6 rounded-xl shadow-lg shadow-blue-100 transition-all hover:-translate-y-0.5"
+          >
             Xác nhận
           </Button>
         </div>
