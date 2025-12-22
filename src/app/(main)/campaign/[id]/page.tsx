@@ -633,17 +633,13 @@ export default function CampaignDetailPage() {
                 }}
                 pagination={{
                   clickable: true,
-                  bulletClass:
-                    "swiper-pagination-bullet !w-3 !h-3 !bg-gray-300 !opacity-100 transition-all duration-300",
-                  bulletActiveClass:
-                    "swiper-pagination-bullet-active !bg-[#ad4e28] !w-8 !rounded-full",
                 }}
                 breakpoints={{
                   640: { slidesPerView: 1 },
                   768: { slidesPerView: 2 },
                   1024: { slidesPerView: 3 },
                 }}
-                className="!pb-12"
+                className="!pb-12 rel-swiper"
               >
                 {relatedCampaigns.map((c) => (
                   <SwiperSlide key={c.id} className="h-auto">

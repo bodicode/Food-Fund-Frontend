@@ -188,15 +188,13 @@ export function FeaturedCampaigns() {
               pagination={{
                 clickable: true,
                 dynamicBullets: true,
-                bulletClass: "swiper-pagination-bullet !bg-gray-300 !opacity-100",
-                bulletActiveClass: "swiper-pagination-bullet-active !bg-[#E77731] !w-6 !rounded-full transition-all duration-300"
               }}
               breakpoints={{
                 640: { slidesPerView: 1 },
                 768: { slidesPerView: 2 },
                 1024: { slidesPerView: 3 },
               }}
-              className="pb-16 !overflow-visible"
+              className="pb-16 !overflow-visible fc-swiper"
             >
               {sliderCampaigns.map((c) => (
                 <SwiperSlide key={c.id} className="h-auto">
