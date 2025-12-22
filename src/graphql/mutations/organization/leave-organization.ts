@@ -8,6 +8,7 @@ export const LEAVE_ORGANIZATION = gql`
         id
         name
       }
+      requiresReLogin
       previousRole
       success
     }

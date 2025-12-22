@@ -5,8 +5,11 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Building2, Calendar, Loader2, User, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import { logout } from "../../../store/slices/auth-slice";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../components/ui/button";
 import {
     Card,
     CardContent,
@@ -14,7 +17,7 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card";
+} from "../../../components/ui/card";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,14 +28,16 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { organizationService } from "@/services/organization.service";
-import { MyJoinRequest } from "@/types/api/organization";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { translateRole, translateMessage } from "@/lib/translator";
+} from "../../../components/ui/alert-dialog";
+import { Badge } from "../../../components/ui/badge";
+import { organizationService } from "../../../services/organization.service";
+import { MyJoinRequest } from "../../../types/api/organization";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
+import { translateRole, translateMessage } from "../../../lib/translator";
 
 export function JoinRequestsTab() {
+    const dispatch = useDispatch();
+    const router = useRouter();
     const [requests, setRequests] = useState<MyJoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -205,7 +210,11 @@ export function JoinRequestsTab() {
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>Xác nhận rời tổ chức</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Bạn có chắc chắn muốn rời khỏi tổ chức <strong>{request.organization.name}</strong> không? Hành động này không thể hoàn tác.
+                                                Bạn có chắc chắn muốn rời khỏi tổ chức <strong>{request.organization.name}</strong> không?
+                                                <br />
+                                                <span className="text-red-500 font-medium mt-2 block">
+                                                    * Lưu ý: Bạn sẽ tự động đăng xuất để hệ thống cập nhật lại quyền hạn tài khoản.
+                                                </span>
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
@@ -217,7 +226,8 @@ export function JoinRequestsTab() {
                                                         const response = await organizationService.leaveOrganization();
                                                         if (response.success) {
                                                             toast.success("Đã rời tổ chức thành công");
-                                                            fetchRequests();
+                                                            dispatch(logout());
+                                                            router.push("/login");
                                                         } else {
                                                             toast.error(response.message || "Rời tổ chức thất bại");
                                                         }
