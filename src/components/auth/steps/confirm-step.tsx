@@ -19,17 +19,17 @@ export function ConfirmStep({ email, onSuccess }: ConfirmStepProps) {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-3xl font-black text-[#ad4e28] tracking-tight uppercase">
+          <h3 className="text-xl font-black text-[#ad4e28] tracking-tight uppercase">
             Kiểm tra hộp thư của bạn
           </h3>
-          <p className="text-gray-500 text-lg font-medium max-w-lg leading-relaxed">
+          <p className="text-gray-500 text-sm font-medium max-w-lg leading-relaxed">
             Chúng tôi đã gửi một liên kết kích hoạt tới địa chỉ email:
             <br />
-            <span className="font-black text-[#ad4e28] block mt-2 text-xl truncate px-4">
+            <span className="font-black text-[#ad4e28] block mt-2 text-base truncate px-4">
               {email}
             </span>
           </p>
-          <p className="text-gray-400 text-base">
+          <p className="text-gray-400 text-xs">
             Vui lòng nhấp vào liên kết trong email để hoàn tất quá trình kích hoạt tài khoản.
           </p>
         </div>
@@ -50,7 +50,7 @@ export function ConfirmStep({ email, onSuccess }: ConfirmStepProps) {
           <Button
             variant="ghost"
             onClick={onSuccess}
-            className="text-[#ad4e28] hover:text-[#8f4021] hover:bg-transparent font-black gap-2 text-lg underline underline-offset-8 decoration-2"
+            className="text-[#ad4e28] hover:text-[#8f4021] hover:bg-transparent font-black gap-2 text-base underline underline-offset-8 decoration-2"
           >
             <ArrowLeft className="w-5 h-5" />
             QUAY LẠI ĐĂNG NHẬP

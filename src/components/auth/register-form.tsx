@@ -123,7 +123,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-5xl lg:text-6xl font-black tracking-tighter"
+            className="text-3xl md:text-4xl font-black tracking-tighter"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ad4e28] via-[#d76c42] to-[#ad4e28] bg-[length:200%_auto] animate-gradient-slow uppercase">
               {step === "register" ? "Tạo tài khoản" : "Xác thực email"}
@@ -133,7 +133,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-gray-500 text-sm md:text-base font-medium tracking-tight max-w-2xl mx-auto uppercase"
+            className="text-gray-500 text-[10px] md:text-xs font-medium tracking-tight max-w-2xl mx-auto uppercase"
           >
             {step === "register"
               ? "KHÁM PHÁ HÀNH TRÌNH CHIA SẺ VÀ LAN TỎA YÊU THƯƠNG"
@@ -164,7 +164,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-200" />
                   </div>
-                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em]">
+                  <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em]">
                     <span className="bg-[#f9f0e4] px-10 text-gray-400 font-bold">
                       Hoặc kết nối qua
                     </span>
@@ -203,13 +203,13 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           transition={{ delay: 0.6 }}
           className="flex flex-col items-center gap-4"
         >
-          <p className="text-gray-500 font-medium text-base">
+          <p className="text-gray-500 font-medium text-sm">
             Đã có tài khoản?{" "}
             <Button
               type="button"
               onClick={onSwitchToLogin}
               variant="link"
-              className="p-0 h-auto font-black text-[#ad4e28] hover:text-[#8f4021] text-base transition-all"
+              className="p-0 h-auto font-black text-[#ad4e28] hover:text-[#8f4021] text-sm transition-all"
             >
               ĐĂNG NHẬP
             </Button>

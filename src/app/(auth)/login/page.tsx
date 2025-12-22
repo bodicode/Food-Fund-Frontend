@@ -4,6 +4,7 @@ import { useState, useLayoutEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import LoginForm from "../../../components/auth/login-form";
 import RegisterForm from "../../../components/auth/register-form";
 import { Button } from "../../../components/ui/button";
@@ -123,14 +124,14 @@ export default function Login() {
                     <p className="text-[#f9f0e4]/80 text-sm md:text-base font-medium leading-relaxed max-w-sm mx-auto">
                       Nếu đây là lần đầu tiên bạn ghé thăm, hãy tạo ngay tài khoản để khám phá đầy đủ tính năng và cùng chúng tôi bắt đầu hành trình ý nghĩa.
                     </p>
-                    <div className="pt-2">
+                    <div className="pt-2 flex justify-center">
                       <Button
                         variant="link"
                         onClick={switchToRegister}
-                        className="group/btn relative text-white font-black uppercase tracking-widest text-[11px] md:text-xs p-0 h-auto"
+                        className="group/btn relative text-white font-black uppercase tracking-widest text-[11px] md:text-xs px-6 py-2.5 h-auto border border-white/30 rounded-full hover:bg-white hover:text-black transition-all duration-300 flex items-center gap-2 w-fit mx-auto"
                       >
                         Đăng ký ngay hôm nay
-                        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left scale-x-100 group-hover/btn:scale-x-50 transition-transform duration-300" />
+                        <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all duration-300" />
                       </Button>
                     </div>
                   </motion.div>
@@ -150,14 +151,14 @@ export default function Login() {
                     <p className="text-[#f9f0e4]/80 text-sm md:text-base font-medium leading-relaxed max-w-sm mx-auto">
                       Hãy đăng nhập để tiếp tục hành trình, theo dõi tiến trình của bạn và cùng nhau lan tỏa nhiều điều tốt đẹp hơn.
                     </p>
-                    <div className="pt-2">
+                    <div className="pt-2 flex justify-center">
                       <Button
                         variant="link"
                         onClick={switchToLogin}
-                        className="group/btn relative text-white font-black uppercase tracking-widest text-[11px] md:text-xs p-0 h-auto"
+                        className="group/btn relative text-white font-black uppercase tracking-widest text-[11px] md:text-xs px-6 py-2.5 h-auto border border-white/30 rounded-full hover:bg-white hover:text-black transition-all duration-300 flex items-center gap-2 w-fit mx-auto"
                       >
                         Đăng nhập để tiếp tục
-                        <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left scale-x-100 group-hover/btn:scale-x-50 transition-transform duration-300" />
+                        <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all duration-300" />
                       </Button>
                     </div>
                   </motion.div>
