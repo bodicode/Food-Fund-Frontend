@@ -1,17 +1,17 @@
-import { APPROVE_ORGANIZATION_REQUEST } from "@/graphql/mutations/organization/approved-organization-request copy";
-import { REJECT_ORGANIZATION_REQUEST } from "@/graphql/mutations/organization/rejected-organization-request";
-import { CREATE_ORGANIZATION } from "@/graphql/mutations/organization/request-create-organization";
-import { REQUEST_JOIN_ORGANIZATION } from "@/graphql/mutations/organization/request-join-organization";
-import { APPROVE_JOIN_REQUEST } from "@/graphql/mutations/organization/approve-join-request";
-import { REJECT_JOIN_REQUEST } from "@/graphql/mutations/organization/reject-join-request";
-import { REMOVE_STAFF_MEMBER } from "@/graphql/mutations/organization/remove-staff-member";
-import { GET_ALL_ORGANIZATION_REQUESTS } from "@/graphql/query/organization/get-all-organization-request";
-import { GET_MY_ORGANIZATION_REQUESTS } from "@/graphql/query/organization/get-my-organization-request";
-import { GET_MY_ORGANIZATION } from "@/graphql/query/organization/get-my-organization";
-import { LIST_ACTIVE_ORGANIZATIONS } from "@/graphql/query/organization/list-active-organizations";
-import { GET_ORGANIZATION_JOIN_REQUESTS } from "@/graphql/query/organization/get-organization-join-requests";
-import { GET_ORGANIZATION_BY_ID } from "@/graphql/query/organization/get-organization-by-id";
-import client from "@/lib/apollo-client";
+import { APPROVE_ORGANIZATION_REQUEST } from "../graphql/mutations/organization/approved-organization-request copy";
+import { REJECT_ORGANIZATION_REQUEST } from "../graphql/mutations/organization/rejected-organization-request";
+import { CREATE_ORGANIZATION } from "../graphql/mutations/organization/request-create-organization";
+import { REQUEST_JOIN_ORGANIZATION } from "../graphql/mutations/organization/request-join-organization";
+import { APPROVE_JOIN_REQUEST } from "../graphql/mutations/organization/approve-join-request";
+import { REJECT_JOIN_REQUEST } from "../graphql/mutations/organization/reject-join-request";
+import { REMOVE_STAFF_MEMBER } from "../graphql/mutations/organization/remove-staff-member";
+import { GET_ALL_ORGANIZATION_REQUESTS } from "../graphql/query/organization/get-all-organization-request";
+import { GET_MY_ORGANIZATION_REQUESTS } from "../graphql/query/organization/get-my-organization-request";
+import { GET_MY_ORGANIZATION } from "../graphql/query/organization/get-my-organization";
+import { LIST_ACTIVE_ORGANIZATIONS } from "../graphql/query/organization/list-active-organizations";
+import { GET_ORGANIZATION_JOIN_REQUESTS } from "../graphql/query/organization/get-organization-join-requests";
+import { GET_ORGANIZATION_BY_ID } from "../graphql/query/organization/get-organization-by-id";
+import client from "../lib/apollo-client";
 import {
   ApproveJoinRequestResponse,
   ApproveOrganizationRequestResponse,
@@ -35,18 +35,18 @@ import {
   RespondReassignmentInput,
   RespondReassignmentResponse,
   JoinRequestStatus,
-} from "@/types/api/organization";
-import { GET_ELIGIBLE_ORGS } from "@/graphql/query/organization/get-eligible-orgs";
-import { GET_PENDING_REASSIGNMENT_REQUESTS } from "@/graphql/query/organization/get-pending-reassignment-requests";
-import { RESPOND_TO_REASSIGNMENT } from "@/graphql/mutations/organization/respond-to-reassignment";
-import { MY_JOIN_REQUEST } from "@/graphql/query/organization/my-join-request";
-import { CANCEL_JOIN_REQUEST_ORGANIZATION } from "@/graphql/mutations/organization/cancel-join-request";
+} from "../types/api/organization";
+import { GET_ELIGIBLE_ORGS } from "../graphql/query/organization/get-eligible-orgs";
+import { GET_PENDING_REASSIGNMENT_REQUESTS } from "../graphql/query/organization/get-pending-reassignment-requests";
+import { RESPOND_TO_REASSIGNMENT } from "../graphql/mutations/organization/respond-to-reassignment";
+import { MY_JOIN_REQUEST } from "../graphql/query/organization/my-join-request";
+import { CANCEL_JOIN_REQUEST_ORGANIZATION } from "../graphql/mutations/organization/cancel-join-request";
 import {
   MyJoinRequest,
   MyJoinRequestResponse,
   CancelJoinRequestResponse,
-} from "@/types/api/organization";
-import { CANCEL_MY_CREATE_ORGANIZATION_REQUEST } from "@/graphql/mutations/organization/cancel-create-request";
+} from "../types/api/organization";
+import { CANCEL_MY_CREATE_ORGANIZATION_REQUEST } from "../graphql/mutations/organization/cancel-create-request";
 
 export interface CancelMyCreateOrganizationRequestResponse {
   cancelMyCreateOrganizationRequest: {
@@ -57,7 +57,7 @@ export interface CancelMyCreateOrganizationRequestResponse {
     success: boolean;
   };
 }
-import { LEAVE_ORGANIZATION } from "@/graphql/mutations/organization/leave-organization";
+import { LEAVE_ORGANIZATION } from "../graphql/mutations/organization/leave-organization";
 
 export interface LeaveOrganizationResponse {
   leaveOrganization: {
@@ -66,6 +66,7 @@ export interface LeaveOrganizationResponse {
       id: string;
       name: string;
     };
+    requiresReLogin: boolean;
     previousRole: string;
     success: boolean;
   };

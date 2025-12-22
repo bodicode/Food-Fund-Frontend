@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { LoginRequiredDialog } from "@/components/shared/login-required-dialog";
-import { useAuthGuard } from "@/hooks/use-auth-guard";
-import { organizationService } from "@/services/organization.service";
-import { campaignService } from "@/services/campaign.service";
-import { Organization, OrganizationRole } from "@/types/api/organization";
-import { Campaign } from "@/types/api/campaign";
-import { Loader } from "@/components/animate-ui/icons/loader";
+import { LoginRequiredDialog } from "../../../../components/shared/login-required-dialog";
+import { useAuthGuard } from "../../../../hooks/use-auth-guard";
+import { organizationService } from "../../../../services/organization.service";
+import { campaignService } from "../../../../services/campaign.service";
+import { Organization, OrganizationRole } from "../../../../types/api/organization";
+import { Campaign } from "../../../../types/api/campaign";
+import { Loader } from "../../../../components/animate-ui/icons/loader";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils/date-utils";
-import { translateRole, translateMessage } from "@/lib/translator";
-import { USER_ROLES } from "@/constants";
+import { formatDate } from "../../../../lib/utils/date-utils";
+import { translateRole, translateMessage } from "../../../../lib/translator";
+import { USER_ROLES } from "../../../../constants";
 import {
   Building2,
   Globe,
@@ -29,10 +29,11 @@ import {
   Info,
   Trash2,
   Crown,
+  RefreshCw,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "../../../../components/ui/badge";
+import { Button } from "../../../../components/ui/button";
+import { Card, CardContent } from "../../../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -40,14 +41,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "../../../../components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../../../components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,10 +59,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CampaignCard } from "@/components/shared/campaign-card";
-import { JoinRequestList } from "@/components/organization/join-request-list";
+} from "../../../../components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../components/ui/tabs";
+import { CampaignCard } from "../../../../components/shared/campaign-card";
+import { JoinRequestList } from "../../../../components/organization/join-request-list";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
@@ -77,70 +78,78 @@ export default function OrganizationDetailPage() {
     USER_ROLES.DELIVERY_STAFF
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { isLoginDialogOpen, requireAuth, closeLoginDialog, currentUser } = useAuthGuard();
 
-  useEffect(() => {
-    (async () => {
-      try {
-        // First, fetch all organizations to find the ID by slug
-        const { organizations } = await organizationService.getActiveOrganizations();
+  const loadData = useCallback(async (showRefreshingLabel = false) => {
+    try {
+      if (showRefreshingLabel) setIsRefreshing(true);
+      // First, fetch all organizations to find the ID by slug
+      const { organizations } = await organizationService.getActiveOrganizations();
 
-        // Find organization by matching slug
-        const found = organizations.find((org) => {
-          const orgSlug = org.name
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/đ/g, "d")
-            .replace(/[^a-z0-9\s-]/g, "")
-            .trim()
-            .replace(/\s+/g, "-")
-            .replace(/-+/g, "-");
+      // Find organization by matching slug
+      const found = organizations.find((org) => {
+        const orgSlug = org.name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "d")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-");
 
-          return orgSlug === slug;
-        });
+        return orgSlug === slug;
+      });
 
-        if (!found) {
-          throw new Error("Không tìm thấy tổ chức");
-        }
-
-        // Then fetch full details by ID
-        const fullOrg = await organizationService.getOrganizationById(found.id);
-        setOrganization(fullOrg);
-
-        // Fetch campaigns created by the organization representative
-        const representativeId = fullOrg.representative?.cognito_id;
-        if (representativeId) {
-          setLoadingCampaigns(true);
-          try {
-            const result = await campaignService.searchCampaigns({
-              creatorId: representativeId,
-              limit: 100, // Fetch enough campaigns
-            });
-            if (result) {
-              setCampaigns(result.items);
-            }
-          } catch (error) {
-            console.error("Error fetching organization campaigns:", error);
-          } finally {
-            setLoadingCampaigns(false);
-          }
-        }
-
-      } catch (err) {
-        toast.error("Không thể tải thông tin tổ chức", {
-          description:
-            err instanceof Error
-              ? err.message
-              : "Đã xảy ra lỗi không xác định.",
-        });
-        router.push("/organizations");
-      } finally {
-        setLoading(false);
+      if (!found) {
+        throw new Error("Không tìm thấy tổ chức");
       }
-    })();
+
+      // Then fetch full details by ID
+      const fullOrg = await organizationService.getOrganizationById(found.id);
+      setOrganization(fullOrg);
+
+      // Fetch campaigns created by the organization representative
+      const representativeId = fullOrg.representative?.cognito_id;
+      if (representativeId) {
+        setLoadingCampaigns(true);
+        try {
+          const result = await campaignService.searchCampaigns({
+            creatorId: representativeId,
+            limit: 100, // Fetch enough campaigns
+          });
+          if (result) {
+            setCampaigns(result.items);
+          }
+        } catch (error) {
+          console.error("Error fetching organization campaigns:", error);
+        } finally {
+          setLoadingCampaigns(false);
+        }
+      }
+
+      if (showRefreshingLabel) {
+        toast.success("Đã cập nhật dữ liệu mới nhất");
+      }
+    } catch (err) {
+      toast.error("Không thể tải thông tin tổ chức", {
+        description:
+          err instanceof Error
+            ? err.message
+            : "Đã xảy ra lỗi không xác định.",
+      });
+      if (!organization) router.push("/organizations");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
   }, [slug, router]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleJoinRequest = () => {
     requireAuth(() => {
@@ -297,26 +306,39 @@ export default function OrganizationDetailPage() {
 
       <div className="container mx-auto max-w-6xl px-4 -mt-8 relative z-20">
         <Tabs defaultValue="campaigns" className="space-y-8">
-          <TabsList className="bg-white p-1 rounded-xl shadow-md border border-gray-100 inline-flex h-auto flex-wrap justify-center md:justify-start">
-            <TabsTrigger value="campaigns" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              Chiến dịch ({campaigns.length})
-            </TabsTrigger>
-            <TabsTrigger value="about" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
-              <Info className="w-4 h-4 mr-2" />
-              Thông tin
-            </TabsTrigger>
-            <TabsTrigger value="members" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
-              <Users className="w-4 h-4 mr-2" />
-              Thành viên
-            </TabsTrigger>
-            {isRepresentative && (
-              <TabsTrigger value="requests" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Yêu cầu tham gia
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <TabsList className="bg-white p-1 rounded-xl shadow-md border border-gray-100 inline-flex h-auto flex-wrap justify-center md:justify-start w-full md:w-auto">
+              <TabsTrigger value="campaigns" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                Chiến dịch ({campaigns.length})
               </TabsTrigger>
-            )}
-          </TabsList>
+              <TabsTrigger value="about" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+                <Info className="w-4 h-4 mr-2" />
+                Thông tin
+              </TabsTrigger>
+              <TabsTrigger value="members" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+                <Users className="w-4 h-4 mr-2" />
+                Thành viên
+              </TabsTrigger>
+              {isRepresentative && (
+                <TabsTrigger value="requests" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Yêu cầu tham gia
+                </TabsTrigger>
+              )}
+            </TabsList>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadData(true)}
+              disabled={isRefreshing}
+              className="bg-white border-gray-200 hover:bg-orange-50 hover:text-[#b55631] hover:border-orange-200 text-gray-600 font-medium h-12 px-6 rounded-xl shadow-sm transition-all flex items-center gap-2 group self-end md:self-auto"
+            >
+              <RefreshCw className={`w-4 h-4 transition-transform duration-700 ${isRefreshing ? "animate-spin" : "group-hover:rotate-180"}`} />
+              <span>Làm mới dữ liệu</span>
+            </Button>
+          </div>
 
           <TabsContent value="campaigns" className="focus:outline-none">
             {loadingCampaigns ? (
