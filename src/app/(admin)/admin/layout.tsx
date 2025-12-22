@@ -51,6 +51,7 @@ import { userService } from "../../../services/user.service";
 import { UserProfile } from "../../../types/api/user";
 import { RootState } from "../../../store";
 import { translateRole } from "../../../lib/translator";
+import { NotificationPopover } from "../../../components/notification/notification-popover";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -303,6 +304,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                 />
               )}
             </Button>
+
+            <NotificationPopover />
 
             <div className="hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-700 mx-1" />
 

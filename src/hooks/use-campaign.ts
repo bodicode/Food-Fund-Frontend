@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { campaignService } from "@/services/campaign.service";
-import { Campaign, CampaignParams } from "@/types/api/campaign";
+import { campaignService } from "../services/campaign.service";
+import { Campaign, CampaignParams } from "../types/api/campaign";
 
 export function useCampaigns(initialParams: CampaignParams = {}) {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -27,7 +27,7 @@ export function useCampaigns(initialParams: CampaignParams = {}) {
                 const finalParams: CampaignParams = { ...params, ...override };
                 const data = await campaignService.getCampaigns(finalParams);
 
-                setCampaigns((prev) =>
+                setCampaigns((prev: Campaign[]) =>
                     loadMore ? [...prev, ...(data || [])] : data || []
                 );
 
