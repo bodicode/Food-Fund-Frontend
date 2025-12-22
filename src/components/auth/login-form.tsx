@@ -137,9 +137,9 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-5xl md:text-6xl font-bold tracking-tighter"
+            className="text-3xl md:text-4xl font-bold tracking-tighter"
           >
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ad4e28] via-[#d76c42] to-[#ad4e28] bg-[length:200%_auto] animate-gradient-slow">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ad4e28] via-[#d76c42] to-[#ad4e28] bg-[length:200%_auto] animate-gradient-slow uppercase">
               Chào mừng trở lại
             </span>
           </motion.h1>
@@ -147,7 +147,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-gray-500 text-base md:text-lg font-medium tracking-tight max-w-2xl mx-auto"
+            className="text-gray-500 text-xs md:text-sm font-medium tracking-tight max-w-2xl mx-auto uppercase"
           >
             TIẾP TỤC HÀNH TRÌNH CHIA SẺ VÀ LAN TỎA YÊU THƯƠNG TRONG CỘNG ĐỒNG
           </motion.p>
@@ -169,7 +169,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
                 placeholder="Email của bạn"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-16 h-18 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[2rem] text-lg placeholder:text-gray-300 font-medium border-2"
+                className="pl-16 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[2rem] text-sm placeholder:text-gray-300 font-medium border-2"
                 required
               />
             </motion.div>
@@ -189,7 +189,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
                   placeholder="Mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-16 pr-16 h-18 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[2rem] text-lg placeholder:text-gray-300 font-medium border-2"
+                  className="pl-16 pr-16 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[2rem] text-sm placeholder:text-gray-300 font-medium border-2"
                   required
                 />
                 <button
@@ -223,18 +223,18 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="group relative w-full h-18 font-bold text-xl bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[2rem] transition-all duration-500 overflow-hidden"
+              className="group relative w-full h-16 font-bold text-lg bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[2rem] transition-all duration-300 hover:scale-[1.01] active:scale-95 hover:shadow-2xl hover:shadow-[#ad4e28]/30 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               {loading ? (
                 <div className="flex items-center gap-3">
-                  <Loader animate loop className="h-7 w-7" />
-                  <span>XÁC THỰC...</span>
+                  <Loader animate loop className="h-6 w-6" />
+                  <span className="text-sm">XÁC THỰC...</span>
                 </div>
               ) : (
-                <span className="flex items-center justify-center gap-3 uppercase tracking-widest text-lg">
+                <span className="flex items-center justify-center gap-3 uppercase tracking-widest text-base">
                   Đăng nhập
-                  <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               )}
             </Button>
@@ -250,7 +250,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-gray-200" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase tracking-[0.4em]">
+          <div className="relative flex justify-center text-[10px] uppercase tracking-[0.4em]">
             <span className="bg-[#f9f0e4] px-10 text-gray-400 font-bold">
               Hoặc kết nối qua
             </span>
@@ -278,13 +278,13 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           transition={{ delay: 0.9 }}
           className="pt-6 flex flex-col items-center gap-4"
         >
-          <p className="text-gray-500 font-medium text-lg">
+          <p className="text-gray-500 font-medium text-sm">
             Chưa có tài khoản?{" "}
             <Button
               type="button"
               onClick={onSwitchToRegister}
               variant="link"
-              className="p-0 h-auto font-bold text-[#ad4e28] hover:text-[#8f4021] text-lg transition-all"
+              className="p-0 h-auto font-bold text-[#ad4e28] hover:text-[#8f4021] text-sm transition-all"
             >
               TẠO NGAY
             </Button>

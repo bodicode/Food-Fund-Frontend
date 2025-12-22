@@ -77,7 +77,7 @@ export function RegisterStep({ authService, onSuccess }: Props) {
             placeholder="Họ và tên của bạn"
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
-            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            className="pl-14 h-14 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-sm placeholder:text-gray-300 font-medium border-2"
             required
           />
         </div>
@@ -92,7 +92,7 @@ export function RegisterStep({ authService, onSuccess }: Props) {
             placeholder="Email liên hệ"
             value={form.email}
             onChange={(e) => handleChange("email", e.target.value)}
-            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            className="pl-14 h-14 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-sm placeholder:text-gray-300 font-medium border-2"
             required
           />
         </div>
@@ -107,7 +107,7 @@ export function RegisterStep({ authService, onSuccess }: Props) {
             placeholder="Mật khẩu bảo mật"
             value={form.password}
             onChange={(e) => handleChange("password", e.target.value)}
-            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            className="pl-14 h-14 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-sm placeholder:text-gray-300 font-medium border-2"
             required
           />
         </div>
@@ -122,7 +122,7 @@ export function RegisterStep({ authService, onSuccess }: Props) {
             placeholder="Xác nhận mật mật khẩu"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="pl-14 h-16 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-lg placeholder:text-gray-300 font-medium border-2"
+            className="pl-14 h-14 bg-white/50 border-gray-200 focus:bg-white focus:border-[#ad4e28]/40 focus:ring-8 focus:ring-[#ad4e28]/5 transition-all duration-500 rounded-[1.5rem] text-sm placeholder:text-gray-300 font-medium border-2"
             required
           />
         </div>
@@ -137,16 +137,16 @@ export function RegisterStep({ authService, onSuccess }: Props) {
         <Button
           type="submit"
           disabled={loading}
-          className="group relative w-full h-16 font-black text-lg bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[1.5rem] transition-all duration-500 overflow-hidden"
+          className="group relative w-full h-15 font-black text-lg bg-[#ad4e28] hover:bg-[#8f4021] text-white shadow-xl shadow-[#ad4e28]/20 rounded-[1.5rem] transition-all duration-300 hover:scale-[1.01] active:scale-95 hover:shadow-2xl hover:shadow-[#ad4e28]/30 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
           {loading ? (
             <div className="flex items-center gap-3">
-              <Loader animate loop className="h-6 w-6" />
-              <span>ĐANG XỬ LÝ...</span>
+              <Loader animate loop className="h-5 w-5" />
+              <span className="text-sm">ĐANG XỬ LÝ...</span>
             </div>
           ) : (
-            <span className="flex items-center justify-center gap-3 uppercase tracking-widest text-lg">
+            <span className="flex items-center justify-center gap-3 uppercase tracking-widest text-base">
               Đăng ký ngay
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
             </span>
