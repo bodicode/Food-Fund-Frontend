@@ -79,6 +79,7 @@ export default function OrganizationDetailPage() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [joinRequestsCount, setJoinRequestsCount] = useState(0);
 
   const { isLoginDialogOpen, requireAuth, closeLoginDialog, currentUser } = useAuthGuard();
 
@@ -130,6 +131,17 @@ export default function OrganizationDetailPage() {
         }
       }
 
+      // Fetch join requests count if representative
+      const isOrgRep = currentUser?.id === fullOrg.representative?.cognito_id;
+      if (isOrgRep) {
+        try {
+          const { total } = await organizationService.getOrganizationJoinRequests(1, 0, "PENDING");
+          setJoinRequestsCount(total || 0);
+        } catch (error) {
+          console.error("Error fetching join requests count:", error);
+        }
+      }
+
       if (showRefreshingLabel) {
         toast.success("Đã cập nhật dữ liệu mới nhất");
       }
@@ -146,7 +158,7 @@ export default function OrganizationDetailPage() {
       setIsRefreshing(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, router]);
+  }, [slug, router, currentUser]);
 
   useEffect(() => {
     loadData();
@@ -319,12 +331,12 @@ export default function OrganizationDetailPage() {
               </TabsTrigger>
               <TabsTrigger value="members" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
                 <Users className="w-4 h-4 mr-2" />
-                Thành viên
+                Thành viên ({organization.members?.filter(m => m.status === "VERIFIED").length || 0})
               </TabsTrigger>
               {isRepresentative && (
                 <TabsTrigger value="requests" className="px-4 md:px-6 py-3 rounded-lg data-[state=active]:bg-[#b55631] data-[state=active]:text-white text-gray-600 font-medium transition-all">
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Yêu cầu tham gia
+                  Yêu cầu tham gia ({joinRequestsCount})
                 </TabsTrigger>
               )}
             </TabsList>
@@ -498,53 +510,41 @@ export default function OrganizationDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {/* Representative Card */}
                   {organization.representative && (
-                    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 relative group overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-white opacity-100" />
-                      <div className="absolute top-0 right-0 p-3 z-10">
-                        <Badge className="bg-gradient-to-r from-[#b55631] to-[#d9643a] text-white border-0 gap-1.5 px-3 py-1 shadow-sm">
-                          <Crown className="w-3.5 h-3.5 fill-current" />
-                          Người đại diện
-                        </Badge>
-                      </div>
-                      <CardContent className="p-6 relative z-10">
-                        <div className="flex items-start gap-4 pt-2">
-                          <div className="relative">
-                            {organization.representative.avatar_url ? (
-                              <Image
-                                src={organization.representative.avatar_url}
-                                alt={organization.representative.full_name}
-                                width={64}
-                                height={64}
-                                className="rounded-full object-cover ring-4 ring-white shadow-md"
-                              />
-                            ) : (
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#b6542f] to-[#e37341] text-white flex items-center justify-center font-bold text-2xl ring-4 ring-white shadow-md">
-                                {organization.representative.full_name.charAt(0)}
-                              </div>
-                            )}
-                            <div className="absolute -bottom-1 -right-1 bg-yellow-400 rounded-full p-1 border-2 border-white shadow-sm" title="Representative">
-                              <Crown className="w-3 h-3 text-white fill-current" />
+                    <Card className="border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group bg-white">
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          {organization.representative.avatar_url ? (
+                            <Image
+                              src={organization.representative.avatar_url}
+                              alt={organization.representative.full_name}
+                              width={52}
+                              height={52}
+                              className="w-[52px] h-[52px] rounded-full object-cover bg-gray-50 ring-2 ring-gray-50 flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-[52px] h-[52px] rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-xl ring-2 ring-gray-50 flex-shrink-0">
+                              {organization.representative.full_name.charAt(0)}
                             </div>
-                          </div>
+                          )}
 
-                          <div className="flex-1 min-w-0 pt-1">
-                            <h4 className="font-bold text-gray-900 truncate text-lg leading-tight mb-1">
-                              {organization.representative.full_name}
-                            </h4>
-                            <p className="text-sm text-[#b55631] font-medium mb-2">
-                              @{organization.representative.user_name}
-                            </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-semibold text-gray-900 truncate text-base">
+                                {organization.representative.full_name}
+                              </h4>
+                              <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">@{organization.representative.user_name}</p>
 
-                            {(organization.representative.email || organization.representative.phone_number) && (
-                              <div className="space-y-1">
-                                {organization.representative.email && (
-                                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                                    <Mail className="w-3.5 h-3.5" />
-                                    <span className="truncate">{organization.representative.email}</span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                            <div className="flex items-center flex-wrap gap-2">
+                              <Badge className="text-xs font-medium bg-orange-50 text-[#b55631] hover:bg-orange-100 border-0">
+                                Người đại diện
+                              </Badge>
+                              <span className="text-[10px] text-gray-400 flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-full">
+                                <CalendarIcon className="w-3 h-3" />
+                                {formatDate(organization.created_at)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -562,10 +562,10 @@ export default function OrganizationDetailPage() {
                               alt={membership.member.full_name}
                               width={52}
                               height={52}
-                              className="rounded-full object-cover bg-gray-50 ring-2 ring-gray-50"
+                              className="w-[52px] h-[52px] rounded-full object-cover bg-gray-50 ring-2 ring-gray-50 flex-shrink-0"
                             />
                           ) : (
-                            <div className="w-[52px] h-[52px] rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-xl ring-2 ring-gray-50">
+                            <div className="w-[52px] h-[52px] rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-xl ring-2 ring-gray-50 flex-shrink-0">
                               {membership.member.full_name.charAt(0)}
                             </div>
                           )}
