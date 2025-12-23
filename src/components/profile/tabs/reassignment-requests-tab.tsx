@@ -14,15 +14,18 @@ import {
     Timer,
     AlertCircle,
     Inbox,
-    ArrowRight,
     ShieldAlert
 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
+    DialogTitle,
+    DialogDescription,
+    DialogClose,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 
 export function ReassignmentRequestsTab() {
     const [requests, setRequests] = useState<ReassignmentRequest[]>([]);
@@ -161,48 +164,44 @@ export function ReassignmentRequestsTab() {
 
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                            <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
-                                                <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-500">
-                                                    <Calendar className="w-4 h-4" />
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                                            <div className="flex items-center gap-4 bg-gray-50/80 p-4 rounded-[24px] border border-gray-100/50 transition-colors group-hover:bg-white group-hover:border-gray-200 shadow-sm">
+                                                <div className="w-10 h-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-100">
+                                                    <Calendar className="w-5 h-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Ngày điều phối</p>
-                                                    <p className="text-xs font-semibold text-gray-700">{new Date(request.assignedAt).toLocaleString('vi-VN')}</p>
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ngày phân công</p>
+                                                    <p className="text-sm font-bold text-gray-700">{new Date(request.assignedAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3 bg-red-50/50 p-3 rounded-2xl border border-red-100/50">
-                                                <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-red-500">
-                                                    <Timer className="w-4 h-4" />
+                                            <div className="flex items-center gap-4 bg-red-50/80 p-4 rounded-[24px] border border-red-100/50 transition-colors group-hover:bg-white group-hover:border-red-200 shadow-sm">
+                                                <div className="w-10 h-10 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-100">
+                                                    <Timer className="w-5 h-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[9px] font-semibold text-red-400 uppercase tracking-wider">Hết hạn xử lý</p>
-                                                    <p className="text-xs font-semibold text-red-700">{new Date(request.expiresAt).toLocaleString('vi-VN')}</p>
+                                                    <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Hết hạn xử lý</p>
+                                                    <p className="text-sm font-bold text-red-700">{new Date(request.expiresAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-row lg:flex-col items-center gap-3 shrink-0 lg:pl-8 lg:border-l lg:border-gray-50">
+                                    <div className="flex flex-col sm:flex-row lg:flex-col items-stretch gap-3 shrink-0 lg:pl-10 lg:border-l lg:border-gray-50 min-w-[200px]">
                                         <Button
                                             onClick={() => handleAction(request, "approve")}
                                             disabled={!!processingId}
-                                            className="flex-1 lg:w-44 h-14 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-semibold shadow-lg shadow-green-100 transition-all hover:-translate-y-1 active:scale-95"
+                                            className="h-14 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold shadow-xl shadow-green-100 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
                                         >
-                                            {processingId === request.id ? (
-                                                <Loader animate loop className="w-5 h-5 mr-2" />
-                                            ) : (
-                                                <CheckCircle className="w-5 h-5 mr-2" />
-                                            )}
-                                            Chấp nhận
+                                            <CheckCircle className="w-5 h-5" />
+                                            Tiếp nhận
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             onClick={() => handleAction(request, "reject")}
                                             disabled={!!processingId}
-                                            className="flex-1 lg:w-44 h-14 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-2xl font-semibold transition-all border border-transparent hover:border-red-100"
+                                            className="h-14 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-2xl font-bold transition-all border border-transparent hover:border-red-100 flex items-center justify-center gap-2"
                                         >
-                                            <XCircle className="w-5 h-5 mr-2" />
+                                            <XCircle className="w-5 h-5" />
                                             Từ chối
                                         </Button>
                                     </div>
@@ -214,74 +213,103 @@ export function ReassignmentRequestsTab() {
             </AnimatePresence>
 
             <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-                <DialogContent className="max-w-xl p-0 overflow-hidden border-none bg-transparent shadow-none">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-[40px] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border border-gray-100"
-                    >
-                        <div className="p-8 sm:p-10 space-y-8">
-                            <div className="space-y-4">
-                                <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center mb-6 shadow-xl ${actionType === "approve" ? "bg-green-500 text-white shadow-green-200" : "bg-red-500 text-white shadow-red-200"
-                                    }`}>
-                                    {actionType === "approve" ? <ShieldAlert className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}
-                                </div>
-                                <h2 className="text-3xl font-bold text-gray-900 leading-tight">
-                                    {actionType === "approve" ? "Tiếp nhận chiến dịch?" : "Từ chối tiếp nhận?"}
-                                </h2>
-                                <p className="text-gray-500 font-medium leading-relaxed">
-                                    {actionType === "approve"
-                                        ? "Sau khi chấp nhận, tổ chức của bạn sẽ chính thức chịu trách nhiệm quản lý và triển khai mọi hoạt động của chiến dịch này."
-                                        : "Mọi thông tin về việc điều phối sẽ bị hủy bỏ. Hãy chắc chắn về quyết định của mình vì tổ chức khác sẽ được ưu tiên."}
-                                </p>
-                            </div>
+                <DialogContent className="max-w-xl p-0 overflow-visible border-none bg-transparent shadow-none" showCloseButton={false}>
+                    <AnimatePresence>
+                        {selectedRequest && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                                className="bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-gray-100 relative overflow-hidden"
+                            >
+                                {/* Custom Close Button */}
+                                <DialogClose className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all z-30 group/close">
+                                    <X className="w-5 h-5 group-hover/close:rotate-90 transition-transform duration-300" />
+                                </DialogClose>
 
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between px-2">
-                                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-                                        Ghi chú {actionType === "reject" ? "lý do" : "không bắt buộc"}
-                                    </label>
-                                    {actionType === "reject" && <span className="text-[10px] font-semibold text-red-500 uppercase tracking-widest">Bắt buộc *</span>}
-                                </div>
-                                <Textarea
-                                    value={note}
-                                    onChange={(e) => setNote(e.target.value)}
-                                    placeholder={
-                                        actionType === "approve"
-                                            ? "Thêm một lời cam kết hoặc ghi chú nội bộ..."
-                                            : "Tại sao tổ chức không thể tiếp nhận lúc này?..."
-                                    }
-                                    className="min-h-[120px] rounded-3xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all text-base p-6 focus:ring-4 focus:ring-[#ad4e28]/5 border-none shadow-inner"
-                                />
-                            </div>
+                                {/* Decorative Background */}
+                                <div className={`absolute top-0 left-0 right-0 h-32 opacity-5 ${actionType === "approve" ? "bg-green-600" : "bg-red-600"
+                                    }`} />
 
-                            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => setSelectedRequest(null)}
-                                    disabled={!!processingId}
-                                    className="w-full h-14 rounded-2xl font-semibold text-gray-400 hover:text-gray-900"
-                                >
-                                    Hủy bỏ
-                                </Button>
-                                <Button
-                                    onClick={handleSubmit}
-                                    disabled={!!processingId || (actionType === "reject" && !note.trim())}
-                                    className={`w-full h-14 rounded-2xl font-semibold shadow-xl transition-all active:scale-95 ${actionType === "approve"
-                                        ? "bg-green-600 hover:bg-green-700 text-white shadow-green-200"
-                                        : "bg-red-600 hover:bg-red-700 text-white shadow-red-200"
-                                        }`}
-                                >
-                                    {processingId ? (
-                                        <Loader animate loop className="w-5 h-5 mr-2" />
-                                    ) : (
-                                        <ArrowRight className="w-5 h-5 mr-2" />
-                                    )}
-                                    Xác nhận quyết định
-                                </Button>
-                            </div>
-                        </div>
-                    </motion.div>
+                                <div className="p-8 sm:p-10 relative z-10">
+                                    <div className="flex flex-col items-center text-center space-y-6">
+                                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl ${actionType === "approve"
+                                            ? "bg-green-500 text-white shadow-green-200 rotate-3"
+                                            : "bg-red-500 text-white shadow-red-200 -rotate-3"
+                                            }`}>
+                                            {actionType === "approve" ? <ShieldAlert className="w-10 h-10" /> : <AlertCircle className="w-10 h-10" />}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <DialogTitle asChild>
+                                                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+                                                    {actionType === "approve" ? "Tiếp nhận chiến dịch?" : "Từ chối tiếp nhận?"}
+                                                </h2>
+                                            </DialogTitle>
+                                            <DialogDescription asChild>
+                                                <p className="text-gray-500 font-medium leading-relaxed max-w-sm">
+                                                    {actionType === "approve"
+                                                        ? "Xác nhận để tổ chức của bạn chính thức chịu trách nhiệm triển khai chiến dịch này."
+                                                        : "Lưu ý: Mọi thông tin điều phối sẽ bị hủy bỏ và chuyển giao cho tổ chức khác."}
+                                                </p>
+                                            </DialogDescription>
+                                        </div>
+
+                                        <div className="w-full space-y-4 pt-4">
+                                            <div className="flex items-center justify-between px-2">
+                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                                    Ghi chú {actionType === "reject" ? "lý do" : "nội bộ"}
+                                                </label>
+                                                {actionType === "reject" && (
+                                                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest flex items-center gap-1">
+                                                        <AlertCircle className="w-3 h-3" /> Bắt buộc
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <Textarea
+                                                value={note}
+                                                onChange={(e) => setNote(e.target.value)}
+                                                placeholder={
+                                                    actionType === "approve"
+                                                        ? "Thêm cam kết hoặc lưu ý cho đội ngũ..."
+                                                        : "Vui lòng cho biết lý do tổ chức không thể tiếp nhận..."
+                                                }
+                                                className="min-h-[140px] rounded-[24px] border-none bg-gray-50/80 focus:bg-white transition-all text-base p-6 focus:ring-4 focus:ring-[#ad4e28]/5 shadow-inner resize-none placeholder:text-gray-300"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full pt-6">
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => setSelectedRequest(null)}
+                                                disabled={!!processingId}
+                                                className="h-16 rounded-2xl font-bold text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all order-2 sm:order-1"
+                                            >
+                                                Quay lại
+                                            </Button>
+                                            <Button
+                                                onClick={handleSubmit}
+                                                disabled={!!processingId || (actionType === "reject" && !note.trim())}
+                                                className={`h-16 rounded-2xl font-bold text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2 ${actionType === "approve"
+                                                    ? "bg-green-600 hover:bg-green-700 shadow-green-200"
+                                                    : "bg-red-600 hover:bg-red-700 shadow-red-200"
+                                                    }`}
+                                            >
+                                                {processingId ? (
+                                                    <Loader animate loop className="w-5 h-5" />
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle className="w-5 h-5" />
+                                                        <span>Xác nhận</span>
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </DialogContent>
             </Dialog>
         </div>
