@@ -203,7 +203,7 @@ export function CampaignCard({
           </div>
 
           <h3
-            className={`font-bold text-gray-900 leading-tight group-hover:text-[#E77731] transition-colors ${isHero ? "text-2xl md:text-3xl mb-4" : "text-lg mb-2 line-clamp-2"
+            className={`font-bold text-gray-900 leading-tight group-hover:text-[#E77731] transition-colors ${isHero ? "text-2xl md:text-3xl mb-4" : "text-lg mb-2 line-clamp-2 h-12"
               }`}
           >
             {title}

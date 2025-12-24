@@ -376,7 +376,7 @@ export function AdminIngredientRequestDetailDialog({
                                                                 </TableCell>
                                                                 <TableCell className="text-right text-gray-900 dark:text-white">
                                                                     <span className="font-bold">
-                                                                        {item.quantity}
+                                                                        {item.quantity} {item.unit}
                                                                     </span>
                                                                 </TableCell>
                                                                 <TableCell className="text-right text-gray-800 dark:text-gray-300">

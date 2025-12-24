@@ -6,26 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, RefreshCw, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency-utils";
+import { formatDateTime } from "@/lib/utils/date-utils";
 import { walletService, MyWallet, MyWalletStats, WalletTransaction } from "@/services/wallet.service";
 import { translateRole, translateWalletTransactionType } from "@/lib/translator";
-
-// Helper function to safely format date
-const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return "N/A";
-    try {
-        // Handle ISO format: "2025-11-08T17:32:16.548Z"
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return "N/A";
-        // Format as: "08/11/2025"
-        return new Intl.DateTimeFormat("vi-VN", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        }).format(date);
-    } catch {
-        return "N/A";
-    }
-};
 
 export function WalletTab() {
     const [wallet, setWallet] = useState<MyWallet | null>(null);
@@ -202,13 +185,13 @@ export function WalletTab() {
                             <div>
                                 <p className="text-sm text-gray-600 mb-1">Ngày tạo</p>
                                 <p className="text-sm text-gray-900">
-                                    {formatDate(wallet.created_at)}
+                                    {formatDateTime(new Date(wallet.created_at))}
                                 </p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-600 mb-1">Cập nhật lần cuối</p>
                                 <p className="text-sm text-gray-900">
-                                    {formatDate(wallet.updated_at)}
+                                    {formatDateTime(new Date(wallet.updated_at))}
                                 </p>
                             </div>
                         </div>
@@ -260,7 +243,7 @@ export function WalletTab() {
                                                 className="border-b hover:bg-gray-50 transition-colors"
                                             >
                                                 <td className="py-3 px-3 text-xs text-gray-600">
-                                                    {formatDate(transaction.created_at)}
+                                                    {formatDateTime(new Date(transaction.created_at))}
                                                 </td>
                                                 <td className="py-3 px-3">
                                                     <Badge
@@ -324,7 +307,7 @@ export function WalletTab() {
                                                 {translateWalletTransactionType(transaction.transactionType)}
                                             </Badge>
                                             <span className="text-xs text-gray-500">
-                                                {formatDate(transaction.created_at)}
+                                                {formatDateTime(transaction.created_at)}
                                             </span>
                                         </div>
 

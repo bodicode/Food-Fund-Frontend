@@ -119,7 +119,7 @@ export function PlatformStats() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 max-w-[1440px] mx-auto">
                     {stats.map((stat, index) => (
                         <motion.div
                             key={index}
@@ -131,7 +131,7 @@ export function PlatformStats() {
                         >
                             <div className="absolute -inset-0.5 bg-gradient-to-br from-gray-200/50 to-transparent rounded-[2.5rem] blur-sm group-hover:blur-md transition-all duration-500 opacity-50" />
 
-                            <div className="relative bg-white/80 backdrop-blur-xl border border-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] overflow-hidden transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_40px_80px_rgba(173,78,40,0.08)]">
+                            <div className="relative bg-white/80 backdrop-blur-xl border border-white p-6 md:p-12 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] overflow-hidden transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_40px_80px_rgba(173,78,40,0.08)]">
                                 {/* Accent Highlight */}
                                 <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${stat.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-[60px] -translate-y-1/2 translate-x-1/2`} />
 
@@ -149,10 +149,9 @@ export function PlatformStats() {
                                     <div className="space-y-4">
                                         <p className="text-gray-400 font-bold uppercase tracking-[0.1em] text-xs lg:text-sm">{stat.label}</p>
                                         <div className="flex items-baseline gap-2">
-                                            <h3 className={`text-4xl md:text-5xl lg:text-6xl font-black ${stat.color} tracking-tighter`}>
+                                            <h3 className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black ${stat.color} tracking-tighter`}>
                                                 <Counter value={stat.value} />
                                             </h3>
-                                            <span className={`text-xl font-bold ${stat.color} opacity-60 underline decoration-2 underline-offset-8`}>VNĐ</span>
                                         </div>
                                     </div>
 
