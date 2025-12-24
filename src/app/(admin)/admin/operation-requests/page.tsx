@@ -5,7 +5,7 @@ import Link from "next/link";
 import { operationRequestService } from "../../../../services/operation-request.service";
 import { ingredientRequestService } from "../../../../services/ingredient-request.service";
 import { campaignService } from "../../../../services/campaign.service";
-import { OperationRequest, OperationRequestSortOrder } from "../../../../types/api/operation-request";
+import { OperationRequest, OperationRequestSortOrder, OperationRequestStats } from "../../../../types/api/operation-request";
 import { Campaign } from "../../../../types/api/campaign";
 import { IngredientRequest, IngredientRequestStats } from "../../../../types/api/ingredient-request";
 import { createCampaignSlug } from "../../../../lib/utils/slug-utils";
@@ -67,6 +67,7 @@ export default function OperationRequestsPage() {
   const [operationStatusFilter, setOperationStatusFilter] = useState<string>("ALL");
   const [operationCampaignFilter, setOperationCampaignFilter] = useState<string>("ALL");
   const [operationSortBy, setOperationSortBy] = useState<OperationRequestSortOrder>("STATUS_PENDING_FIRST");
+  const [operationStats, setOperationStats] = useState<OperationRequestStats | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedOperationRequest, setSelectedOperationRequest] = useState<OperationRequest | null>(null);
   const [isOperationUpdateDialogOpen, setIsOperationUpdateDialogOpen] = useState(false);
@@ -100,17 +101,19 @@ export default function OperationRequestsPage() {
     setOperationLoading(true);
     try {
       const expenseType = activeTab === "cooking" ? "COOKING" : "DELIVERY";
-      const requestsData = await operationRequestService.getOperationRequests(
-        {
+      const [requestsData, statsData] = await Promise.all([
+        operationRequestService.getOperationRequests({
           status: operationStatusFilter === "ALL" ? null : operationStatusFilter,
           expenseType: expenseType,
           campaignId: operationCampaignFilter === "ALL" ? null : operationCampaignFilter,
           sortBy: operationSortBy,
           limit: 100,
           offset: 0,
-        }
-      );
+        }),
+        operationRequestService.getOperationRequestStats()
+      ]);
       setOperationRequests(requestsData);
+      setOperationStats(statsData);
     } catch (error) {
       console.error("Error fetching operation data:", error);
     } finally {
@@ -162,16 +165,20 @@ export default function OperationRequestsPage() {
     }
   }, [activeTab, fetchOperationData, fetchIngredientData]);
 
-  const getClientSideStats = (requests: OperationRequest[]) => {
+  const getClientSideStats = (requests: OperationRequest[]): OperationRequestStats => {
     return {
       totalRequests: requests.length,
       pendingCount: requests.filter((r) => r.status === "PENDING").length,
       approvedCount: requests.filter((r) => r.status === "APPROVED").length,
       rejectedCount: requests.filter((r) => r.status === "REJECTED").length,
+      disbursedCount: requests.filter((r) => r.status === "DISBURSED").length,
     };
   };
 
-  const operationStats = getClientSideStats(operationRequests);
+  // Use server stats if available, otherwise fallback to clientside (for immediate feedback or if stats API is not specific to tab)
+  // Actually the server stats for operations might be global across tabs, but the list is filtered.
+  // However, the user specifically asked for operationRequestStats.
+  const displayOperationStats = operationStats || getClientSideStats(operationRequests);
 
   const filteredOperationRequests = operationRequests.filter((request) => {
     const searchLower = operationSearchTerm.toLowerCase();
@@ -240,8 +247,8 @@ export default function OperationRequestsPage() {
     }
   };
 
-  const renderStatsCards = (stats: { totalRequests: number; pendingCount: number; approvedCount: number; rejectedCount: number }) => (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+  const renderStatsCards = (stats: { totalRequests: number; pendingCount: number; approvedCount: number; rejectedCount: number; disbursedCount: number }) => (
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
@@ -276,6 +283,15 @@ export default function OperationRequestsPage() {
             <p className="text-2xl font-bold text-red-600 mt-1">{stats.rejectedCount}</p>
           </div>
           <XCircle className="h-8 w-8 text-red-600" />
+        </div>
+      </div>
+      <div className="bg-white rounded-lg border p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600">Đã giải ngân</p>
+            <p className="text-2xl font-bold text-blue-600 mt-1">{stats.disbursedCount}</p>
+          </div>
+          <Send className="h-8 w-8 text-blue-600" />
         </div>
       </div>
     </div>
@@ -337,7 +353,7 @@ export default function OperationRequestsPage() {
 
       {/* Stats Cards */}
       {activeTab === "ingredient" && ingredientStats && renderStatsCards(ingredientStats)}
-      {activeTab !== "ingredient" && renderStatsCards(operationStats)}
+      {activeTab !== "ingredient" && renderStatsCards(displayOperationStats)}
 
       {/* Filters */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
@@ -394,7 +410,7 @@ export default function OperationRequestsPage() {
                   <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt mới nhất</SelectItem>
+                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt</SelectItem>
                   <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
                   <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
                 </SelectContent>
@@ -427,7 +443,7 @@ export default function OperationRequestsPage() {
                   <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt mới nhất</SelectItem>
+                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt</SelectItem>
                   <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
                   <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
                 </SelectContent>

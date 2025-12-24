@@ -261,7 +261,7 @@ export default function AdminExpenseProofsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt mới nhất</SelectItem>
+                  <SelectItem value="STATUS_PENDING_FIRST">Chờ duyệt</SelectItem>
                   <SelectItem value="NEWEST_FIRST">Mới nhất</SelectItem>
                   <SelectItem value="OLDEST_FIRST">Cũ nhất</SelectItem>
                 </SelectContent>

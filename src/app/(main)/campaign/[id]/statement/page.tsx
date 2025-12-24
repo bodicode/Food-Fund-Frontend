@@ -382,11 +382,9 @@ export default function CampaignStatementPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Badge
-                              className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT" || transaction.transactionType === "DEPOSIT"
+                              className={`border-0 ${["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT", "DEPOSIT"].includes(transaction.transactionType)
                                 ? "bg-green-100 text-green-800"
-                                : transaction.transactionType === "WITHDRAW" || transaction.transactionType === "WITHDRAWAL"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-gray-100 text-gray-800"
+                                : "bg-red-100 text-red-800"
                                 }`}
                             >
                               {translateWalletTransactionType(transaction.transactionType)}
@@ -405,14 +403,12 @@ export default function CampaignStatementPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-right">
                             <span
                               className={
-                                transaction.transactionType === "ADMIN_ADJUSTMENT" || transaction.transactionType === "DEPOSIT"
+                                ["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT", "DEPOSIT"].includes(transaction.transactionType)
                                   ? "text-green-600"
-                                  : transaction.transactionType === "WITHDRAW" || transaction.transactionType === "WITHDRAWAL"
-                                    ? "text-red-600"
-                                    : "text-gray-900"
+                                  : "text-red-600"
                               }
                             >
-                              {transaction.transactionType === "ADMIN_ADJUSTMENT" || transaction.transactionType === "DEPOSIT" ? "+" : transaction.transactionType === "WITHDRAW" || transaction.transactionType === "WITHDRAWAL" ? "-" : ""}
+                              {["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT", "DEPOSIT"].includes(transaction.transactionType) ? "+" : "-"}
                               {formatCurrency(Number(transaction.amount))}
                             </span>
                           </td>
@@ -437,11 +433,9 @@ export default function CampaignStatementPage() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <Badge
-                          className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT" || transaction.transactionType === "DEPOSIT"
+                          className={`border-0 ${["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT", "DEPOSIT"].includes(transaction.transactionType)
                             ? "bg-green-100 text-green-800"
-                            : transaction.transactionType === "WITHDRAW" || transaction.transactionType === "WITHDRAWAL"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-gray-100 text-gray-800"
+                            : "bg-red-100 text-red-800"
                             }`}
                         >
                           {translateWalletTransactionType(transaction.transactionType)}
@@ -466,14 +460,12 @@ export default function CampaignStatementPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-600">Số tiền:</span>
                           <span
-                            className={`font-semibold ${transaction.transactionType === "ADMIN_ADJUSTMENT" || transaction.transactionType === "DEPOSIT"
+                            className={`font-semibold ${["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT", "DEPOSIT"].includes(transaction.transactionType)
                               ? "text-green-600"
-                              : transaction.transactionType === "WITHDRAW" || transaction.transactionType === "WITHDRAWAL"
-                                ? "text-red-600"
-                                : "text-gray-900"
+                              : "text-red-600"
                               }`}
                           >
-                            {transaction.transactionType === "ADMIN_ADJUSTMENT" || transaction.transactionType === "DEPOSIT" ? "+" : transaction.transactionType === "WITHDRAW" || transaction.transactionType === "WITHDRAWAL" ? "-" : ""}
+                            {["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT", "DEPOSIT"].includes(transaction.transactionType) ? "+" : "-"}
                             {formatCurrency(Number(transaction.amount))}
                           </span>
                         </div>
