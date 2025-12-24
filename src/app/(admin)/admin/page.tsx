@@ -172,11 +172,13 @@ export default function AdminDashboard() {
   const statusChartData =
     platformStats &&
     [
-      { name: "Đang hoạt động", value: platformStats.byStatus.active, color: "#10b981" },
+      { name: "Đang gây quỹ", value: platformStats.byStatus.active, color: "#10b981" },
       { name: "Chờ duyệt", value: platformStats.byStatus.pending, color: "#f59e0b" },
+      { name: "Đã duyệt", value: platformStats.byStatus.approved, color: "#0ea5e9" },
+      { name: "Đang trong tiến trình", value: platformStats.byStatus.processing, color: "#8b5cf6" },
       { name: "Hoàn thành", value: platformStats.byStatus.completed, color: "#3b82f6" },
       { name: "Từ chối", value: platformStats.byStatus.rejected, color: "#ef4444" },
-      { name: "Đã huỷ", value: platformStats.byStatus.cancelled, color: "#6b7280" },
+      { name: "Đã hủy", value: platformStats.byStatus.cancelled, color: "#6b7280" },
     ].filter((item) => item.value > 0);
 
   const categoryBarData =
@@ -332,12 +334,6 @@ export default function AdminDashboard() {
             <div className="text-3xl font-medium text-blue-600">
               {loading ? <div className="h-9 w-24 bg-gray-100 animate-pulse rounded" /> : (walletStats?.totalUsers || 0).toLocaleString()}
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-600">
-                <Users className="h-3 w-3" />
-              </span>
-              <p className="text-xs font-normal text-gray-500">Xác thực trên hệ thống</p>
-            </div>
           </CardContent>
         </Card>
 
@@ -351,12 +347,6 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="text-3xl font-medium text-emerald-600">
               {loading ? <div className="h-9 w-24 bg-gray-100 animate-pulse rounded" /> : (platformStats?.overview.totalCampaigns || 0)}
-            </div>
-            <div className="mt-4 flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600">
-                <RefreshCw className="h-3 w-3" />
-              </span>
-              <p className="text-xs font-normal text-gray-500">{platformStats?.overview.activeCampaigns || 0} chiến dịch đang hoạt động</p>
             </div>
           </CardContent>
         </Card>
@@ -372,12 +362,6 @@ export default function AdminDashboard() {
             <div className="text-2xl font-medium text-amber-600 truncate">
               {loading ? <div className="h-9 w-32 bg-gray-100 animate-pulse rounded" /> : formatCurrency(Number(platformStats?.financial.totalReceivedAmount || 0))}
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 text-amber-600">
-                <Target className="h-3 w-3" />
-              </span>
-              <p className="text-xs font-normal text-gray-500">Mục tiêu {Math.round((Number(platformStats?.financial.totalReceivedAmount || 0) / Number(platformStats?.financial.totalTargetAmount || 1)) * 100)}% kế hoạch</p>
-            </div>
           </CardContent>
         </Card>
 
@@ -390,13 +374,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-medium text-purple-600">
-              {loading ? <div className="h-9 w-24 bg-gray-100 animate-pulse rounded" /> : `${Number(platformStats?.performance.successRate || 0).toFixed(1)}%`}
-            </div>
-            <div className="mt-4 flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-50 text-purple-600">
-                <Clock className="h-3 w-3" />
-              </span>
-              <p className="text-xs font-normal text-gray-500">TB {Math.round(platformStats?.performance.averageDurationDays || 0)} ngày/chiến dịch</p>
+              {loading ? <div className="h-9 w-24 bg-gray-100 animate-pulse rounded" /> : `${Number(platformStats?.performance.successRate || 0).toFixed(2)}%`}
             </div>
           </CardContent>
         </Card>
@@ -975,7 +953,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="text-5xl font-medium text-purple-600 mb-2">
-                  {loading ? "..." : `${Math.round((platformStats?.performance?.successRate || 0) * 100)}%`}
+                  {loading ? "..." : `${(platformStats?.performance?.successRate || 0).toFixed(2)}%`}
                 </div>
                 <p className="text-sm text-gray-600">
                   {platformStats?.byStatus.completed || 0} / {platformStats?.overview.totalCampaigns || 0} chiến dịch
@@ -983,7 +961,7 @@ export default function AdminDashboard() {
                 <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.round((platformStats?.performance?.successRate || 0) * 100)}%` }}
+                    style={{ width: `${Math.min(platformStats?.performance?.successRate || 0, 100)}%` }}
                   />
                 </div>
               </div>

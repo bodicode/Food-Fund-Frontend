@@ -13,6 +13,7 @@ import { Campaign } from "../../../../types/api/campaign";
 import { Loader } from "../../../../components/animate-ui/icons/loader";
 import { CampaignPhase } from "../../../../types/api/phase";
 import { getCampaignIdFromSlug, createCampaignSlug, titleToSlug } from "../../../../lib/utils/slug-utils";
+import { translateStatus } from "../../../../lib/utils/status-utils";
 
 import { Badge } from "../../../../components/ui/badge";
 import { Button } from "../../../../components/ui/button";
@@ -255,10 +256,12 @@ export default function CampaignDetailPage() {
     if (campaign.status === "PROCESSING" || campaign.status === "COMPLETED" || isFundingComplete) return "completed";
     if (!start || !end) return "upcoming";
     if (isBeforeStart) return "upcoming";
-    if (isDuringFundraising) return "upcoming"; // Don't show badge during fundraising
+    if (isDuringFundraising) return "upcoming";
     if (isAfterEnd) return "completed";
     return "upcoming";
   })();
+
+  const fundEnd = campaign.fundraisingEndDate ? new Date(campaign.fundraisingEndDate) : null;
 
   return (
     <motion.div
@@ -552,8 +555,24 @@ export default function CampaignDetailPage() {
                   ...(campaign.phases || []).flatMap((phase) => [
                     {
                       label: `${phase.phaseName} - Mua nguyên liệu`,
-                      date: formatDateTime(phase.ingredientPurchaseDate),
-                      status: statusFor(phase.ingredientPurchaseDate),
+                      date: formatDateTime(new Date(phase.ingredientPurchaseDate)),
+                      status: (
+                        [
+                          "COOKING",
+                          "AWAITING_COOKING_DISBURSEMENT",
+                          "DELIVERY",
+                          "AWAITING_DELIVERY_DISBURSEMENT",
+                          "COMPLETED",
+                        ].includes(phase.status || "")
+                          ? "completed"
+                          : [
+                            "INGREDIENT_PURCHASE",
+                            "AWAITING_INGREDIENT_DISBURSEMENT",
+                          ].includes(phase.status || "")
+                            ? "current"
+                            : "upcoming"
+                      ) as "completed" | "current" | "upcoming",
+                      statusLabel: translateStatus(phase.status || "PLANNING"),
                       content: (
                         <div className="mt-2 space-y-2">
                           {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
@@ -577,8 +596,22 @@ export default function CampaignDetailPage() {
                     },
                     {
                       label: `${phase.phaseName} - Nấu ăn`,
-                      date: formatDateTime(phase.cookingDate),
-                      status: statusFor(phase.cookingDate),
+                      date: formatDateTime(new Date(phase.cookingDate)),
+                      status: (
+                        [
+                          "DELIVERY",
+                          "AWAITING_DELIVERY_DISBURSEMENT",
+                          "COMPLETED",
+                        ].includes(phase.status || "")
+                          ? "completed"
+                          : [
+                            "COOKING",
+                            "AWAITING_COOKING_DISBURSEMENT",
+                          ].includes(phase.status || "")
+                            ? "current"
+                            : "upcoming"
+                      ) as "completed" | "current" | "upcoming",
+                      statusLabel: translateStatus(phase.status || "PLANNING"),
                       content: (
                         <div className="mt-2 space-y-2">
                           {phase.plannedMeals && phase.plannedMeals.length > 0 && (
@@ -602,8 +635,18 @@ export default function CampaignDetailPage() {
                     },
                     {
                       label: `${phase.phaseName} - Giao hàng`,
-                      date: formatDateTime(phase.deliveryDate),
-                      status: statusFor(phase.deliveryDate),
+                      date: formatDateTime(new Date(phase.deliveryDate)),
+                      status: (
+                        phase.status === "COMPLETED"
+                          ? "completed"
+                          : [
+                            "DELIVERY",
+                            "AWAITING_DELIVERY_DISBURSEMENT",
+                          ].includes(phase.status || "")
+                            ? "current"
+                            : "upcoming"
+                      ) as "completed" | "current" | "upcoming",
+                      statusLabel: translateStatus(phase.status || "PLANNING"),
                     },
                   ]),
                 ]}
