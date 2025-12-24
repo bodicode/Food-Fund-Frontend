@@ -186,7 +186,7 @@ export function MealBatchDetailDialog({
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Ngày nấu</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {formatDateTime(mealBatch.cookedDate)}
+                        {formatDateTime(new Date(mealBatch.cookedDate))}
                       </p>
                     </div>
                   </div>
@@ -295,7 +295,7 @@ export function MealBatchDetailDialog({
                         Thông tin thời gian
                       </p>
                       <p className="text-sm text-blue-700">
-                        Món ăn được nấu vào {formatDateTime(mealBatch.cookedDate)}
+                        Món ăn được nấu vào {formatDateTime(new Date(mealBatch.cookedDate))}
                       </p>
                     </div>
                   </div>

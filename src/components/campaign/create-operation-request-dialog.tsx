@@ -22,6 +22,7 @@ import { operationRequestService } from "@/services/operation-request.service";
 import { translateError } from "@/lib/translator";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { CampaignPhase } from "@/types/api/phase";
+import { parseLocalDateTime } from "@/lib/utils/date-utils";
 
 interface CreateOperationRequestDialogProps {
   isOpen: boolean;
@@ -146,101 +147,138 @@ export function CreateOperationRequestDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="phase">Giai đoạn chiến dịch</Label>
-            <Select
-              value={formData.campaignPhaseId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, campaignPhaseId: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn giai đoạn" />
-              </SelectTrigger>
-              <SelectContent>
-                {campaignPhases.map((phase) => (
-                  <SelectItem key={phase.id} value={phase.id}>
-                    {phase.phaseName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {(() => {
+          const now = new Date();
+          const selectedPhase = campaignPhases.find(p => p.id === formData.campaignPhaseId);
+          const isCookingReady = selectedPhase && (() => {
+            const d = parseLocalDateTime(selectedPhase.cookingDate);
+            return d && d <= now;
+          })();
+          const isDeliveryReady = selectedPhase && (() => {
+            const d = parseLocalDateTime(selectedPhase.deliveryDate);
+            return d && d <= now;
+          })();
 
-          <div className="space-y-2">
-            <Label htmlFor="expenseType">Loại chi phí</Label>
-            <Select
-              value={formData.expenseType}
-              onValueChange={(value) =>
-                setFormData({
-                  ...formData,
-                  expenseType: value as "COOKING" | "DELIVERY",
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn loại chi phí" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="COOKING">Nấu ăn</SelectItem>
-                <SelectItem value="DELIVERY">Vận chuyển</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          return (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phase">Giai đoạn chiến dịch</Label>
+                <Select
+                  value={formData.campaignPhaseId}
+                  onValueChange={(value) => {
+                    const phase = campaignPhases.find(p => p.id === value);
+                    let nextType: "COOKING" | "DELIVERY" | "" = "";
+                    if (phase) {
+                      const dC = parseLocalDateTime(phase.cookingDate);
+                      const dD = parseLocalDateTime(phase.deliveryDate);
+                      if (dC && dC <= now) nextType = "COOKING";
+                      else if (dD && dD <= now) nextType = "DELIVERY";
+                    }
+                    setFormData({ ...formData, campaignPhaseId: value, expenseType: nextType });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn giai đoạn" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campaignPhases.map((phase) => {
+                      const dCooking = parseLocalDateTime(phase.cookingDate);
+                      const dDelivery = parseLocalDateTime(phase.deliveryDate);
+                      const isReady = (dCooking && dCooking <= now) || (dDelivery && dDelivery <= now);
 
-          <div className="space-y-2">
-            <Label htmlFor="title">Tiêu đề</Label>
-            <Input
-              id="title"
-              placeholder="VD: Chi phí nhân công - Phase 1"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-            />
-          </div>
+                      return (
+                        <SelectItem
+                          key={phase.id}
+                          value={phase.id}
+                          disabled={!isReady}
+                        >
+                          {phase.phaseName} {!isReady && "(Chưa đến ngày giải ngân)"}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="totalCost">Tổng chi phí (VNĐ)</Label>
-            <Input
-              id="totalCost"
-              type="text"
-              placeholder="5,000,000"
-              value={displayCost}
-              onChange={handleCostChange}
-              disabled={isAmountFixed}
-              className={isAmountFixed ? "bg-gray-100" : ""}
-            />
-            {formData.totalCost && (
-              <p className="text-xs text-gray-500">
-                {parseFloat(formData.totalCost).toLocaleString("vi-VN")} đồng
-                {isAmountFixed && " (Đã cố định theo ngân sách)"}
-              </p>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="expenseType">Loại chi phí</Label>
+                <Select
+                  value={formData.expenseType}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      expenseType: value as "COOKING" | "DELIVERY",
+                    })
+                  }
+                  disabled={!formData.campaignPhaseId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn loại chi phí" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isCookingReady && <SelectItem value="COOKING">Nấu ăn</SelectItem>}
+                    {isDeliveryReady && <SelectItem value="DELIVERY">Vận chuyển</SelectItem>}
+                    {!isCookingReady && !isDeliveryReady && formData.campaignPhaseId && (
+                      <SelectItem value="NONE" disabled>Không có loại chi phí khả dụng</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Hủy
-            </Button>
-            <Button type="submit" disabled={loading} className="btn-color">
-              {loading ? (
-                <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tạo...
-                </>
-              ) : (
-                "Tạo yêu cầu"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+              <div className="space-y-2">
+                <Label htmlFor="title">Tiêu đề</Label>
+                <Input
+                  id="title"
+                  placeholder="VD: Chi phí nhân công - Phase 1"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="totalCost">Tổng chi phí (VNĐ)</Label>
+                <Input
+                  id="totalCost"
+                  type="text"
+                  placeholder="5,000,000"
+                  value={displayCost}
+                  onChange={handleCostChange}
+                  disabled={isAmountFixed}
+                  className={isAmountFixed ? "bg-gray-100" : ""}
+                />
+                {formData.totalCost && (
+                  <p className="text-xs text-gray-500">
+                    {parseFloat(formData.totalCost).toLocaleString("vi-VN")} đồng
+                    {isAmountFixed && " (Đã cố định theo ngân sách)"}
+                  </p>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={loading || !formData.campaignPhaseId || !formData.expenseType} className="btn-color">
+                  {loading ? (
+                    <>
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
+                      Đang tạo...
+                    </>
+                  ) : (
+                    "Tạo yêu cầu"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          );
+        })()}
       </DialogContent>
     </Dialog>
   );

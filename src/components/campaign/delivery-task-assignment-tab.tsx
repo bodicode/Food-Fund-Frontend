@@ -146,7 +146,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                                                 value={batch.id}
                                                 disabled={batch.status === "PREPARING"}
                                             >
-                                                {batch.foodName} - SL: {batch.quantity} - {formatDateTime(batch.cookedDate)}
+                                                {batch.foodName} - SL: {batch.quantity} - {formatDateTime(new Date(batch.cookedDate))}
                                                 {batch.status === "PREPARING" && " (Đang chuẩn bị)"}
                                                 {batch.status === "READY" && " (Sẵn sàng)"}
                                             </SelectItem>
@@ -245,7 +245,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                                             {task.mealBatch?.quantity || 0}
                                         </td>
                                         <td className="px-4 py-3 text-gray-500">
-                                            {task.mealBatch?.cookedDate ? formatDateTime(task.mealBatch.cookedDate) : "-"}
+                                            {task.mealBatch?.cookedDate ? formatDateTime(new Date(task.mealBatch.cookedDate)) : "-"}
                                         </td>
                                         <td className="px-4 py-3">
                                             {(() => {
@@ -281,7 +281,7 @@ export function DeliveryTaskAssignmentTab({ campaignId }: DeliveryTaskAssignment
                                             })()}
                                         </td>
                                         <td className="px-4 py-3 text-right text-gray-500">
-                                            {formatDateTime(task.created_at)}
+                                            {formatDateTime(new Date(task.created_at))}
                                         </td>
                                     </tr>
                                 ))}

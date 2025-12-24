@@ -25,6 +25,7 @@ import { campaignService } from "@/services/campaign.service";
 import { CampaignPhase } from "@/types/api/phase";
 import { formatCurrency, parseCurrency } from "@/lib/utils/currency-utils";
 import { CreateIngredientRequestItemInput } from "@/types/api/ingredient-request";
+import { parseLocalDateTime } from "@/lib/utils/date-utils";
 
 interface CreateIngredientRequestDialogProps {
     isOpen: boolean;
@@ -253,11 +254,19 @@ export function CreateIngredientRequestDialog({
                                     <SelectValue placeholder="Chọn giai đoạn" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {phases.map((phase) => (
-                                        <SelectItem key={phase.id} value={phase.id}>
-                                            {phase.phaseName}
-                                        </SelectItem>
-                                    ))}
+                                    {phases.map((phase) => {
+                                        const d = parseLocalDateTime(phase.ingredientPurchaseDate);
+                                        const isReady = d && d <= new Date();
+                                        return (
+                                            <SelectItem
+                                                key={phase.id}
+                                                value={phase.id}
+                                                disabled={!isReady}
+                                            >
+                                                {phase.phaseName} {!isReady && "(Chưa đến ngày mua nguyên liệu)"}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                             {campaignPhaseId && (() => {
@@ -374,7 +383,7 @@ export function CreateIngredientRequestDialog({
                         <Button
                             type="submit"
                             form="create-ingredient-request-form"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !campaignPhaseId}
                             className="bg-[#b55631] hover:bg-[#944322]"
                         >
                             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

@@ -13,6 +13,7 @@ interface TimelineItem {
   date: string;
   icon?: React.ReactNode;
   status?: "completed" | "current" | "upcoming";
+  statusLabel?: string;
   startDate?: string; // For items that have a duration (like fundraising period)
   endDate?: string;
   content?: React.ReactNode;
@@ -24,6 +25,8 @@ interface TimelineProps {
 
 export function Timeline({ items }: TimelineProps) {
   const getStatusText = (status: string, item: TimelineItem) => {
+    if (item.statusLabel) return item.statusLabel;
+
     if (status === "current") {
       // If it's a period (has both start and end), show "Đang diễn ra"
       if (item.startDate && item.endDate) {
@@ -33,7 +36,7 @@ export function Timeline({ items }: TimelineProps) {
       return "Đang thực hiện";
     }
     if (status === "completed") return "Hoàn thành";
-    return null; // No badge for upcoming
+    return null; // No badge for upcoming if no label
   };
 
   return (
@@ -104,7 +107,9 @@ export function Timeline({ items }: TimelineProps) {
                   {getStatusText(status, item) && (
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap flex-shrink-0 ${status === "current"
                       ? "bg-orange-100 text-orange-700"
-                      : "bg-green-100 text-green-700"
+                      : status === "completed"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
                       }`}>
                       {getStatusText(status, item)}
                     </span>
