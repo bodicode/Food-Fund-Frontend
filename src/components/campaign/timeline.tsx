@@ -14,7 +14,7 @@ interface TimelineItem {
   icon?: React.ReactNode;
   status?: "completed" | "current" | "upcoming";
   statusLabel?: string;
-  startDate?: string; // For items that have a duration (like fundraising period)
+  startDate?: string;
   endDate?: string;
   content?: React.ReactNode;
 }

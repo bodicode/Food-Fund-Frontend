@@ -76,7 +76,6 @@ export function ActionPanel({
   const isDonationEnabled = campaignStatus === "ACTIVE" && !isCampaignEnded && !isFundingComplete;
 
   const getDonationButtonText = () => {
-    // Handle PROCESSING status
     if (campaignStatus === "PROCESSING") {
       return "Đang trong quá trình vận hành";
     }

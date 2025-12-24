@@ -234,11 +234,7 @@ export default function CampaignDetailPage() {
     ? new Date(campaign.fundraisingEndDate)
     : null;
 
-  const statusFor = (d?: string | null) => {
-    if (!d) return "upcoming" as const;
-    const t = new Date(d);
-    return t <= now ? ("completed" as const) : ("upcoming" as const);
-  };
+
 
   const isBeforeStart = start && now < start;
   const isAfterEnd = end && now >= end;
@@ -261,7 +257,7 @@ export default function CampaignDetailPage() {
     return "upcoming";
   })();
 
-  const fundEnd = campaign.fundraisingEndDate ? new Date(campaign.fundraisingEndDate) : null;
+
 
   return (
     <motion.div
@@ -555,7 +551,7 @@ export default function CampaignDetailPage() {
                   ...(campaign.phases || []).flatMap((phase) => [
                     {
                       label: `${phase.phaseName} - Mua nguyên liệu`,
-                      date: formatDateTime(new Date(phase.ingredientPurchaseDate)),
+                      date: formatDateTime(phase.ingredientPurchaseDate),
                       status: (
                         [
                           "COOKING",
@@ -596,7 +592,7 @@ export default function CampaignDetailPage() {
                     },
                     {
                       label: `${phase.phaseName} - Nấu ăn`,
-                      date: formatDateTime(new Date(phase.cookingDate)),
+                      date: formatDateTime(phase.cookingDate),
                       status: (
                         [
                           "DELIVERY",
@@ -635,7 +631,7 @@ export default function CampaignDetailPage() {
                     },
                     {
                       label: `${phase.phaseName} - Giao hàng`,
-                      date: formatDateTime(new Date(phase.deliveryDate)),
+                      date: formatDateTime(phase.deliveryDate),
                       status: (
                         phase.status === "COMPLETED"
                           ? "completed"

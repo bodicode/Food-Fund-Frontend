@@ -21,10 +21,16 @@ import {
   XCircle,
   ArrowLeft,
   TrendingUp,
-  Clock,
   Utensils,
   Leaf,
-  ShieldCheck,
+  Layers,
+  BookOpen,
+  Newspaper,
+  Heart,
+  Banknote,
+  Receipt,
+  Truck,
+  Info,
 } from "lucide-react";
 import { statusConfig } from "@/lib/translator";
 import { formatDate, formatDateTime } from "@/lib/utils/date-utils";
@@ -65,24 +71,19 @@ export default function AdminCampaignDetailPage() {
 
     const fetchData = async () => {
       try {
-        // Get actual campaign ID from sessionStorage
         const slug = id as string;
         const campaignId = getCampaignIdFromSlug(slug);
 
-        // If no ID found from session/slug, try to find by searching with the slug
         if (!campaignId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaignId)) {
-          // It's likely a slug, not an ID. Try to search for it.
-          // 1. Convert slug back to approximate title (replace hyphens with spaces)
           const searchTerm = slug.replace(/-/g, " ");
 
           try {
             const searchResult = await campaignService.searchCampaigns({
               query: searchTerm,
-              limit: 20 // Fetch a few to ensure we find the right one
+              limit: 20
             });
 
             if (searchResult && searchResult.items.length > 0) {
-              // 2. Find the exact match by re-slugifying the titles
               const matchedCampaign = searchResult.items.find((c: Campaign) => titleToSlug(c.title) === slug);
               if (matchedCampaign) {
                 setCampaign(matchedCampaign);
@@ -95,8 +96,6 @@ export default function AdminCampaignDetailPage() {
           }
         }
 
-        // If we still have an ID (either original or we failed to find by slug but want to try anyway)
-        // Note: If campaignId was just the slug and search failed, this getCampaignById will likely fail too or return null, which is fine.
         if (campaignId) {
           const data = await campaignService.getCampaignById(campaignId);
           if (data) {
@@ -242,11 +241,11 @@ export default function AdminCampaignDetailPage() {
       : (Number(campaign.receivedAmount) / Number(campaign.targetAmount)) * 100 || 0;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors relative pt-12">
+    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors relative pt-14 text-slate-900 dark:text-slate-100">
 
       <div className="relative z-10">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div className="container max-w-[1600px] mx-auto px-4 sm:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <Button
               variant="outline"
               onClick={() => router.push("/admin/campaigns")}
@@ -291,7 +290,7 @@ export default function AdminCampaignDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-6 mb-12">
+          <div className="space-y-4 mb-6">
             <div className="flex flex-wrap items-center gap-3">
               <Badge
                 className={`${statusConfig[campaign.status].color} px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm`}
@@ -305,16 +304,16 @@ export default function AdminCampaignDetailPage() {
                 ID: <span className="text-slate-600 dark:text-slate-200 font-mono tracking-normal lowercase">{campaign.id}</span>
               </div>
             </div>
-            <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">
               {campaign.title}
             </h1>
           </div>
         </div>
       </div>
 
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 pb-20 relative z-20 space-y-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+      <div className="container max-w-[1600px] mx-auto px-4 sm:px-8 pb-12 relative z-20 space-y-6">
+        <div className="grid lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3 space-y-6">
             {/* Image Card Container */}
             <div className="rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 group shadow-sm transition-all duration-300">
               <div className="relative w-full h-[400px] sm:h-[500px]">
@@ -332,7 +331,7 @@ export default function AdminCampaignDetailPage() {
 
             {/* Progress Card */}
             <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-[10px] font-medium text-emerald-600 uppercase tracking-[0.2em] mb-1 flex items-center gap-1.5">
@@ -378,15 +377,15 @@ export default function AdminCampaignDetailPage() {
             </Card>
 
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="flex flex-wrap h-auto p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl gap-1 mb-6 border border-slate-100 dark:border-slate-800">
+              <TabsList className="flex flex-wrap h-auto p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl gap-1 mb-4 border border-slate-100 dark:border-slate-800">
                 {[
-                  { id: "details", label: "Chi tiết", icon: Clock },
-                  { id: "posts", label: "Bài viết", icon: TrendingUp },
+                  { id: "details", label: "Chi tiết", icon: Info },
+                  { id: "posts", label: "Bài viết", icon: Newspaper },
                   { id: "meals", label: "Hoạt động", icon: Utensils },
-                  { id: "donations", label: "Ủng hộ", icon: Users },
-                  { id: "disbursements", label: "Giải ngân", icon: DollarSign },
-                  { id: "expenses", label: "Hóa đơn", icon: ShieldCheck },
-                  { id: "delivery-tasks", label: "Vận chuyển", icon: MapPin },
+                  { id: "donations", label: "Ủng hộ", icon: Heart },
+                  { id: "disbursements", label: "Giải ngân", icon: Banknote },
+                  { id: "expenses", label: "Hóa đơn", icon: Receipt },
+                  { id: "delivery-tasks", label: "Vận chuyển", icon: Truck },
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -404,10 +403,10 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="details" className="mt-0">
                 <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
-                  <CardContent className="p-8 sm:p-10">
+                  <CardContent className="p-6 sm:p-8">
                     <div className="flex items-center gap-4 mb-8">
                       <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-blue-600" />
+                        <BookOpen className="w-6 h-6 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Câu chuyện chiến dịch</h2>
@@ -426,7 +425,7 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="posts" className="mt-0">
                 <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
-                  <CardContent className="p-8">
+                  <CardContent className="p-6">
                     <CampaignPosts campaignId={campaign?.id || ""} currentUserId={currentUser?.id} />
                   </CardContent>
                 </Card>
@@ -434,9 +433,9 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="meals" className="mt-0">
                 <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
-                  <CardContent className="p-10">
+                  <CardContent className="p-6">
                     {campaign.phases && campaign.phases.length > 0 ? (
-                      <div className="space-y-12">
+                      <div className="space-y-8">
                         {campaign.phases.map((phase) => (
                           <div key={phase.id} className="relative pl-10">
                             <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-100 dark:bg-slate-800" />
@@ -462,7 +461,7 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="donations" className="mt-0">
                 <Card className="border border-gray-100 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden">
-                  <CardContent className="p-8">
+                  <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-8">
                       <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
                         <Users className="w-6 h-6 text-emerald-600" />
@@ -479,13 +478,13 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="disbursements" className="mt-0">
                 <Card className="border border-gray-100 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden">
-                  <CardContent className="p-8">
+                  <CardContent className="p-6">
                     {campaign.phases && campaign.phases.length > 0 ? (
-                      <div className="space-y-10">
+                      <div className="space-y-6">
                         {campaign.phases.map((phase) => (
                           <div key={phase.id}>
                             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center gap-2">
-                              <DollarSign className="w-5 h-5 text-amber-500" />
+                              <Layers className="w-5 h-5 text-blue-500" />
                               Giai đoạn: {phase.phaseName}
                             </h3>
                             <DisbursementList campaignPhaseId={phase.id} />
@@ -503,7 +502,7 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="expenses" className="mt-0">
                 <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
-                  <CardContent className="p-8">
+                  <CardContent className="p-6">
                     <ExpenseProofList campaignId={campaign.id} />
                   </CardContent>
                 </Card>
@@ -511,7 +510,7 @@ export default function AdminCampaignDetailPage() {
 
               <TabsContent value="delivery-tasks" className="mt-0">
                 <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden shadow-sm">
-                  <CardContent className="p-8">
+                  <CardContent className="p-6">
                     <DeliveryTasksTab campaignId={campaign.id} />
                   </CardContent>
                 </Card>
@@ -521,7 +520,7 @@ export default function AdminCampaignDetailPage() {
 
           <div className="space-y-6">
             <Card className="border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden sticky top-8 shadow-sm">
-              <CardContent className="p-8 space-y-8">
+              <CardContent className="p-6 space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Thông tin cốt lõi</h3>
                   <div className="space-y-4">
@@ -604,12 +603,12 @@ export default function AdminCampaignDetailPage() {
             {/* Implementation Timeline Card */}
             {campaign.phases && campaign.phases.length > 0 && (
               <Card className="border border-white/40 bg-white/40 backdrop-blur-xl dark:bg-slate-900/40 rounded-[2.5rem] overflow-hidden">
-                <CardContent className="p-8">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                     <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
                     Chi tiết các giai đoạn
                   </h3>
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     {campaign.phases.map((phase, index) => (
                       <div key={phase.id || index} className="group p-6 rounded-[2rem] bg-white/50 dark:bg-slate-800/30 border border-white/60 dark:border-slate-800 transition-all hover:bg-white dark:hover:bg-slate-800">
                         <div className="flex items-center justify-between mb-4">

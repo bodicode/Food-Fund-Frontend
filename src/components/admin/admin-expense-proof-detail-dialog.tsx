@@ -289,7 +289,7 @@ export function AdminExpenseProofDetailDialog({
                   <div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Ngày tạo</div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {formatDateTime(expenseProof.created_at)}
+                      {formatDateTime(new Date(expenseProof.created_at))}
                     </div>
                   </div>
                 </div>
@@ -302,7 +302,7 @@ export function AdminExpenseProofDetailDialog({
                         Ngày thay đổi trạng thái
                       </div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {formatDateTime(expenseProof.changedStatusAt)}
+                        {formatDateTime(new Date(expenseProof.changedStatusAt))}
                       </div>
                     </div>
                   </div>

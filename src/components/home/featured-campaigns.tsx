@@ -129,7 +129,7 @@ export function FeaturedCampaigns() {
 
   return (
     <section className="py-20 bg-gray-50/50">
-      <div ref={rootRef} className="container mx-auto px-6 md:px-12 max-w-7xl">
+      <div ref={rootRef} className="container mx-auto px-4 sm:px-8 max-w-[1600px]">
         <div className="flex items-end justify-between mb-12">
           <div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-2">
@@ -193,8 +193,9 @@ export function FeaturedCampaigns() {
                 640: { slidesPerView: 1 },
                 768: { slidesPerView: 2 },
                 1024: { slidesPerView: 3 },
+                1440: { slidesPerView: 3 },
               }}
-              className="pb-16 !overflow-visible fc-swiper"
+              className="pb-16 fc-swiper"
             >
               {sliderCampaigns.map((c) => (
                 <SwiperSlide key={c.id} className="h-auto">

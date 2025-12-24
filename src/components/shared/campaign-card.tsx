@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { createCampaignSlug } from "../../lib/utils/slug-utils";
 import { Clock, MapPin, Users, Heart, ArrowUpRight } from "lucide-react";
+import { STATUS_CONFIG } from "../../constants/status";
 import { CampaignPhase } from "../../types/api/phase";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -168,6 +169,14 @@ export function CampaignCard({
               {category.title}
             </div>
           )}
+
+          {status && STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] && (
+            <div className="bg-white/90 backdrop-blur-md text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].color.split(' ')[0]}`} />
+              {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG].label}
+            </div>
+          )}
+
           <div className="bg-white/90 backdrop-blur-md text-[#E77731] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5" />
             {donationCount.toLocaleString("vi-VN")} ủng hộ
