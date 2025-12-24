@@ -68,6 +68,7 @@ export interface OperationRequestStats {
   pendingCount: number;
   approvedCount: number;
   rejectedCount: number;
+  disbursedCount: number;
 }
 
 export interface OperationRequestStatsResponse {

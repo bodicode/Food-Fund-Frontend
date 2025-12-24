@@ -397,20 +397,20 @@ export default function FundraiserWalletsPage() {
                                 <td className="px-8 py-4">
                                   <Badge className={cn(
                                     "px-2 py-0.5 rounded-lg border-none text-[10px] uppercase font-semibold",
-                                    tx.transactionType === "INCOMING" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                                    tx.transactionType === "INCOMING_TRANSFER" || tx.transactionType === "SURPLUS_TRANSFER" || tx.transactionType === "ADMIN_ADJUSTMENT" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                                   )}>
                                     {translateWalletTransactionType(tx.transactionType)}
                                   </Badge>
                                 </td>
-                                <td className="px-8 py-4 text-xs font-medium text-slate-600 max-w-xs truncate">
+                                <td className="px-8 py-4 text-xs font-medium text-slate-600">
                                   {tx.description}
                                 </td>
                                 <td className="px-8 py-4 text-right">
                                   <span className={cn(
                                     "text-sm font-bold font-mono",
-                                    tx.transactionType === "INCOMING" ? "text-emerald-600" : "text-rose-600"
+                                    tx.transactionType === "INCOMING_TRANSFER" || tx.transactionType === "SURPLUS_TRANSFER" || tx.transactionType === "ADMIN_ADJUSTMENT" ? "text-emerald-600" : "text-rose-600"
                                   )}>
-                                    {tx.transactionType === "INCOMING" ? "+" : "-"}
+                                    {tx.transactionType === "INCOMING_TRANSFER" || tx.transactionType === "SURPLUS_TRANSFER" || tx.transactionType === "ADMIN_ADJUSTMENT" ? "+" : "-"}
                                     {formatCurrency(Number(tx.amount))}
                                   </span>
                                 </td>

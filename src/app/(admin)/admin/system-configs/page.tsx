@@ -185,7 +185,7 @@ export default function SystemConfigsPage() {
                                                     <Badge variant="outline">{config.dataType}</Badge>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-gray-500">
-                                                    {formatDateTime(config.updatedAt)}
+                                                    {formatDateTime(new Date(config.updatedAt))}
                                                 </TableCell>
                                                 <TableCell>
                                                     <DropdownMenu>

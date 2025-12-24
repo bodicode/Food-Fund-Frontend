@@ -202,6 +202,8 @@ export const translateWalletTransactionType = (type?: string): string => {
       return "Hệ thống chuyển tiền";
     case "INCOMING_TRANSFER":
       return "Hệ thống chuyển tiền";
+    case "SURPLUS_TRANSFER":
+      return "Hệ thống chuyển tiền";
     default:
       return type;
   }

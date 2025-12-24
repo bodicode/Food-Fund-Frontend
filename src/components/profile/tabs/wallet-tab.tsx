@@ -247,11 +247,9 @@ export function WalletTab() {
                                                 </td>
                                                 <td className="py-3 px-3">
                                                     <Badge
-                                                        className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                        className={`border-0 ${["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT"].includes(transaction.transactionType)
                                                             ? "bg-green-100 text-green-800"
-                                                            : transaction.transactionType === "WITHDRAWAL"
-                                                                ? "bg-red-100 text-red-800"
-                                                                : "bg-gray-100 text-gray-800"
+                                                            : "bg-red-100 text-red-800"
                                                             }`}
                                                     >
                                                         {translateWalletTransactionType(transaction.transactionType)}
@@ -265,14 +263,12 @@ export function WalletTab() {
                                                 <td className="py-3 px-3 text-right font-semibold text-gray-900 whitespace-nowrap">
                                                     <span
                                                         className={
-                                                            transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                            ["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT"].includes(transaction.transactionType)
                                                                 ? "text-green-600"
-                                                                : transaction.transactionType === "WITHDRAW"
-                                                                    ? "text-red-600"
-                                                                    : "text-gray-900"
+                                                                : "text-red-600"
                                                         }
                                                     >
-                                                        {transaction.transactionType === "ADMIN_ADJUSTMENT" ? "" : transaction.transactionType === "WITHDRAW" ? "-" : ""}
+                                                        {["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT"].includes(transaction.transactionType) ? "+" : "-"}
                                                         {formatCurrency(Number(transaction.amount))}
                                                     </span>
                                                 </td>
@@ -297,17 +293,15 @@ export function WalletTab() {
                                     >
                                         <div className="flex items-center justify-between mb-3">
                                             <Badge
-                                                className={`border-0 ${transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                className={`border-0 ${["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT"].includes(transaction.transactionType)
                                                     ? "bg-green-100 text-green-800"
-                                                    : transaction.transactionType === "WITHDRAW"
-                                                        ? "bg-red-100 text-red-800"
-                                                        : "bg-gray-100 text-gray-800"
+                                                    : "bg-red-100 text-red-800"
                                                     }`}
                                             >
                                                 {translateWalletTransactionType(transaction.transactionType)}
                                             </Badge>
                                             <span className="text-xs text-gray-500">
-                                                {formatDateTime(transaction.created_at)}
+                                                {formatDateTime(new Date(transaction.created_at))}
                                             </span>
                                         </div>
 
@@ -321,14 +315,12 @@ export function WalletTab() {
                                             <div className="flex justify-between items-center">
                                                 <span className="text-xs text-gray-600">Số tiền:</span>
                                                 <span
-                                                    className={`font-semibold ${transaction.transactionType === "ADMIN_ADJUSTMENT"
+                                                    className={`font-semibold ${["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT"].includes(transaction.transactionType)
                                                         ? "text-green-600"
-                                                        : transaction.transactionType === "WITHDRAW"
-                                                            ? "text-red-600"
-                                                            : "text-gray-900"
+                                                        : "text-red-600"
                                                         }`}
                                                 >
-                                                    {transaction.transactionType === "ADMIN_ADJUSTMENT" ? "+" : transaction.transactionType === "WITHDRAW" ? "-" : ""}
+                                                    {["INCOMING_TRANSFER", "SURPLUS_TRANSFER", "ADMIN_ADJUSTMENT"].includes(transaction.transactionType) ? "+" : "-"}
                                                     {formatCurrency(Number(transaction.amount))}
                                                 </span>
                                             </div>

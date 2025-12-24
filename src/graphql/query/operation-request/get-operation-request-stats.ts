@@ -7,6 +7,7 @@ export const GET_OPERATION_REQUEST_STATS = gql`
       pendingCount
       approvedCount
       rejectedCount
+      disbursedCount
     }
   }
 `;
