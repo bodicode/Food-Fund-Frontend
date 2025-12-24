@@ -195,7 +195,7 @@ export function MyCampaignStatsSection() {
             </div>
             <div className="space-y-1">
               <h4 className="text-3xl font-bold text-gray-900">
-                {Math.round(stats.performance.successRate * 100)}%
+                {Math.round(stats.performance.successRate)}%
               </h4>
               <p className="text-sm text-gray-500 font-medium">Tỉ lệ thành công</p>
             </div>
