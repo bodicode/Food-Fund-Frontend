@@ -206,7 +206,7 @@ export function MyDisbursementsTab() {
                       <div>
                         <p className="text-xs text-gray-600 uppercase tracking-wide">Ngày tạo</p>
                         <p className="font-semibold text-gray-900">
-                          {formatDateTime(disbursement.created_at)}
+                          {formatDateTime(new Date(disbursement.created_at))}
                         </p>
                       </div>
                     </div>

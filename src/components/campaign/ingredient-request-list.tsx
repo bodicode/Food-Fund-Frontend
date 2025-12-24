@@ -33,24 +33,21 @@ export function IngredientRequestList({ campaignId, campaignPhaseId, refreshKey 
         const fetchRequests = async () => {
             setLoading(true);
             try {
-                // Note: Currently getIngredientRequests fetches all requests (admin style) or limited by backend.
-                // We need to filter by campaignPhaseId client-side if the backend doesn't support it yet.
-                // Ideally, backend should support filtering by campaignId or campaignPhaseId.
+                // Pass campaignId to filter at the source
                 const data = await ingredientRequestService.getIngredientRequests({
-                    limit: 1000, // Fetch enough to filter
+                    filter: { campaignId },
+                    limit: 1000,
                     offset: 0,
                 });
 
-                // Client-side filtering
+                // Client-side filtering to ensure correctness for the specific phase heading
                 const filteredRequests = data.filter(req => {
                     if (!req.campaignPhase) return false;
 
                     if (campaignPhaseId) {
-                        return req.campaignPhase?.id === campaignPhaseId;
+                        return req.campaignPhase.id === campaignPhaseId;
                     }
-                    // If no phase ID, we might want to filter by campaign ID if available in the request data
-                    // But currently IngredientRequest type has campaignPhase -> campaign
-                    return req.campaignPhase?.campaign?.id === campaignId;
+                    return req.campaignPhase.campaign?.id === campaignId;
                 });
 
                 setRequests(filteredRequests);
@@ -130,7 +127,7 @@ export function IngredientRequestList({ campaignId, campaignPhaseId, refreshKey 
 
                                 <div className="flex items-center gap-2 text-gray-600">
                                     <Calendar className="h-4 w-4 text-orange-600" />
-                                    <span>{formatDateTime(request.created_at)}</span>
+                                    <span>{formatDateTime(new Date(request.created_at))}</span>
                                 </div>
                             </div>
 

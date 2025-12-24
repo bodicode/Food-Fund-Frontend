@@ -202,7 +202,7 @@ export function MealBatchList({ campaignId, campaignPhaseId }: MealBatchListProp
                                                     </h4>
                                                     <div className="flex items-center gap-2 text-sm text-gray-400 font-bold">
                                                         <Calendar className="w-3.5 h-3.5" />
-                                                        {formatDateTime(batch.cookedDate)}
+                                                        {formatDateTime(new Date(batch.cookedDate))}
                                                     </div>
                                                 </div>
                                                 {getStatusBadge(batch.status)}

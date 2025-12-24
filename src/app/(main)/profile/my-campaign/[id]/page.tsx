@@ -49,7 +49,8 @@ import {
   toNumber,
 } from "../../../../../lib/utils/utils";
 import { formatCurrency } from "../../../../../lib/utils/currency-utils";
-import { formatDate, formatDateTime } from "../../../../../lib/utils/date-utils";
+import { formatDate, formatDateTime, parseLocalDateTime } from "../../../../../lib/utils/date-utils";
+import { translateStatus } from "../../../../../lib/utils/status-utils";
 import { CampaignPosts } from "../../../../../components/campaign/campaign-posts";
 import { CreatePostDialog } from "../../../../../components/campaign/create-post-dialog";
 import { DonationList } from "../../../../../components/campaign/donation-list";
@@ -157,12 +158,26 @@ export default function MyCampaignDetailPage() {
     cookingAmt > 0 ||
     deliveryAmt > 0;
 
+  const now = new Date();
+
   // Check if campaign can be extended
   const daysRemaining = parseInt(timeLeft) || 0;
   const fundingProgress = progress || 0;
   const canExtend =
     campaign.status === "ACTIVE" &&
     (daysRemaining <= 7 || fundingProgress < 70);
+
+  // Disbursement validation
+  const isAnyPhaseReadyForIngredients = campaign.phases?.some(phase => {
+    const d = parseLocalDateTime(phase.ingredientPurchaseDate);
+    return d && d <= now;
+  }) || false;
+
+  const isAnyPhaseReadyForOperations = campaign.phases?.some(phase => {
+    const d1 = parseLocalDateTime(phase.cookingDate);
+    const d2 = parseLocalDateTime(phase.deliveryDate);
+    return (d1 && d1 <= now) || (d2 && d2 <= now);
+  }) || false;
 
   const handleExtendCampaign = async (days: number) => {
     if (!campaign) return;
@@ -441,7 +456,11 @@ export default function MyCampaignDetailPage() {
                   <Button
                     onClick={() => setIsCreateIngredientRequestDialogOpen(true)}
                     className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-                    disabled={!campaign.phases || campaign.phases.length === 0}
+                    disabled={
+                      !campaign.phases ||
+                      campaign.phases.length === 0 ||
+                      campaign.status !== "PROCESSING"
+                    }
                   >
                     <Plus className="w-4 h-4" />
                     Mua nguyên liệu
@@ -449,7 +468,11 @@ export default function MyCampaignDetailPage() {
                   <Button
                     onClick={() => setIsCreateOperationRequestDialogOpen(true)}
                     className="gap-2 btn-color"
-                    disabled={!campaign.phases || campaign.phases.length === 0}
+                    disabled={
+                      !campaign.phases ||
+                      campaign.phases.length === 0 ||
+                      campaign.status !== "PROCESSING"
+                    }
                   >
                     <Plus className="w-4 h-4" />
                     Chi phí vận hành
@@ -562,23 +585,6 @@ export default function MyCampaignDetailPage() {
                 </p>
               </div>
               {(() => {
-                // Helper to parse ISO string without timezone conversion
-                const parseLocalDateTime = (isoString?: string): Date | null => {
-                  if (!isoString) return null;
-                  const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-                  if (match) {
-                    return new Date(
-                      parseInt(match[1]),
-                      parseInt(match[2]) - 1,
-                      parseInt(match[3]),
-                      parseInt(match[4]),
-                      parseInt(match[5])
-                    );
-                  }
-                  return new Date(isoString);
-                };
-
-                const now = new Date();
                 const fundStart = parseLocalDateTime(campaign.fundraisingStartDate);
                 const fundEnd = parseLocalDateTime(campaign.fundraisingEndDate);
 
@@ -617,7 +623,23 @@ export default function MyCampaignDetailPage() {
                         {
                           label: `${phase.phaseName} - Mua nguyên liệu`,
                           date: formatDateTime(phase.ingredientPurchaseDate),
-                          status: (phase.ingredientPurchaseDate && parseLocalDateTime(phase.ingredientPurchaseDate) && parseLocalDateTime(phase.ingredientPurchaseDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                          status: (
+                            [
+                              "COOKING",
+                              "AWAITING_COOKING_DISBURSEMENT",
+                              "DELIVERY",
+                              "AWAITING_DELIVERY_DISBURSEMENT",
+                              "COMPLETED",
+                            ].includes(phase.status || "")
+                              ? "completed"
+                              : [
+                                "INGREDIENT_PURCHASE",
+                                "AWAITING_INGREDIENT_DISBURSEMENT",
+                              ].includes(phase.status || "")
+                                ? "current"
+                                : "upcoming"
+                          ) as "completed" | "current" | "upcoming",
+                          statusLabel: translateStatus(phase.status || "PLANNING"),
                           content: (
                             <div className="mt-2 space-y-2">
                               {phase.plannedIngredients && phase.plannedIngredients.length > 0 && (
@@ -642,7 +664,21 @@ export default function MyCampaignDetailPage() {
                         {
                           label: `${phase.phaseName} - Nấu ăn`,
                           date: formatDateTime(phase.cookingDate),
-                          status: (phase.cookingDate && parseLocalDateTime(phase.cookingDate) && parseLocalDateTime(phase.cookingDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                          status: (
+                            [
+                              "DELIVERY",
+                              "AWAITING_DELIVERY_DISBURSEMENT",
+                              "COMPLETED",
+                            ].includes(phase.status || "")
+                              ? "completed"
+                              : [
+                                "COOKING",
+                                "AWAITING_COOKING_DISBURSEMENT",
+                              ].includes(phase.status || "")
+                                ? "current"
+                                : "upcoming"
+                          ) as "completed" | "current" | "upcoming",
+                          statusLabel: translateStatus(phase.status || "PLANNING"),
                           content: (
                             <div className="mt-2 space-y-2">
                               {phase.plannedMeals && phase.plannedMeals.length > 0 && (
@@ -667,10 +703,20 @@ export default function MyCampaignDetailPage() {
                         {
                           label: `${phase.phaseName} - Giao hàng`,
                           date: formatDateTime(phase.deliveryDate),
-                          status: (phase.deliveryDate && parseLocalDateTime(phase.deliveryDate) && parseLocalDateTime(phase.deliveryDate)! <= now ? "completed" : "upcoming") as "completed" | "upcoming",
+                          status: (
+                            phase.status === "COMPLETED"
+                              ? "completed"
+                              : [
+                                "DELIVERY",
+                                "AWAITING_DELIVERY_DISBURSEMENT",
+                              ].includes(phase.status || "")
+                                ? "current"
+                                : "upcoming"
+                          ) as "completed" | "current" | "upcoming",
+                          statusLabel: translateStatus(phase.status || "PLANNING"),
                           content: (
                             <div className="mt-2 space-y-2">
-                              {phase.status === "DELIVERY" && (
+                              {(phase.status === "DELIVERY" || phase.status === "AWAITING_DELIVERY_DISBURSEMENT") && (
                                 <Button
                                   size="sm"
                                   variant="outline"

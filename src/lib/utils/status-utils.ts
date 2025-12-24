@@ -77,6 +77,20 @@ export const DELIVERY_TASK_STATUS_TRANSLATIONS: Record<string, string> = {
   REJECTED: "Đã từ chối",
 };
 
+// Phase Status Translations
+export const PHASE_STATUS_TRANSLATIONS: Record<string, string> = {
+  PLANNING: "Đang lập kế hoạch",
+  INGREDIENT_PURCHASE: "Đang mua nguyên liệu",
+  AWAITING_INGREDIENT_DISBURSEMENT: "Chờ giải ngân nguyên liệu",
+  COOKING: "Đang nấu ăn",
+  AWAITING_COOKING_DISBURSEMENT: "Chờ giải ngân nấu ăn",
+  DELIVERY: "Đang giao hàng",
+  AWAITING_DELIVERY_DISBURSEMENT: "Chờ giải ngân giao hàng",
+  COMPLETED: "Hoàn thành",
+  CANCELLED: "Đã hủy",
+  FAILED: "Thất bại",
+};
+
 /**
  * Translate campaign status to Vietnamese
  */
@@ -150,6 +164,7 @@ export const translateStatus = (status?: string): string => {
     USER_STATUS_TRANSLATIONS[upperStatus] ||
     MEAL_BATCH_STATUS_TRANSLATIONS[upperStatus] ||
     DELIVERY_TASK_STATUS_TRANSLATIONS[upperStatus] ||
+    PHASE_STATUS_TRANSLATIONS[upperStatus] ||
     status
   );
 };
@@ -196,6 +211,15 @@ export const getStatusColorClass = (status?: string): string => {
     // Delivery task states
     ACCEPTED: "bg-blue-100 text-blue-700",
     OUT_FOR_DELIVERY: "bg-yellow-100 text-yellow-700",
+
+    // Phase specific states
+    PLANNING: "bg-blue-50 text-blue-600",
+    INGREDIENT_PURCHASE: "bg-orange-50 text-orange-600",
+    AWAITING_INGREDIENT_DISBURSEMENT: "bg-amber-100 text-amber-700",
+    COOKING: "bg-orange-100 text-orange-700",
+    AWAITING_COOKING_DISBURSEMENT: "bg-amber-100 text-amber-700",
+    DELIVERY: "bg-blue-100 text-blue-700",
+    AWAITING_DELIVERY_DISBURSEMENT: "bg-amber-100 text-amber-700",
   };
 
   return colorMap[upperStatus] || "bg-gray-100 text-gray-700";

@@ -45,7 +45,17 @@ export function OperationRequestList({ campaignId, campaignPhaseId, refreshKey }
           limit: 100,
           offset: 0,
         });
-        setRequests(data);
+
+        // Client-side filtering to ensure correctness if backend filter is loose
+        const filteredRequests = data.filter(req => {
+          if (!req.campaignPhase) return false;
+          if (campaignPhaseId) {
+            return req.campaignPhase.id === campaignPhaseId;
+          }
+          return req.campaignPhase.campaign?.id === campaignId;
+        });
+
+        setRequests(filteredRequests);
       } catch (error) {
         console.error("Error fetching operation requests:", error);
       } finally {
@@ -120,7 +130,7 @@ export function OperationRequestList({ campaignId, campaignPhaseId, refreshKey }
 
                 <div className="flex items-center gap-2 text-gray-600">
                   <Calendar className="h-4 w-4 text-orange-600" />
-                  <span>{formatDateTime(request.created_at)}</span>
+                  <span>{formatDateTime(new Date(request.created_at))}</span>
                 </div>
               </div>
 

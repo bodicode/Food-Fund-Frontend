@@ -26,7 +26,17 @@ export interface CampaignPhase {
   ingredientFundsAmount?: string | null;
   cookingFundsAmount?: string | null;
   deliveryFundsAmount?: string | null;
-  status?: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "DELIVERY";
+  status?:
+  | "PLANNING"
+  | "INGREDIENT_PURCHASE"
+  | "AWAITING_INGREDIENT_DISBURSEMENT"
+  | "COOKING"
+  | "AWAITING_COOKING_DISBURSEMENT"
+  | "DELIVERY"
+  | "AWAITING_DELIVERY_DISBURSEMENT"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FAILED";
   plannedMeals?: PlannedMeal[];
   plannedIngredients?: PlannedIngredient[];
 }
