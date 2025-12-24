@@ -20,7 +20,6 @@ import {
   MapPin,
   Users,
   Banknote,
-  DollarSign,
   CalendarDays,
   GoalIcon,
   Share2,
@@ -179,17 +178,7 @@ export default function MyCampaignDetailPage() {
     campaign.status === "ACTIVE" &&
     (daysRemaining <= 7 || fundingProgress < 70);
 
-  // Disbursement validation
-  const isAnyPhaseReadyForIngredients = campaign.phases?.some(phase => {
-    const d = parseLocalDateTime(phase.ingredientPurchaseDate);
-    return d && d <= now;
-  }) || false;
 
-  const isAnyPhaseReadyForOperations = campaign.phases?.some(phase => {
-    const d1 = parseLocalDateTime(phase.cookingDate);
-    const d2 = parseLocalDateTime(phase.deliveryDate);
-    return (d1 && d1 <= now) || (d2 && d2 <= now);
-  }) || false;
 
   const handleExtendCampaign = async (days: number) => {
     if (!campaign) return;
@@ -213,7 +202,7 @@ export default function MyCampaignDetailPage() {
     }
   };
 
-  const handleUpdatePhaseStatus = (phaseId: string, status: "COMPLETED") => {
+  const handleUpdatePhaseStatus = (phaseId: string) => {
     setPendingPhaseId(phaseId);
     setIsPhaseConfirmDialogOpen(true);
   };
@@ -741,7 +730,7 @@ export default function MyCampaignDetailPage() {
                                   size="sm"
                                   variant="outline"
                                   className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 mb-2"
-                                  onClick={() => handleUpdatePhaseStatus(phase.id, "COMPLETED")}
+                                  onClick={() => handleUpdatePhaseStatus(phase.id)}
                                 >
                                   <CheckCircle2 className="w-3 h-3 mr-1" />
                                   Đánh dấu hoàn thành

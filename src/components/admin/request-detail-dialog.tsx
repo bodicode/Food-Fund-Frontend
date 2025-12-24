@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { operationRequestService } from "@/services/operation-request.service";
 import { ingredientRequestService } from "@/services/ingredient-request.service";
 import { OperationRequest } from "@/types/api/operation-request";
@@ -283,43 +284,60 @@ export function RequestDetailDialog({
                 <div className="border-4 border-green-500 rounded-lg p-6 bg-green-50/50">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-green-600" />
-                    ⭐ Thông tin ngân hàng để chuyển khoản
+                    Thông tin ngân hàng để chuyển khoản
                   </h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Ngân hàng</p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-sm font-bold">
-                            {organization.bank_short_name}
-                          </Badge>
-                          <p className="text-sm text-gray-700 mb-0">
-                            {organization.bank_name}
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Ngân hàng</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-sm font-bold">
+                              {organization.bank_short_name}
+                            </Badge>
+                            <p className="text-sm text-gray-700 mb-0">
+                              {organization.bank_name}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Số tài khoản</p>
+                          <p className="text-2xl font-mono font-bold text-gray-900 bg-white px-4 py-3 rounded border-2 border-green-500">
+                            {organization.bank_account_number}
                           </p>
                         </div>
                       </div>
+
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Số tài khoản</p>
-                        <p className="text-2xl font-mono font-bold text-gray-900 bg-white px-4 py-3 rounded border-2 border-green-500">
-                          {organization.bank_account_number}
+                        <p className="text-sm text-gray-600 mb-1">Tên tài khoản</p>
+                        <p className="font-semibold text-gray-900 text-xl bg-white px-4 py-3 rounded border">
+                          {organization.bank_account_name}
                         </p>
+                      </div>
+
+                      <div className="pt-2">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-gray-600" />
+                          <p className="text-sm font-semibold text-gray-900">
+                            {organization.name}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Tên tài khoản</p>
-                      <p className="font-semibold text-gray-900 text-xl bg-white px-4 py-3 rounded border">
-                        {organization.bank_account_name}
-                      </p>
-                    </div>
-
-                    <div className="pt-4 border-t">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="h-4 w-4 text-gray-600" />
-                        <p className="text-sm font-semibold text-gray-900">
-                          {organization.name}
-                        </p>
+                    <div className="flex flex-col items-center justify-center bg-white p-4 rounded-xl border-2 border-dashed border-gray-200 min-w-[200px]">
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Mã QR Chuyển khoản</div>
+                      <div className="relative w-40 h-40">
+                        <Image
+                          src={`https://img.vietqr.io/image/${organization.bank_short_name}-${organization.bank_account_number}-compact2.png?amount=${totalCost}&addInfo=Giai ngan yeu cau ${request.id.slice(0, 8)}&accountName=${encodeURIComponent(organization.bank_account_name)}`}
+                          alt="VietQR Transfer"
+                          width={160}
+                          height={160}
+                          unoptimized
+                          className="w-full h-full object-contain"
+                        />
                       </div>
+                      <div className="mt-2 text-[10px] text-gray-400 font-medium">VietQR Service</div>
                     </div>
                   </div>
                 </div>

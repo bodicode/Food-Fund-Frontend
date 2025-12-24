@@ -170,7 +170,7 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
                       </Badge>
                     </div>
                     <div className="text-sm text-gray-500 mb-1">
-                      {formatDateTime(proof.created_at)}
+                      {formatDateTime(new Date(proof.created_at))}
                     </div>
                     <div className="text-lg font-bold text-[#ad4e28]">
                       {formatCurrency(proof.amount)}
@@ -303,34 +303,41 @@ export function ExpenseProofList({ campaignId }: ExpenseProofListProps) {
       {/* Media Preview Dialog */}
       {selectedMedia && (
         <Dialog open={!!selectedMedia} onOpenChange={() => setSelectedMedia(null)}>
-          <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/95 border-none !h-[80vh] flex flex-col">
-            <div className="relative w-full h-full flex items-center justify-center">
+          <DialogContent
+            className="max-w-[95vw] lg:max-w-5xl h-[90vh] p-0 overflow-hidden bg-black/95 border-none flex flex-col"
+            onWheel={(e) => e.stopPropagation()}
+          >
+            <div className="relative flex-1 min-h-0 overflow-y-auto flex items-center justify-center p-4">
               <button
                 onClick={() => setSelectedMedia(null)}
-                className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                className="fixed top-4 right-4 z-[100] p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
               {isImage(selectedMedia) ? (
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-[80vh]">
                   <Image
                     src={selectedMedia}
                     alt="Preview"
                     fill
                     className="object-contain"
                     sizes="100vw"
+                    priority
                   />
                 </div>
               ) : isVideo(selectedMedia) ? (
                 <video
                   src={selectedMedia}
                   controls
-                  className="max-w-full max-h-full"
+                  className="max-w-full max-h-[80vh]"
                   autoPlay
                 />
               ) : (
                 <div className="text-white">Không thể xem trước file này</div>
               )}
+            </div>
+            <div className="py-4 px-6 border-t border-white/10 bg-black/50 text-white/60 text-xs text-center">
+              Nhấn ESC hoặc dấu X để đóng xem trước
             </div>
           </DialogContent>
         </Dialog>
