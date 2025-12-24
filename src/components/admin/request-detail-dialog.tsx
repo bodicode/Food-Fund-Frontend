@@ -257,7 +257,7 @@ export function RequestDetailDialog({
                   <div>
                     <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Ngày tạo</div>
                     <div className="font-bold text-gray-900 dark:text-white mt-1">
-                      {formatDateTime(request.created_at)}
+                      {formatDateTime(new Date(request.created_at))}
                     </div>
                   </div>
                 </div>
@@ -271,7 +271,7 @@ export function RequestDetailDialog({
                         Ngày thay đổi trạng thái
                       </div>
                       <div className="font-bold text-gray-900 dark:text-white mt-1">
-                        {formatDateTime(request.changedStatusAt)}
+                        {formatDateTime(new Date(request.changedStatusAt))}
                       </div>
                     </div>
                   </div>
@@ -387,7 +387,7 @@ export function RequestDetailDialog({
                               </TableCell>
                               <TableCell className="text-right text-gray-900 dark:text-white">
                                 <span className="font-bold">
-                                  {item.quantity}
+                                  {item.quantity} {item.unit}
                                 </span>
                               </TableCell>
                               <TableCell className="text-right text-gray-800 dark:text-gray-300">

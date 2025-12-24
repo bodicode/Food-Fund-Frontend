@@ -25,6 +25,15 @@ export const GET_INGREDIENT_REQUESTS = gql`
       totalCost
       status
       created_at
+      items {
+          id
+          ingredientName
+          plannedIngredientId
+          quantity
+          requestId
+          supplier
+          unit
+      }
     }
   }
 `;

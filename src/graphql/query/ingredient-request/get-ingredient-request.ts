@@ -26,6 +26,7 @@ export const GET_INGREDIENT_REQUEST = gql`
       }
       items {
         id
+        unit
         ingredientName
         quantity
         estimatedUnitPrice
