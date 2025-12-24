@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../../compone
 import {
   MapPin,
   Users,
+  Banknote,
   DollarSign,
   CalendarDays,
   GoalIcon,
@@ -34,6 +35,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../../../../components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../../../../components/ui/dialog";
 
 import { ProgressBar } from "../../../../../components/campaign/progress-bar";
 import { Stat } from "../../../../../components/campaign/stat";
@@ -82,6 +91,9 @@ export default function MyCampaignDetailPage() {
   const [refreshOperationRequests, setRefreshOperationRequests] = useState(0);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
+  const [isPhaseConfirmDialogOpen, setIsPhaseConfirmDialogOpen] = useState(false);
+  const [pendingPhaseId, setPendingPhaseId] = useState<string>("");
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const currentUserId = currentUser?.id;
@@ -201,16 +213,22 @@ export default function MyCampaignDetailPage() {
     }
   };
 
-  const handleUpdatePhaseStatus = async (phaseId: string, status: "COMPLETED") => {
-    if (!campaign) return;
-    if (!confirm("Bạn có chắc chắn muốn đánh dấu giai đoạn nãy đã hoàn thành?")) return;
+  const handleUpdatePhaseStatus = (phaseId: string, status: "COMPLETED") => {
+    setPendingPhaseId(phaseId);
+    setIsPhaseConfirmDialogOpen(true);
+  };
 
+  const confirmUpdatePhaseStatus = async () => {
+    if (!campaign || !pendingPhaseId) return;
+
+    setIsUpdatingStatus(true);
     try {
       await phaseService.updatePhaseStatus({
-        phaseId,
-        status,
+        phaseId: pendingPhaseId,
+        status: "COMPLETED",
       });
       toast.success("Cập nhật trạng thái giai đoạn thành công!");
+      setIsPhaseConfirmDialogOpen(false);
 
       // Refresh campaign data
       const data = await campaignService.getCampaignById(campaign.id);
@@ -221,6 +239,8 @@ export default function MyCampaignDetailPage() {
       toast.error("Cập nhật thất bại!", {
         description: error instanceof Error ? error.message : "Đã xảy ra lỗi.",
       });
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -320,7 +340,7 @@ export default function MyCampaignDetailPage() {
 
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6 text-center mt-5">
             <Stat
-              icon={<DollarSign className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
+              icon={<Banknote className="mx-auto w-4 md:w-5 h-4 md:h-5" />}
               label="Đã nhận"
               value={formatCurrency(raised)}
               tone="text-green-600"
@@ -795,6 +815,47 @@ export default function MyCampaignDetailPage() {
           />
         )
       }
+
+      {/* Phase Completion Confirmation Dialog */}
+      <Dialog open={isPhaseConfirmDialogOpen} onOpenChange={setIsPhaseConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full">
+                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <DialogTitle className="text-xl">Xác nhận hoàn thành</DialogTitle>
+            </div>
+            <DialogDescription className="text-base pt-2">
+              Bạn có chắc chắn muốn đánh dấu giai đoạn này đã hoàn thành? Hành động này sẽ cập nhật trạng thái thực tế của giai đoạn trên hệ thống.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsPhaseConfirmDialogOpen(false)}
+              disabled={isUpdatingStatus}
+              className="flex-1"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={confirmUpdatePhaseStatus}
+              disabled={isUpdatingStatus}
+              className="flex-1 btn-color"
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <Loader className="mr-2 w-4 h-4 animate-spin" />
+                  Đang cập nhật...
+                </>
+              ) : (
+                "Xác nhận"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   );
 }

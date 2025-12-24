@@ -7,7 +7,7 @@ import { Loader } from "@/components/animate-ui/icons/loader";
 import { formatCurrency } from "@/lib/utils/currency-utils";
 import { formatDateTime } from "@/lib/utils/date-utils";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Calendar, User, ShoppingCart, Eye } from "lucide-react";
+import { Banknote, Calendar, User, ShoppingCart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IngredientRequestDetailDialog } from "./ingredient-request-detail-dialog";
 
@@ -73,9 +73,9 @@ export function IngredientRequestList({ campaignId, campaignPhaseId, refreshKey 
         return (
             <div className="text-center py-12">
                 <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                <p className="text-gray-500 font-medium">Chưa có yêu cầu nguyên liệu nào</p>
+                <p className="text-gray-500 font-medium">Chưa có yêu cầu giải ngân chi phí nguyên liệu nào</p>
                 <p className="text-sm text-gray-400 mt-1">
-                    Tạo yêu cầu mua nguyên liệu để quản lý chi phí thực phẩm
+                    Tạo yêu cầu giải ngân chi phí nguyên liệu để nấu thực phẩm
                 </p>
             </div>
         );
@@ -114,7 +114,7 @@ export function IngredientRequestList({ campaignId, campaignPhaseId, refreshKey 
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-3">
                                 <div className="flex items-center gap-2 text-gray-600">
-                                    <DollarSign className="h-4 w-4 text-green-600" />
+                                    <Banknote className="h-4 w-4 text-green-600" />
                                     <span className="font-semibold text-gray-900">
                                         {formatCurrency(request.totalCost)}
                                     </span>

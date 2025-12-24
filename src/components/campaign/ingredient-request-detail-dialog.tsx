@@ -150,7 +150,7 @@ export function IngredientRequestDetailDialog({
                                             {request.campaignPhase?.phaseName || "Chưa có giai đoạn"}
                                         </div>
                                         <div className="text-xs text-gray-600 mt-1">
-                                            Ngày nấu: {request.campaignPhase?.cookingDate ? formatDateTime(request.campaignPhase.cookingDate) : "N/A"}
+                                            Ngày nấu: {request.campaignPhase?.cookingDate ? formatDateTime(new Date(request.campaignPhase.cookingDate)) : "N/A"}
                                         </div>
                                     </div>
                                 </div>
@@ -160,7 +160,7 @@ export function IngredientRequestDetailDialog({
                                     <div>
                                         <div className="text-sm text-gray-600 font-medium">Ngày tạo</div>
                                         <div className="font-bold text-gray-900 mt-1">
-                                            {formatDateTime(request.created_at)}
+                                            {formatDateTime(new Date(request.created_at))}
                                         </div>
                                     </div>
                                 </div>
@@ -173,7 +173,7 @@ export function IngredientRequestDetailDialog({
                                                 Ngày thay đổi trạng thái
                                             </div>
                                             <div className="font-bold text-gray-900 mt-1">
-                                                {formatDateTime(request.changedStatusAt)}
+                                                {formatDateTime(new Date(request.changedStatusAt))}
                                             </div>
                                         </div>
                                     </div>
@@ -287,7 +287,7 @@ export function IngredientRequestDetailDialog({
                                                             </TableCell>
                                                             <TableCell className="text-right text-gray-900">
                                                                 <span className="font-bold">
-                                                                    {item.quantity}
+                                                                    {item.quantity} {item.unit}
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell className="text-right text-gray-800">

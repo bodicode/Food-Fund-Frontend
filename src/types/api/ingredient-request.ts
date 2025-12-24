@@ -2,6 +2,7 @@ export type IngredientRequestStatus = "PENDING" | "APPROVED" | "REJECTED" | "DIS
 
 export interface IngredientRequestItem {
   id: string;
+  unit: string;
   ingredientName: string;
   quantity: string;
   estimatedUnitPrice: number;
