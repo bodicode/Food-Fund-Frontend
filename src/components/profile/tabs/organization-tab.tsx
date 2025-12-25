@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/animate-ui/icons/loader";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { logout } from "../../../store/slices/auth-slice";
 import { formatDate } from "@/lib/utils/date-utils";
 import {
   Building2,
@@ -23,23 +25,42 @@ import {
 import { STATUS_CONFIG } from "@/constants/status";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Loader2, XCircle } from "lucide-react";
 
-export function OrganizationTab() {
+export function OrganizationTab({ role }: { role?: string }) {
   const router = useRouter();
+  const dispatch = useDispatch();
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLeaving, setIsLeaving] = useState(false);
   useEffect(() => {
     (async () => {
       try {
-        const res = await organizationService.getMyOrganizationRequests();
-        setOrgs(res || []);
+        if (role === "KITCHEN_STAFF" || role === "DELIVERY_STAFF") {
+          const res = await organizationService.getStaffOrganization();
+          setOrgs(res ? [res] : []);
+        } else {
+          const res = await organizationService.getMyOrganizationRequests();
+          setOrgs(res || []);
+        }
       } catch {
         toast.error("Không thể tải danh sách tổ chức");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [role]);
 
   const getSlug = (name: string) => {
     return name
@@ -70,14 +91,18 @@ export function OrganizationTab() {
           Chưa có tổ chức
         </h3>
         <p className="text-gray-500 max-w-sm mx-auto mb-6">
-          Bạn chưa gửi yêu cầu thành lập tổ chức nào. Hãy bắt đầu hành trình thiện nguyện của bạn ngay hôm nay.
+          {role === "KITCHEN_STAFF" || role === "DELIVERY_STAFF"
+            ? "Bạn hiện chưa tham gia tổ chức nào."
+            : "Bạn chưa gửi yêu cầu thành lập tổ chức nào. Hãy bắt đầu hành trình thiện nguyện của bạn ngay hôm nay."}
         </p>
-        <Button
-          onClick={() => router.push("/register/organization")}
-          className="bg-[#ad4e28] hover:bg-[#8d3e20] text-white"
-        >
-          Đăng ký tổ chức
-        </Button>
+        {(role !== "KITCHEN_STAFF" && role !== "DELIVERY_STAFF") && (
+          <Button
+            onClick={() => router.push("/register/organization")}
+            className="bg-[#ad4e28] hover:bg-[#8d3e20] text-white"
+          >
+            Đăng ký tổ chức
+          </Button>
+        )}
       </div>
     );
 
@@ -125,6 +150,63 @@ export function OrganizationTab() {
                   >
                     Hủy yêu cầu
                   </Button>
+                )}
+                {org.status === "VERIFIED" && (role === "KITCHEN_STAFF" || role === "DELIVERY_STAFF") && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 gap-2"
+                        disabled={isLeaving}
+                      >
+                        {isLeaving ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <XCircle className="w-4 h-4" />
+                        )}
+                        Rời tổ chức
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận rời tổ chức</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Bạn có chắc chắn muốn rời khỏi tổ chức <strong>{org.name}</strong> không?
+                          <br />
+                          <span className="text-red-500 font-medium mt-2 block">
+                            * Lưu ý: Bạn sẽ tự động đăng xuất để hệ thống cập nhật lại quyền hạn tài khoản.
+                          </span>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Đóng</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            try {
+                              setIsLeaving(true);
+                              const response = await organizationService.leaveOrganization();
+                              if (response.success) {
+                                toast.success("Đã rời tổ chức thành công");
+                                dispatch(logout());
+                                router.push("/login");
+                              } else {
+                                toast.error(response.message || "Rời tổ chức thất bại");
+                              }
+                            } catch (error) {
+                              console.error("Failed to leave organization:", error);
+                              toast.error("Đã xảy ra lỗi khi rời tổ chức");
+                            } finally {
+                              setIsLeaving(false);
+                            }
+                          }}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Xác nhận rời
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
                 <Badge
                   className={`px-3 py-1 text-sm font-medium border-0 ${STATUS_CONFIG[org.status as keyof typeof STATUS_CONFIG]?.color ||

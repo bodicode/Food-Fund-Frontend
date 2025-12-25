@@ -110,7 +110,10 @@ export default function OperationRequestsPage() {
           limit: 100,
           offset: 0,
         }),
-        operationRequestService.getOperationRequestStats()
+        operationRequestService.getOperationRequestStats({
+          expenseType: expenseType,
+          campaignId: operationCampaignFilter === "ALL" ? null : operationCampaignFilter,
+        })
       ]);
       setOperationRequests(requestsData);
       setOperationStats(statsData);
@@ -175,9 +178,8 @@ export default function OperationRequestsPage() {
     };
   };
 
-  // Use server stats if available, otherwise fallback to clientside (for immediate feedback or if stats API is not specific to tab)
   // Actually the server stats for operations might be global across tabs, but the list is filtered.
-  // However, the user specifically asked for operationRequestStats.
+  // However, the user specifically asked for operationRequestStats and we updated it to support filtering.
   const displayOperationStats = operationStats || getClientSideStats(operationRequests);
 
   const filteredOperationRequests = operationRequests.filter((request) => {
@@ -353,7 +355,7 @@ export default function OperationRequestsPage() {
 
       {/* Stats Cards */}
       {activeTab === "ingredient" && ingredientStats && renderStatsCards(ingredientStats)}
-      {activeTab !== "ingredient" && renderStatsCards(displayOperationStats)}
+      {activeTab !== "ingredient" && displayOperationStats && renderStatsCards(displayOperationStats)}
 
       {/* Filters */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">

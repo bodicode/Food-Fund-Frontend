@@ -57,11 +57,17 @@ const SidebarContent = ({
         { key: "campaigns", label: "Chiến dịch của tôi", icon: HeartHandshake },
       ]
       : []),
-    ...(profile?.role !== "KITCHEN_STAFF" && profile?.role !== "DELIVERY_STAFF"
-      ? [{ key: "organization", label: "Yêu cầu tạo tổ chức", icon: Building2 }]
-      : []),
+    {
+      key: "organization",
+      label: profile?.role === "KITCHEN_STAFF" || profile?.role === "DELIVERY_STAFF"
+        ? "Tổ chức của tôi"
+        : "Yêu cầu tạo tổ chức",
+      icon: Building2
+    },
     { key: "history", label: "Lịch sử ủng hộ", icon: HistoryIcon },
-    { key: "join_requests", label: "Yêu cầu tham gia", icon: UserPlus },
+    ...(profile?.role !== "FUNDRAISER" && profile?.role !== "ADMIN"
+      ? [{ key: "join_requests", label: "Yêu cầu tham gia", icon: UserPlus }]
+      : []),
   ];
 
   return (
@@ -179,11 +185,16 @@ export default function ProfilePage() {
           campaigns: { component: <CampaignsTab />, title: "Chiến dịch của tôi" },
         }
         : {}),
-      ...(profile?.role !== "KITCHEN_STAFF" && profile?.role !== "DELIVERY_STAFF"
-        ? { organization: { component: <OrganizationTab />, title: "Yêu cầu tạo tổ chức" } }
-        : {}),
+      organization: {
+        component: <OrganizationTab role={profile?.role} />,
+        title: profile?.role === "KITCHEN_STAFF" || profile?.role === "DELIVERY_STAFF"
+          ? "Tổ chức của tôi"
+          : "Yêu cầu tạo tổ chức"
+      },
       history: { component: <HistoryTab />, title: "Lịch sử ủng hộ" },
-      join_requests: { component: <JoinRequestsTab />, title: "Yêu cầu tham gia" },
+      ...(profile?.role !== "FUNDRAISER" && profile?.role !== "ADMIN"
+        ? { join_requests: { component: <JoinRequestsTab />, title: "Yêu cầu tham gia" } }
+        : {}),
     }),
     [profile?.role]
   );
@@ -191,16 +202,17 @@ export default function ProfilePage() {
   useEffect(() => {
     if (loadingProfile) return;
 
-    const tabFromUrl = searchParams.get("tab") as TabKey | null;
-    if (tabFromUrl && TABS[tabFromUrl]) {
-      setActiveTab(tabFromUrl);
-    } else if (
-      (tabFromUrl === "wallet" || tabFromUrl === "disbursements") &&
-      profile?.role !== "FUNDRAISER"
-    ) {
-      router.push("/profile?tab=profile");
+    const tabFromUrl = searchParams.get("tab") as string | null;
+
+    if (tabFromUrl) {
+      if (TABS[tabFromUrl as TabKey]) {
+        setActiveTab(tabFromUrl as TabKey);
+      } else {
+        // Redirect to profile if tab is invalid or restricted
+        router.push("/profile?tab=profile");
+      }
     }
-  }, [searchParams, TABS, profile?.role, router, loadingProfile]);
+  }, [searchParams, TABS, router, loadingProfile]);
 
   const handleNavigate = (key: TabKey) => {
     setActiveTab(key);

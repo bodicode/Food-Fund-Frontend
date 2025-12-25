@@ -90,10 +90,13 @@ class OperationRequestService {
     }
   }
 
-  async getOperationRequestStats(): Promise<OperationRequestStats | null> {
+  async getOperationRequestStats(
+    filter?: OperationRequestFilterInput
+  ): Promise<OperationRequestStats | null> {
     try {
       const { data } = await client.query<OperationRequestStatsResponse>({
         query: GET_OPERATION_REQUEST_STATS,
+        variables: { filter },
         fetchPolicy: "no-cache",
       });
 
